@@ -73,7 +73,7 @@ describe('inline cards', () => {
     fails('Bad {{Zz}}', /bad card group/);
     fails('```quiz\n- q: "{{Zz}}"\n  options: [a, b]\n  answer: 0\n  explain: x\n```', /quiz 1: q/);
     fails(
-      '```scene\nid: s\nversion: 1\nsteps:\n  - id: a\n    text: "{{Zz}}"\n    completeWhen: { acknowledged: true }\n```',
+      '```scene\nid: s\nversion: 1\nsteps:\n  - id: a\n    text: "{{Zz}}"\n    allowedActions: []\n    advance: button\n    completeWhen: { acknowledged: true }\n```',
       /step a text/,
     );
   });
@@ -205,7 +205,7 @@ describe('scene blocks', () => {
   const scene = (extra = '') =>
     '```scene\nid: sc\nversion: 1\n' +
     extra +
-    'steps:\n  - id: a\n    text: Hi\n    completeWhen: { acknowledged: true }\n```';
+    'steps:\n  - id: a\n    text: Hi\n    allowedActions: []\n    advance: button\n    completeWhen: { acknowledged: true }\n```';
   it('validates through validateScene', () => {
     const [b] = blocksOf(scene());
     expect(b).toMatchObject({ kind: 'scene', scene: { id: 'sc' } });
