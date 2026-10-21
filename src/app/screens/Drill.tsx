@@ -5,7 +5,9 @@ import {
   DRILL_MODE_CATEGORIES,
   Tableau,
   cardCode,
+  gradeCopy,
   gradeSpot,
+  modeOf,
   nextSpot,
   spotFromCode,
 } from '../../sim';
@@ -17,7 +19,6 @@ import type {
   DrillMode,
   DrillSpot,
   RngState,
-  TableauRuleId,
 } from '../../sim';
 import { HandPair } from '../components/Cards';
 import { Link } from '../components/Link';
@@ -57,53 +58,9 @@ export const CATEGORY_LABEL: Record<DrillCategoryId, string> = {
   'which-bet': 'Which bet?',
 };
 
-/** curriculum.md section 9.2 reminders. */
-export const REMINDER: Record<Exclude<DrillCategoryId, 'banker-mixed' | 'which-bet'>, string> = {
-  'hand-total': 'Tens and faces are 0. Keep only the last digit.',
-  natural: 'An 8 or 9 on two cards, on either side, ends the hand.',
-  'player-draw': 'Player: 0 to 5 draws, 6 and 7 stand.',
-  'banker-player-stood': 'Player stood, so the Banker copies the rule: 0 to 5 draws.',
-  'banker-0-2': 'Banker 0, 1 or 2 always draws.',
-  'banker-3': 'Banker 3 draws on anything except a Player 8.',
-  'banker-4': 'Banker 4 draws on a Player third card of 2 to 7.',
-  'banker-5': 'Banker 5 draws on 4 to 7.',
-  'banker-6': 'Banker 6 draws on 6 or 7 only.',
-  'banker-7': 'Banker 7 always stands.',
-  'who-wins': 'Closest to 9 wins. Equal totals tie.',
-  settle: 'Banker wins pay 95¢ per $1. Tie pays 8 to 1. Pairs 11 to 1.',
-};
-
-/** `banker-mixed` uses the reminder of the row that applied. */
-const RULE_CATEGORY: Record<TableauRuleId, keyof typeof REMINDER> = {
-  natural: 'natural',
-  'player-0-5-draws': 'player-draw',
-  'player-6-7-stands': 'player-draw',
-  'banker-player-stood-0-5-draws': 'banker-player-stood',
-  'banker-player-stood-6-7-stands': 'banker-player-stood',
-  'banker-0-2-draws': 'banker-0-2',
-  'banker-3-draws-unless-8': 'banker-3',
-  'banker-4-draws-on-2-7': 'banker-4',
-  'banker-5-draws-on-4-7': 'banker-5',
-  'banker-6-draws-on-6-7': 'banker-6',
-  'banker-7-stands': 'banker-7',
-};
-
-export function reminderFor(g: DrillGrade): string | null {
-  if (g.category === 'which-bet') return null;
-  if (g.category === 'banker-mixed') return g.rule ? REMINDER[RULE_CATEGORY[g.rule]] : null;
-  return REMINDER[g.category];
-}
-
 /** Categories a mode drills ('mixed': all 14). */
 export function categoriesOf(mode: DrillMode): readonly DrillCategoryId[] {
   return mode === 'mixed' ? DRILL_CATEGORY_IDS : DRILL_MODE_CATEGORIES[mode];
-}
-
-/** The mode a category belongs to (hand-total and which-bet live only in 'mixed'). */
-export function modeOf(cat: DrillCategoryId): DrillMode {
-  for (const m of ['player', 'banker', 'winner', 'payout'] as const)
-    if (DRILL_MODE_CATEGORIES[m].includes(cat)) return m;
-  return 'mixed';
 }
 
 export interface DrillQuery {
@@ -234,14 +191,7 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
   const d = store.drill;
   const cats = categoriesOf(q.mode);
   const keypad = spot?.category === 'hand-total';
-  const reminder = grade && reminderFor(grade);
-  const headline = grade
-    ? grade.correct
-      ? 'Correct!'
-      : grade.category === 'which-bet'
-        ? 'The other one.'
-        : 'Not quite.'
-    : '';
+  const copy = grade ? gradeCopy(grade) : null;
   const showRule = grade !== null && grade.rule !== null && grade.cell !== '';
   const statCats = q.mode === 'mixed' ? cats.filter((c) => d.byCategory[c]?.answered) : cats;
 
@@ -377,11 +327,8 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
           data-correct={String(grade.correct)}
         >
           <p role="status">
-            <strong>{headline}</strong>{' '}
-            {!grade.correct && grade.category !== 'which-bet' && <>{grade.answer}. </>}
-            {grade.explanation}
+            <strong>{copy?.headline}</strong> {copy?.body}
           </p>
-          {reminder && <p class="muted">{reminder}</p>}
           {showRule && (
             <Tableau
               view={grade.cell.startsWith('b') ? 'banker' : 'player'}
