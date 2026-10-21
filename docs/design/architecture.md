@@ -38,6 +38,13 @@ an auto-play preset compared on one seed; D10 burgundy `#5c1a2b` + gold; D11
 tabs Learn · Play · Drill · More; D12 Artifact first, then Pages, and
 Pages/Actions are already enabled, so **WP0 ships `ci.yml` and `pages.yml`**
 and every push to `main` deploys from the first merge.
+After the design review (decisions.md §3): D33 renames (`variant`, `tiePays`,
+`?variant=`, `?tie=`, one `simulate` job with `sessions`, `previewSlip`, Drill
+`winner` mode), D34 markup (tableau `full`, `TableauCellId`, quiz `hand` as
+YAML arrays, roads parsed by `parseRoadString`), D35 (`SessionPanel` and the
+tappable commission line are table-ui's), D37 (WP0 additions, batons), D29
+(Drill categories, `?cat=`, `?focus=misses`) and D24 (content split) are
+applied below.
 
 ---
 
@@ -76,19 +83,19 @@ lockfile for the new name. It must not bump any range.
 
 Nothing is added: no router lib, no state lib, no chart lib, no zod, no
 Workbox, no Comlink, no tsx. Nothing is removed from the dev set either (the
-in-thread job client still needs nothing new; Plan B in §4.4 needs nothing new).
+same-thread job client still needs nothing new; Plan B in §4.4 needs nothing new).
 
 ### 1.2 What changes for baccaratton
 
 | Area | holdumb | baccaratton | Why |
 | --- | --- | --- | --- |
-| EV compute | Async EV client over a **Web Worker** (flop EV is 10^6 showdowns), inline IIFE worker in the single file | **No worker by default (Plan A).** Bet previews are **synchronous** calls into `src/sim/math` (exact EV of every bet over the current shoe composition is a small enumeration). Only long multi-hand simulations go through a time-sliced **in-thread** job client in `src/sim/jobs` | Simulator.md decides; §4 makes both answers cheap. Deletes ~600 lines of worker plumbing, one copy of engine + math in the single file, the `#ev-worker` alias and its three configs |
+| EV compute | Async EV client over a **Web Worker** (flop EV is 10^6 showdowns), inline IIFE worker in the single file | **No worker by default (Plan A).** Bet previews are **synchronous** calls into `src/sim/math` (exact EV of every bet over the current shoe composition is a small enumeration). Only long multi-hand simulations go through a time-sliced **same-thread** job client in `src/sim/jobs` | Decided in D18 (exact full recompute ≈ 1.4 ms desktop); §4.4 keeps the way back. Deletes ~600 lines of worker plumbing, one copy of engine + math in the single file, the `#ev-worker` alias and its three configs |
 | Vite config | `#ev-worker` alias, `worker.format` | Removed. Back to crappy's three-line plugin list | Plan A |
 | Precomputed tables | `src/sim/math/tables/` + `gen:tables` | Not expected. `gen:tables` script kept as a no-op (`--passWithNoTests`) so a table can be added without touching `package.json` | Baccarat EV per composition is milliseconds |
-| Content format | `:::math`, `:::tip`, `scene`, `quiz`, `chart`, `{{As Kd}}`, quiz `hand: {hole, board}` | Same base, `chart` replaced by **` ```tableau `** (drawing-rule chart) and **` ```roads `** (static scoreboard), quiz `hand: {player, banker}`, inline cards `{{Kh 7d}}` (with an optional total, §3.2) | Baccarat lessons talk about hands, totals, the third-card rule and scoreboards |
+| Content format | `:::math`, `:::tip`, `scene`, `quiz`, `chart`, `{{As Kd}}`, quiz `hand: {hole, board}` | Same base, `chart` replaced by **` ```tableau `** (drawing-rule chart) and **` ```roads `** (static scoreboard), quiz `hand: {player: [..], banker: [..]}`, inline cards `{{Kh 7d}}` (with an optional total, §3.2) | Baccarat lessons talk about hands, totals, the third-card rule and scoreboards |
 | Reference data | `bets.json`, `hands.json`, `strategy.json` | `bets.json` keyed by **bet id** (every simulated bet), `systems.json` keyed by betting-system id. `hands.json` dropped | Numbers still come from engine/math, never the JSON |
 | Screens and tabs | Learn · Play · Drill · More; Strategy charts, Hands | Learn · Play · Drill · More; Drill = **third-card-rule trainer**. New screens: **Drawing rules** (`#/rules`), **Roads** explainer (`#/roads`), Bets & paytables (`#/bets`). Hands and Strategy screens dropped | §2 |
-| Settings | `paytable`, `anteUnitCents`, `fourColorDeck`, `confirmCostlyMoves` | `rules` preset, `commission` variant, `unitCents`, `handsPerHour`, `confirmCostlyBets`, `practice`, `shoeTracker`, `showRoads`, `fourColorDeck` (no squeeze, no continuous shuffle: D7, D8) | §2.4 |
+| Settings | `paytable`, `anteUnitCents`, `fourColorDeck`, `confirmCostlyMoves` | `variant` (`punto-banco` / `ez` / `super-6`), `tiePays` (8 or 9), `unitCents`, `handsPerHour`, `confirmCostlyBets`, `practice`, `shoeTracker`, `showRoads`, `fourColorDeck` (no squeeze, no continuous shuffle: D7, D8) | §2.4 |
 | Theme colour | navy `#0b2e4a` | **burgundy `#5c1a2b`** felt, gold `#d4af37` trim (D10) | Tells three installed apps apart (crappy green `#0b3d2e`, holdumb navy) |
 | Single-file budget | target 600 kB, fail 800 kB (holdumb measures 423,095 B) | **target 450 kB, fail 600 kB** | No worker copy, no tables (§5.4) |
 | Build info, update path, suit glyphs (`U+FE0E`), Settings → Check for updates | | Unchanged | |
@@ -104,10 +111,10 @@ in-thread job client still needs nothing new; Plan B in §4.4 needs nothing new)
 | `#/` | Home | "Continue" (next unfinished lesson), progress ring, quick links (Learn, Play, Drill, Bets), "Download offline copy" and "Install app" when applicable |
 | `#/learn` | Lesson list | A **"Drawing rules" card at the top** (→ `#/rules`), then chapters in order, including the three Perfect-strategy chapters (lowest edge / practical / fun per dollar). All lessons open; status done / in progress / new |
 | `#/learn/:lessonId` | Lesson | Prose, `:::math`, `:::tip`, inline cards, scenes, tableau and roads blocks, quizzes, Prev / Next, "Mark complete" |
-| `#/play` | Sandbox | Full simulator: chip rack, bet spots (Player, Banker, Tie, Pairs, Dragon/Panda per variant), **EV sheet of every bet before Deal** (full-shoe EV, D6; with Shoe tracker on, the live exact current-shoe EV beside it), deal with quick-flip draws (no squeeze, D7), settlement, **Bead plate + Big Road** strip (D4), shoe meter (cards left, cut card at 16 from the end, burn shown at the start of each shoe, D8), auto-play panel with systems compare and bankroll chart. Query: `?seed=`, `?shoe=<forced card list>`, `?rules=<preset>`, `?commission=<variant>`, `?system=<id>`, `?speed=instant` (tests). Drill answers and lessons open a preset deal here |
-| `#/drill` | Drill (tab) | **Third-card-rule trainer.** Deals two cards to each side; you answer **"Player: Draw / Stand"**, then (if relevant, after the Player's third card is shown) **"Banker: Draw / Stand"**, and in `total` mode **"Who wins? Player / Banker / Tie"**. Instant right/wrong, the rule that applied in words ("Banker 5 draws when the Player's third card is 4–7"), the highlighted tableau cell, "See the chart" (→ `#/rules?highlight=`) and "Play it out" (→ `#/play?shoe=`). Optional **pay-out** mode: "Banker wins $25: what's paid?" ($23.75, commission). Query: `?mode=player\|banker\|winner\|payout\|mixed`, `?focus=<cell list>` (missed cells). Persisted: best streak, accuracy per mode, recent misses ("Review misses"). Spot generation and grading are pure functions in `src/sim` (simulator.md places them; default `src/sim/strategy/drill.ts`) built on the engine's own draw functions |
-| `#/rules` | Drawing rules (no tab) | The Player rule and the Banker tableau (Banker total 0–7 × Player third card none/0–9), naturals, totals mod 10, card values. Generated from the engine's `playerDraws` / `bankerDraws`, never typed by hand. `?highlight=B5-P4` deep-links a cell. Tap a cell → a Drill on that cell or a forced deal in Play |
-| `#/bets` | Bets & paytables | Every simulated bet: payout per variant, exact house edge (per bet resolved and per hand incl. ties, labels per decisions.md), probability of win/lose/push, tier badge, "Try it". Variant switch (Classic 5% / EZ / Super 6) defaults to the current setting |
+| `#/play` | Sandbox | Full simulator: chip rack, bet spots (Player, Banker, Tie, Pairs, Dragon/Panda per variant), **EV sheet of every bet before Deal** (full-shoe EV, D6; with Shoe tracker on, the live exact current-shoe EV beside it), deal with quick-flip draws (no squeeze, D7), settlement, **Bead plate + Big Road** strip (D4), shoe meter (cards left, cut card at 16 from the end, burn shown at the start of each shoe, D8), auto-play panel with systems compare and bankroll chart. Query: `?seed=`, `?shoe=<forced card list>`, `?variant=punto-banco\|ez\|super-6`, `?tie=8\|9`, `?system=<strategy id>`, `?speed=instant` (tests). Drill answers and lessons open a preset deal here |
+| `#/drill` | Drill (tab) | **Third-card-rule trainer.** Deals two cards to each side; you answer **"Does the Player draw?" Draw · Stand**, then (if relevant, after the Player's third card is shown) **"Does the Banker draw?" Draw · Stand**; in `winner` mode the whole hand is shown and you answer **"Who wins? Player / Banker / Tie"**. Instant right/wrong, the rule that applied in words ("Banker 5 draws when the Player's third card is 4–7"), the highlighted tableau cell, "See the chart" (→ `#/rules?highlight=`) and "Play it out" (→ `#/play?shoe=`). `payout` mode: "Banker wins $25: what's paid?" ($23.75, commission). Spots carry a `category` (the 14 `DrillCategoryId`s of curriculum.md §9.1); `DrillMode` groups them (D29): `player` ⊇ `natural`, `player-draw`; `banker` ⊇ `banker-*`; `winner` = `who-wins`; `payout` = `settle`; `hand-total` and `which-bet` appear only in `mixed`. There is no `total` mode. Query: `?mode=player\|banker\|winner\|payout\|mixed`, `?cat=<DrillCategoryId>` (one category), `?focus=misses` (replay recent misses; tableau links may pass `?focus=<TableauCellId>`). Persisted: best streak, accuracy **per category**, recent misses ("Review misses" → `?focus=misses`). Spot generation and grading are pure functions in `src/sim` (`src/sim/strategy/drill.ts`, D22) built on the engine's own draw functions |
+| `#/rules` | Drawing rules (no tab) | The Player rule and the Banker tableau (Banker total 0–7 × Player third card none/0–9), naturals, totals mod 10, card values. Generated from the engine's `playerDraws` / `bankerDraws`, never typed by hand. `?highlight=<TableauCellId>` deep-links a cell (simulator `TableauCellId`: `b4/p7` Banker 4 / Player third card 7, `b6/s` Banker 6 / Player stood, `p5` Player total 5; D34), e.g. `#/rules?highlight=b5/p4`. Generated from the engine's literal `TABLEAU`. Tap a cell → a Drill on that cell or a forced deal in Play |
+| `#/bets` | Bets & paytables | Every simulated bet: payout per variant, house edge per bet placed (D14) as the headline, the per-resolved figure in the detail (D32), probability of win/lose/push, tier badge, "Try it". Variant switch (`punto-banco` / `ez` / `super-6`, plus Tie 8:1 / 9:1) defaults to the current setting |
 | `#/bets/:betId` | Bet detail | Copy from `bets.json`, paytable, edge, outcome probabilities from math, "Learn" and "Try it" links |
 | `#/roads` | Roads explainer (no tab) | What the scoreboard is: Bead plate and Big Road drawn by the real `ui/Scoreboard` from a seeded shoe, "deal 10 more" button, how Ties and Pairs are marked, a short honest panel ("past results don't change the next hand", link to the gambler's-fallacy lesson), and a static picture + text of the derived roads (Big Eye Boy, Small Road, Cockroach Pig), explained only (D4) |
 | `#/glossary` | Glossary | Search, `?term=slug` anchors |
@@ -162,19 +169,19 @@ interface PersistedV1 {
   settings: Settings;
   drill: {
     bestStreak: number;
-    byMode: Record<'player' | 'banker' | 'winner' | 'payout', { answered: number; correct: number }>;
-    recentMisses: string[]; // spot codes from the drill module, newest first, max 50
+    byCategory: Partial<Record<DrillCategoryId, { answered: number; correct: number }>>; // D29
+    recentMisses: string[]; // spot codes (strategy/drill.ts spotCode), newest first, max 50
   };
   sandbox?: unknown; // opaque snapshot owned by sim/ui: shoe (remaining cards + position), bets,
                      // bankroll in cents, road history; restored exactly mid-shoe
 }
 
-// src/sim/ui/types.ts (simulator.md owns; listed here so the app and settings screen agree)
+// src/sim/ui/types.ts (created in WP0 per D37; simulator.md §4 owns; app Settings extends it)
 interface SimSettings {
   animationSpeed: 'normal' | 'fast' | 'instant'; // OS reduced motion forces 'instant'
   fourColorDeck: boolean;          // default false
-  rules: RulePresetId;             // engine preset ids; v1 has one shoe (8 decks, burn, cut card 16 from the end: D8), tie pays 8:1 (D2)
-  commission: CommissionVariant;   // 'classic' (5%, default) | 'ez' (no commission, Banker 3-card 7 pushes) | 'super-6' (Banker 6 pays 1:2)
+  variant: VariantId;              // 'punto-banco' (5% commission, default) | 'ez' (no commission, Banker 3-card 7 pushes) | 'super-6' (Banker 6 pays 1:2) (D13)
+  tiePays: TiePays;                // 8 (default) | 9 (D13); one shoe only: 8 decks, burn, cut card 16 from the end (D8)
   unitCents: number;               // default 1_000 ($10); per-hour lines and "units" scale by it
   handsPerHour: number;            // default 72 (D5)
   confirmCostlyBets: boolean;      // default true: red-tier bets (e.g. Tie, most side bets) need a second tap
@@ -192,7 +199,7 @@ interface Settings extends SimSettings {
 
 There is deliberately **no** squeeze toggle (D7) and **no** continuous-shuffle
 toggle (D8). Side bets offered follow the variant: Dragon 7 / Panda 8 only appear with
-`commission: 'ez'` (D3). Settings shows each variant's Banker edge next to its
+`variant: 'ez'` (D3); offered bets come from the engine's `betsOffered(rules)`. Settings shows each variant's Banker edge next to its
 name, computed by math (never typed). Settings flow into the simulator as
 props; `src/sim/**` never reads storage.
 
@@ -235,7 +242,7 @@ does quote numbers; those are pinned by the content tests (§3.4).
 ---
 id: banker-draws
 title: When the Banker draws
-chapter: rules
+chapter: third-card-rule
 summary: The Banker's rule depends on the Player's third card.
 minutes: 6
 ---
@@ -251,12 +258,12 @@ Nobody decides anything at the table: the dealer follows the rule for both hands
 :::
 
 ```tableau
-view: banker          # player | banker | both
-highlight: [B5-P9]    # Banker total 5, Player third card 9; P-none for "Player stood"
+view: banker          # player | banker | full (D34)
+highlight: [b5/p9]    # TableauCellId: Banker 5 / Player third card 9; b6/s = Player stood; p5 = Player total
 ```
 
 ```roads
-results: BBPBTPPPB    # B/P/T, optional pair marks per simulator.md
+results: BBPBTPPPB    # parsed by engine parseRoadString (engine/roads.ts), D34
 view: [bead, big]
 caption: Four Banker wins in a row tell you nothing about the next hand.
 ```
@@ -267,7 +274,7 @@ caption: Four Banker wins in a row tell you nothing about the next hand.
 
 ```quiz
 - q: Does the Banker draw?
-  hand: { player: 4h 2c 9d, banker: Kd 5s }
+  hand: { player: [4h, 2c, 9d], banker: [Kd, 5s] }   # YAML arrays (D34)
   options: [Draw, Stand]
   answer: 1
   explain: Banker 5 draws only when the Player's third card is 4–7.
@@ -280,9 +287,9 @@ caption: Four Banker wins in a row tell you nothing about the next hand.
 | `[[term]]`, `[[term\|label]]` | no | glossary link | term exists |
 | `{{Kh 7d}}` inline cards | same syntax, baccarat ranks | `<span class="cards" role="img" aria-label="King of hearts, Seven of diamonds (total 7)">` with text-presentation suit glyphs | every code parses with `parseCards`; no duplicate inside a group. The aria label (and an optional visible badge with `{{Kh 7d =}}`) adds the baccarat total from the engine's `handTotal`; `{{Kh 7d =7}}` asserts the total and fails the build if wrong |
 | ` ```scene ` YAML | no | scene block | `validateScene` from `src/sim/scene` (forced shoe valid for the rule preset, ids exist, every `completeWhen` known, no dead ends, Deal locked while a step waits for a bet) |
-| ` ```quiz ` `{ id?, q, options, answer (0-based), explain, hand? }` | `hand` is `{ player, banker }` | quiz block | ≥ 2 options, no duplicates, answer in range, ids unique (default `<lessonId>-q<n>`), `hand` cards valid, disjoint, 2–3 cards per side and **consistent with the drawing rules** (a 3rd card only where the rule draws) |
-| ` ```tableau ` `{ view, highlight? }` | **replaces `chart`** | tableau block rendered by `ui/Tableau` | view known; each highlight cell `B<0-7>-P<0-9\|none>` or `P<0-9>` exists |
-| ` ```roads ` `{ results, view?, caption? }` | **yes** | roads block rendered by `ui/Scoreboard` (static) | results string parses with the engine's road-entry parser; view ⊆ `bead, big` |
+| ` ```quiz ` `{ id?, q, options, answer (0-based), explain, hand? }` | `hand` is `{ player: Card[], banker: Card[] }` as YAML arrays (D34) | quiz block | ≥ 2 options, no duplicates, answer in range, ids unique (default `<lessonId>-q<n>`), `hand` cards valid, disjoint, 2–3 cards per side and **consistent with the drawing rules** (a 3rd card only where the rule draws) |
+| ` ```tableau ` `{ view, highlight? }` | **replaces `chart`** | tableau block rendered by `ui/Tableau` | view ∈ `player, banker, full` (D34); each highlight is a valid simulator `TableauCellId` (`b4/p7`, `b6/s`, `p5`) present in `TABLEAU` |
+| ` ```roads ` `{ results, view?, caption? }` | **yes** | roads block rendered by `ui/Scoreboard` (static) | results string parses with engine `parseRoadString` (`engine/roads.ts`, D34); view ⊆ `bead, big` |
 
 Inline cards render in quiz text, options and explanations, and in scene step
 text (holdumb D35). Unknown fences that look like directives (` ```math `,
@@ -322,7 +329,7 @@ is absent.
 
 ## 4. EV and job transport
 
-simulator.md decides whether exact EV needs a Web Worker. Baccarat has no
+**Decided (D18): no Web Worker.** Baccarat has no
 player decisions; the EV sheet is per **bet**, and the exact EV of every bet
 over a shoe composition is an enumeration of at most 6 cards over 10 value
 classes (plus suits/ranks for pairs and Dragon Bonus margins): thousands of
@@ -338,7 +345,7 @@ caller.
 2. **Previews are direct synchronous calls.** The default sheet is full-shoe
    EV (D6), a constant per rule set that math may memoise; the Shoe tracker
    recomputes exactly for the remaining composition after every hand. `src/sim/ui` imports the
-   preview function (`previewBets(state)` or whatever simulator.md names it)
+   `previewSlip(req)` (simulator.md §3, D33)
    from math and renders the EV sheet in the same frame. No skeleton, no
    cache, no cancellation. Perf budget §4.5 guards this.
 3. **Long jobs** (auto-play, systems compare, many sessions) are generator
@@ -355,7 +362,7 @@ name doesn't lie.
 
 | File | From holdumb | Role |
 | --- | --- | --- |
-| `protocol.ts` | adapt `worker/protocol.ts` | **Frozen contract.** `EvJobs` (`simulate`, `simulateMany`, per simulator.md), `JobKind`, re-exported `Progress`, the `EvClient` interface with `mode: 'inthread'` (type kept as `'worker' \| 'inthread'`). **Drop** `ToWorker`, `FromWorker`, `PROTOCOL_VERSION` |
+| `protocol.ts` | adapt `worker/protocol.ts` | **Frozen contract.** `EvJobs` with **one** kind, `simulate` (single session, many `sessions`, and `compare` on one seed; D18, D33), `JobKind`, re-exported `Progress`, the `EvClient` interface with `mode: 'inthread'` (type kept as `'worker' \| 'inthread'`). **Drop** `ToWorker`, `FromWorker`, `PROTOCOL_VERSION` |
 | `jobs.ts` | verbatim shape | `JOBS` map kind → job |
 | `runner.ts` + `runner.test.ts` | **verbatim** | `runSliced(job, req, { sliceMs, onProgress, isCancelled, yieldFn })`, `CancelledError` |
 | `client.ts` + `client.test.ts` | adapt | `createEvClient()`: in-thread only, `sliceMs: 8`, `MessageChannel` yield, latest-wins per `key`, abort via `AbortSignal`. **Drop** the ping/pong health check, fallback switch, LRU cache and `canonicalJson` (simulations are seeded and not repeated) |
@@ -418,7 +425,7 @@ at target 550 kB / fail 750 kB in that case.
 | Full EV sheet, Shoe tracker on (every bet, exact over the remaining shoe) | < 30 ms, no long task > 50 ms |
 | Deal → settle (instant speed, logic only) | < 16 ms |
 | `simulate` 1,000 hands, one system | < 1 s, with progress |
-| `simulateMany` 100 sessions × 200 hands | < 3 s, progress, no long task > 50 ms |
+| `simulate` with `sessions: 100` × 720 hands | < 3 s, progress, no long task > 50 ms |
 | First paint of `#/play` from cold single file | < 1.5 s |
 
 Numbers are placeholders; simulator.md may tighten them in decisions.md.
@@ -521,7 +528,7 @@ baccaratton/
 │   └── vite-plugin-sw.ts                           [infra]
 ├── content/
 │   ├── chapters.json glossary.json bets.json systems.json   [content-a lead] [B]
-│   ├── lessons/NN-slug.md                          [content-a | content-b | content-c by lesson range]
+│   ├── lessons/NN-slug.md                          [content-a 01–08 | content-b 09–16 | content-c 17–24] (D24)
 │   └── README.md                                   [app]
 ├── docs/
 │   ├── design/{curriculum,simulator,architecture}.md  [spikes; frozen after PR #1]
@@ -536,12 +543,12 @@ baccaratton/
 │   ├── env.d.ts                                    [WP0] [B]   __SINGLE_FILE__, __APP_VERSION__, __BUILD_SHA__, virtual:content, window.__baccaratton test hook
 │   ├── sim/
 │   │   ├── index.ts                                [WP0] [B]   public barrel (append-only)
-│   │   ├── engine/                                 [engine]    types.ts FROZEN [B]; cards/parseCards, values & totals, shoe (8 decks, cut card, burn), seeded rng, forced shoes, drawing rules (playerDraws/bankerDraws), bet registry & payouts per variant, settle, roads data, log, money, job.ts
-│   │   ├── math/                                   [math]      types.ts FROZEN [B]; fraction, exact outcome distribution per composition, previewBets, edges per bet/variant, tiers, alternatives, explain rows, Monte-Carlo cross-checks
-│   │   ├── strategy/                               [strategy]  types.ts FROZEN [B]; betting systems (flat, Martingale, Paroli, 1-3-2-6, Fibonacci, D'Alembert, follow-the-shoe, side-bet sprinkler…), simulate/simulateMany jobs, per-hour metrics, drill.ts (spot generator + grading)
+│   │   ├── engine/                                 [engine]    types.ts FROZEN [B]; cards/parseCards, values & totals, shoe (8 decks, cut card, burn), seeded rng, forced shoes, drawing rules (playerDraws/bankerDraws), bet registry & payouts per variant, settle, roads.ts (roads data + `parseRoadString`), log, money, job.ts [B] (verbatim from holdumb, frozen, D37)
+│   │   ├── math/                                   [math]      types.ts FROZEN [B]; fraction, exact outcome distribution per composition, previewSlip, edges per bet/variant, tiers, alternatives, explain rows, Monte-Carlo cross-checks
+│   │   ├── strategy/                               [strategy]  types.ts FROZEN [B]; betting systems (flat, Martingale, Paroli, 1-3-2-6, Fibonacci, D'Alembert, follow-the-shoe, side-bet sprinkler…), the `simulate` job (with `sessions`), per-hour metrics, drill.ts (spot generator + grading)
 │   │   ├── jobs/                                   [strategy]  protocol.ts FROZEN [B]; runner, client, jobs
 │   │   ├── scene/                                  [integration] types.ts FROZEN [B]; runner, validate (WP0 stub), lessons.test.ts
-│   │   └── ui/                                     [table-ui]  Felt, Card, HandView, BetSpot, ChipRack, ChipStack, EvSheet, TierBadge, Tableau, Scoreboard (bead + big road), ShoeMeter, animation, layouts/, gallery; [strategy] AutoPlayPanel, BankrollChart, OutcomeHistogram; [integration] Simulator.tsx, StepPanel, persist, settings
+│   │   └── ui/                                     [table-ui]  types.ts [B] (SimSettings, WP0); Felt, Card, HandView, BetSpot, ChipRack, ChipStack, EvSheet, TierBadge, Tableau, Scoreboard (bead + big road), ShoeTracker, ShoeMeter, SessionPanel (D35), settlement toast with tappable commission line (D35), animation, layouts/, gallery; [strategy] AutoPlayPanel, BankrollChart, SurvivalChart, OutcomeHistogram; [integration] Simulator.tsx, StepPanel, persist, settings
 │   ├── content/{types,compile,load,cards}.ts       [app]   types.ts [B] (complete in WP0)
 │   ├── app/                                        [app]
 │   │   ├── App.tsx routes.tsx router.ts context.tsx store.ts storage.ts settings.ts theme.ts update.ts evClient.ts bets.ts test-hook.ts
@@ -691,9 +698,15 @@ tsconfig, the ESLint config or the Vite config. Worktree
      simulator.md (imports fixed so they lint), then frozen.
    - Each `src/sim/<module>/index.ts` with simulator.md's signatures, plus
      real small data the content tests need: bet ids per variant, rule preset
-     ids, commission variant ids, system ids, drill modes.
-   - Implemented for real (small, needed by content and URLs): `parseCards`,
-     `cardValue`, `handTotal`, `playerDraws`, `bankerDraws` (the drawing rules
+     ids, variant ids (`punto-banco`, `ez`, `super-6`), `TiePays`, strategy ids
+     (D13), Drill modes and the 14 category ids (D29).
+   - `src/sim/engine/job.ts` **verbatim** from holdumb (`jobs/protocol.ts`
+     imports it; frozen, prettier-ignored) and `src/sim/ui/types.ts` with
+     `SimSettings` (D13 fields, D37); app `Settings` extends it.
+   - Implemented for real (small, needed by content and URLs): `parseCards`
+     (the one name; not `parseCard(s)`), `cardValue`, `handTotal`,
+     `playerDraws`, `bankerDraws`, the literal **`TABLEAU`**, **`betsOffered`**
+     (per variant id) and **`parseRoadString`** (D37) (the drawing rules
      are ~25 lines and the tableau, Drill and quiz validation all need them),
      each with an exhaustive test (all 10×10 two-card totals; the full Banker
      tableau against a literal table from curriculum.md).
@@ -705,7 +718,7 @@ tsconfig, the ESLint config or the Vite config. Worktree
      props.
    - `src/sim/index.ts` barrel.
    - `src/content/types.ts` complete (blocks incl. `tableau`, `roads`, quiz
-     `hand: {player, banker}`, `ContentBundle` with `systems`).
+     `hand: {player: Card[], banker: Card[]}`, `ContentBundle` with `systems`).
    - `src/main.tsx` + a minimal `App` shell with a visible `h1` and the four
      tabs; `src/app/styles/tokens.css` with the burgundy tokens (§10).
    - `tests/fixtures/content/_sample-*.json` and one `_sample-welcome.md`.
@@ -737,19 +750,20 @@ All branch from merged WP0 (`claude/baccaratton-<wp>`, worktree
 
 | WP | Owns | Depends on | Delivers |
 | --- | --- | --- | --- |
-| **engine** | `src/sim/engine/**` | WP0 | cards, values, seeded shoe (8 decks default, cut card, burn per simulator.md), forced shoes, drawing rules, bet registry with payouts for Classic / EZ / Super 6 incl. Pairs, Dragon 7, Panda 8, Dragon Bonus, settlement in integer cents (commission rounding per decisions.md), roads data (bead, big road), event log, replay. Exhaustive oracle tests (every 4–6-card deal class). **Pushes early** |
+| **engine** | `src/sim/engine/**` | WP0 | cards, values, seeded shoe (8 decks default, cut card, burn per simulator.md), forced shoes, drawing rules, bet registry with payouts for `punto-banco` / `ez` / `super-6` and `tiePays` 8 / 9 incl. Pairs, Dragon 7, Panda 8, Dragon Bonus, settlement in integer cents (commission rounding per decisions.md), roads data (bead, big road), event log, replay. Exhaustive oracle tests (every 4–6-card deal class). **Pushes early** |
 | **math** | `src/sim/math/**` | engine (merge early) | exact rational outcome distribution for any shoe composition, previews for every bet, house edge per bet and variant (per resolved bet and per hand), tiers, better-alternative copy keys, "Why?" rows (e.g. "Banker wins 45.86%, Tie 9.52%"), Monte-Carlo cross-checks, perf test |
-| **strategy** | `src/sim/strategy/**`, `src/sim/jobs/**`, `ui/{AutoPlayPanel,BankrollChart,OutcomeHistogram}` | engine, math | betting systems (flat lowest-edge, practical, fun-per-dollar lenses), pattern-chasing systems that read the roads (honestly costing the same), simulate / simulateMany jobs, per-hour metrics at `handsPerHour`, `drill.ts` (seeded spot generator per mode, grading, spot codes), compare mode on one seed |
-| **table-ui** | `src/sim/ui/**` except strategy's and integration's files | engine and math types | felt SVG portrait + landscape, cards (SVG, text-presentation suits, 4-colour), animated draw sequence with reduced-motion, chips and bet spots per variant, EvSheet, TierBadge, **Tableau**, **Scoreboard** (bead plate + big road), ShoeMeter, a gallery driven by the **real** engine, screenshots |
+| **strategy** | `src/sim/strategy/**`, `src/sim/jobs/**`, `ui/{AutoPlayPanel,BankrollChart,OutcomeHistogram}` | engine, math | betting systems (flat lowest-edge, practical, fun-per-dollar lenses), pattern-chasing systems that read the roads (honestly costing the same), the `simulate` job (one kind; `sessions` and `compare`), per-hour metrics at `handsPerHour`, `drill.ts` (seeded spot generator per mode, grading, spot codes), compare mode on one seed |
+| **table-ui** | `src/sim/ui/**` except strategy's and integration's files | engine and math types | `SessionPanel` (curriculum §8.4 fields; l14, l18) and the settlement toast's tappable commission line (tap target `commission`; l07-s1, l23-s1) per D35, felt SVG portrait + landscape, cards (SVG, text-presentation suits, 4-colour), animated draw sequence with reduced-motion, chips and bet spots per variant, EvSheet, TierBadge, **Tableau**, **Scoreboard** (bead plate + big road), ShoeMeter, a gallery driven by the **real** engine, screenshots |
 | **app** | `src/app/**`, `src/content/**`, `build/vite-plugin-content.ts`, `content/README.md`, `tests/app/**`, `tests/content/{compile,content}.test.ts`, `tests/fixtures/**`, `docs/authoring.md` | WP0 | all screens and routes (§2), store/storage, settings, content compiler incl. `{{cards}}` totals, `tableau`, `roads`, quiz `hand`; uses the placeholder Simulator until integration |
 | **infra** | `src/pwa/**`, `build/vite-plugin-sw.ts`, `scripts/**`, `public/**`, `assets/**`, `.github/**`, `tests/build/**`, `tests/e2e/{offline,single-file}.spec.ts`, README, CONTRIBUTING, CODE_OF_CONDUCT | WP0 | SW + update flow + check-for-updates, manifest, burgundy icons, finalize-single with budget, workflows, layering lint test, repo docs (README "Use it" first, disclaimer, help lines) |
-| **content-a** (lead) | `content/{chapters,glossary,bets,systems}.json`, first third of the lessons, `lessons-a.test.ts` | app format, engine ids | per curriculum.md |
-| **content-b** | middle lessons (rules depth, EV basics, side bets), `lessons-b.test.ts` | content-a JSON ids | |
-| **content-c** | the three Perfect-strategy chapters + casino/etiquette + exam, `lessons-c.test.ts` | strategy ids | |
+| **content-a** (lead) | `content/{chapters,glossary,bets,systems}.json`, lessons **1–8**, `lessons-a.test.ts` | app format, engine ids | per curriculum.md §4 (D24) |
+| **content-b** | lessons **9–16**, `lessons-b.test.ts` | content-a JSON ids | D24 |
+| **content-c** | lessons **17–24**, `lessons-c.test.ts` | strategy ids | D24 |
 | **integration** (after engine, math, table-ui, strategy, app) | `src/sim/scene/**`, `ui/{Simulator,StepPanel,persist,settings}`, `tests/e2e/**` except infra's | all | scene runner with strict validation, Simulator container wiring engine + math + jobs + UI + scenes, persistence (shoe mid-way), **a test that scripts every scene to completion**, e2e on three projects + axe + perf, screenshots it views itself |
 
-Exact lesson ranges for content-a/b/c are set in decisions.md once
-curriculum.md lands (default: thirds by chapter boundary).
+Lesson ranges are fixed by D24 (24 lessons, 7 chapters, ids in curriculum.md
+§4). Inside `src/sim/**` simulator.md §8 wins on ownership (D24); D35 gives
+table-ui `SessionPanel.tsx` and the commission line.
 
 Merge order: engine → math → strategy / table-ui → app → infra (any time) →
 integration → content (content PRs merge as soon as their tests pass against
@@ -769,6 +783,9 @@ the real registries).
 | `src/env.d.ts` | infra, integration | new globals, test hook |
 | `src/sim/index.ts` | engine, math, strategy, table-ui | append exports only |
 | `src/sim/engine/types.ts`, `math/types.ts`, `strategy/types.ts`, `scene/types.ts` | owners | **frozen**: contract change via main, relayed to dependants |
+| `src/sim/engine/job.ts` | strategy, math | **frozen**, verbatim from holdumb, prettier-ignored (D37) |
+| `src/sim/ui/types.ts` | table-ui, integration, app | `SimSettings`; app `Settings` extends it (D37) |
+| `.prettierignore`, `.prettierrc.json`, `.editorconfig`, `.gitignore`, `.nvmrc` | any | the frozen-file list lives in `.prettierignore` (D37) |
 | `src/sim/jobs/protocol.ts` | strategy, math | **frozen**: new job kinds via main |
 | `src/content/types.ts` | app, content | |
 | `src/app/styles/tokens.css` | table-ui, app | felt, card, tier, chip, road colours |
@@ -844,11 +861,11 @@ decides; the listed owner copies them.
 | `scripts/finalize-single.mjs` | file name, budget 450 kB / 600 kB |
 | `src/env.d.ts` | drop worker test-hook types; `window.__baccaratton` test hook (store, seeded deal) |
 | `src/app/test-hook.ts` | expose `{ store, version }` and a `deal(seed)` smoke for e2e; no worker |
-| `src/app/storage.ts`, `store.ts` | key `baccaratton:v1`, drill `byMode`, settings validation for the new fields |
+| `src/app/storage.ts`, `store.ts` | key `baccaratton:v1`, drill `byCategory` (D29), settings validation for the new fields |
 | `src/app/routes.tsx` | §2.1 routes |
 | `src/app/components/Shell.tsx` | brand, tab icons (♠ Learn, ◆ Play, ◎ Drill, ≡ More with text-presentation selector), More match list |
-| `src/app/components/{Cards,Quiz}.tsx` | baccarat totals badge; quiz `hand: {player, banker}` |
-| `src/app/screens/{Home,Learn,More,Play,Settings}.tsx` | §2 contents; Settings sections Table (rules, commission, unit, bankroll, hands/hour), Practice (practice, confirmCostlyBets, showRoads), Display, Progress, Updates |
+| `src/app/components/{Cards,Quiz}.tsx` | baccarat totals badge; quiz `hand: {player: Card[], banker: Card[]}` |
+| `src/app/screens/{Home,Learn,More,Play,Settings}.tsx` | §2 contents; Settings sections Table (variant, tiePays, unit, bankroll, hands/hour), Practice (practice, confirmCostlyBets, shoeTracker, showRoads), Display, Progress, Updates |
 | `src/app/screens/Bets.tsx`, `src/app/bets.ts` | bet ids, variants, edges from math (no hard-coded fraction table) |
 | `src/content/{types,compile,load,cards}.ts` | §3 blocks, `systems.json`, drop `hands`/`strategy`/`isHandClass` |
 | `src/app/styles/tokens.css` | §10 |
@@ -930,12 +947,11 @@ always has an edge and no system or scoreboard pattern changes it; help line
   fallback recipe and costs no caller changes.
 - Road derivation is engine data (`engine/roads.ts`), rendering is
   `ui/Scoreboard`; derived roads are a static picture plus text only (D4).
-- Drill modes `player | banker | winner | payout`, persisted per mode; Drill
-  is graded strictly (one right answer per spot).
-- Commission rounding, burn/cut-card rules, Dragon Bonus paytable, Tie 8:1 vs
-  9:1 preset and the primary EV metric (per resolved bet vs per hand) are
-  simulator.md / curriculum.md calls recorded in decisions.md; the UI shows
-  whichever metric decisions.md names, with the other in "Why?".
+- Drill per D29: modes group the 14 categories, progress persisted per
+  category, `?cat=` and `?focus=misses`; graded strictly (one right answer).
+- Primary metric is edge per bet placed (D14); the per-resolved figure only
+  in "Why?", Bets detail and lesson 13/14 prose (D32). Tiers per D19
+  (`costly` / `sucker`).
 - Scratch evidence: `/tmp/baccaratton-scratch/architecture/wk` (lockfile
   install, versions) and `/tmp/baccaratton-scratch/architecture/holdumb`
   (build, check and e2e baseline, single-file size).
