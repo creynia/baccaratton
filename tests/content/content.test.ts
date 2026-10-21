@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -11,8 +11,11 @@ const src = readSources(process.cwd());
 
 describe('the content pipeline (placeholders while no real content exists)', () => {
   it('uses the _sample-* placeholders only while chapters.json is missing', () => {
-    expect(src.samplesActive).toBe(true);
-    expect(src.lessonFiles.every((f) => f.file.startsWith('_sample-'))).toBe(true);
+    const hasChapters = existsSync(join(process.cwd(), 'content/chapters.json'));
+    expect(src.samplesActive).toBe(!hasChapters);
+    if (!hasChapters)
+      expect(src.lessonFiles.every((f) => f.file.startsWith('_sample-'))).toBe(true);
+    else expect(src.lessonFiles.some((f) => f.file.startsWith('_sample-'))).toBe(false);
   });
 
   it('lists every lesson in exactly one chapter, and every chapter lesson exists', () => {
@@ -26,7 +29,10 @@ describe('the content pipeline (placeholders while no real content exists)', () 
 
   it('compiles every block kind the lesson format has, with no markdown or yaml left in', () => {
     const kinds = new Set(bundle.lessons.flatMap((l) => l.blocks.map((b) => b.kind)));
-    expect([...kinds].sort()).toEqual(['html', 'math', 'quiz', 'roads', 'scene', 'tableau', 'tip']);
+    const all = ['html', 'math', 'quiz', 'roads', 'scene', 'tableau', 'tip'];
+    // The samples show every kind; real lessons may not use them all yet (no roads in 1-8).
+    if (src.samplesActive) expect([...kinds].sort()).toEqual(all);
+    else for (const k of kinds) expect(all).toContain(k);
     expect(JSON.stringify(bundle)).not.toMatch(/:::|```/);
   });
 
@@ -50,6 +56,21 @@ describe('the content pipeline (placeholders while no real content exists)', () 
     for (const b of Object.values(bundle.bets)) expect(b?.howItWorks).toMatch(/^<p>/);
     for (const s of Object.values(bundle.systems)) expect(s?.rules.every((r) => r.startsWith('<p>'))).toBe(true);
     for (const g of bundle.glossary) expect(g.definition).toMatch(/^<p>/);
+  });
+});
+
+describe('real content covers the registries (architecture.md section 3.4)', () => {
+  const real = !src.samplesActive;
+  it.runIf(real)('bets.json covers exactly the engine bet ids (every variant)', () => {
+    expect(Object.keys(bundle.bets).sort()).toEqual([...BET_IDS].sort());
+  });
+  it.runIf(real)('systems.json covers exactly the strategy registry ids', () => {
+    expect(Object.keys(bundle.systems).sort()).toEqual([...STRATEGY_IDS].sort());
+  });
+  it('every bets / systems lessonId resolves to a lesson', () => {
+    const lessons = new Set(bundle.lessons.map((l) => l.id));
+    for (const c of [...Object.values(bundle.bets), ...Object.values(bundle.systems)])
+      if (c?.lessonId) expect(lessons.has(c.lessonId), c.lessonId).toBe(true);
   });
 });
 

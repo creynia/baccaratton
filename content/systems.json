@@ -1,0 +1,86 @@
+{
+  "flat-banker": {
+    "title": "Flat Banker",
+    "summary": "One unit on Banker, every hand. The lowest-edge way to play.",
+    "rules": ["Bet **1 unit on Banker** every hand, win or lose.", "Ties push and change nothing."]
+  },
+  "flat-player": {
+    "title": "Flat Player",
+    "summary": "One unit on Player, every hand.",
+    "rules": ["Bet **1 unit on Player** every hand, win or lose.", "Ties push and change nothing."]
+  },
+  "flat-tie": {
+    "title": "Flat Tie",
+    "summary": "One unit on Tie, every hand. Shown for comparison: by far the dearest of the three.",
+    "rules": ["Bet **1 unit on Tie** every hand, win or lose."]
+  },
+  "martingale": {
+    "title": "Martingale",
+    "summary": "Double after every loss, so one win gets everything back. Until a long losing run doesn't.",
+    "rules": [
+      "Start at **1 unit**. After a **loss**, double the bet: 1, 2, 4, … 64 units.",
+      "After a **win**, go back to 1 unit. A tie repeats the same bet.",
+      "After **7 losses in a row** (or when the next bet is over the table limit), give up the chase and go back to 1 unit.",
+      "On Banker, a win after a long run of losses can still lose money overall, because the commission grows with the bet."
+    ]
+  },
+  "paroli": {
+    "title": "Paroli",
+    "summary": "Let a win ride up to three times, then start again.",
+    "rules": [
+      "Start at **1 unit**. After a **win**, double: 1, 2, 4 units.",
+      "After the **third win in a row**, or after any **loss**, go back to 1 unit. A tie repeats the same bet."
+    ]
+  },
+  "one-three-two-six": {
+    "title": "1-3-2-6",
+    "summary": "Four steps on a winning run: 1, 3, 2 and 6 units.",
+    "rules": [
+      "Bet **1, 3, 2, 6 units**, moving one step on after each **win**.",
+      "After the **fourth win**, or after any **loss**, go back to 1 unit. A tie repeats the same bet."
+    ]
+  },
+  "fibonacci": {
+    "title": "Fibonacci",
+    "summary": "A gentler loss-chaser that walks up the Fibonacci numbers.",
+    "rules": [
+      "Bets follow **1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 units**.",
+      "A **loss** moves one step forward. A **win** moves two steps back, never below the first step. A tie repeats the same bet.",
+      "A loss on 89 units goes back to the first step."
+    ]
+  },
+  "dalembert": {
+    "title": "D'Alembert",
+    "summary": "Add a unit after a loss, take one off after a win.",
+    "rules": [
+      "Start at **1 unit**. After a **loss**, bet 1 unit more. After a **win**, bet 1 unit less, never below 1.",
+      "The bet never goes over **20 units**: at the cap it stays there until a win. A tie repeats the same bet."
+    ]
+  },
+  "labouchere": {
+    "title": "Labouchère",
+    "summary": "Cross numbers off a line: each win removes two, each loss adds one.",
+    "rules": [
+      "Write the line **1-2-3-4**. Bet the **first plus the last** number (with one number left, bet it).",
+      "A **win** crosses both numbers off. A **loss** adds the amount you bet to the end of the line. A tie repeats the same bet.",
+      "When the line is empty, write 1-2-3-4 again.",
+      "A bet over **100 units** restarts the line, so the next bet is 5 units."
+    ]
+  },
+  "follow-the-shoe": {
+    "title": "Follow the shoe",
+    "summary": "Bet on whichever side won the last decided hand.",
+    "rules": [
+      "Bet **1 unit on the side that won the last hand that wasn't a tie**. Ties are skipped.",
+      "On the first hand of a shoe, bet Banker."
+    ]
+  },
+  "side-bet-sprinkler": {
+    "title": "Side-bet sprinkler",
+    "summary": "A flat Banker bet with small side bets on every hand.",
+    "rules": [
+      "Bet **1 unit on Banker** every hand.",
+      "Add the same small **side bets** every hand as well (by default $5 on Player Pair and $5 on Banker Pair)."
+    ]
+  }
+}

@@ -218,9 +218,11 @@ const PLAYER_CELL = /^p([0-9])$/;
 
 /**
  * True for a simulator `TableauCellId` (D34) that exists in the engine's TABLEAU: `b5/p4`
- * (Banker 5, Player third card 4), `b6/s` (Banker 6, Player stood) or `p5` (Player total 5).
+ * (Banker 5, Player third card 4), `b6/s` (Banker 6, Player stood), `p5` (Player total 5) or
+ * `nat` (a natural).
  */
 export function isTableauCell(cell: string): boolean {
+  if (cell === 'nat') return true;
   const b = BANKER_CELL.exec(cell);
   if (b) return TABLEAU[Number(b[1])] !== undefined;
   return PLAYER_CELL.test(cell);
@@ -240,7 +242,7 @@ export function parseTableau(yamlText: string): TableauBlockData {
     const bad = h.filter((c) => !isTableauCell(c));
     if (bad.length)
       throw new Error(
-        `tableau: unknown cells in highlight: ${bad.join(', ')} (use b<0-7>/p<0-9>, b<0-7>/s or p<0-9>)`,
+        `tableau: unknown cells in highlight: ${bad.join(', ')} (use b<0-7>/p<0-9>, b<0-7>/s, p<0-9> or nat)`,
       );
     out.highlight = h;
   }
