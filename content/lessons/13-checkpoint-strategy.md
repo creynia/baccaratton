@@ -7,7 +7,7 @@ minutes: 8
 checkpoint: true
 ---
 
-A quick check before the practical chapter. The first scene deals three hands and stops at each Banker
+A quick check before the practical chapter. The first scene deals random hands until you make three right Banker calls, stopping at each Banker
 decision for you to call. The second puts you at a table you haven't played yet: place the lowest-edge bet. The quiz mixes everything from
 lessons 1–12.
 

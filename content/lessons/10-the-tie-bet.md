@@ -9,7 +9,7 @@ minutes: 5
 Ties feel common, and they are: about **9.5%** of hands, roughly one in every 10.5. So why is the Tie bet
 the worst of the three?
 
-Picture 1,000 hands with $1 on Tie each time. About 95 are ties, and each pays $8: $761 in winnings. The
+Picture 1,000 hands with $1 on Tie each time. About 95 are ties (95.2), each paying $8: about $761 in winnings. The
 other 905 lose $1 each: −$905. Net: about **−$144** per 1,000 hands, or **14.36%** of every Tie bet.
 
 For a fair bet, a tie would have to pay about **9.5 to 1**. At 8 to 1 the casino keeps the difference.
@@ -52,7 +52,7 @@ steps:
     allowedActions: []
     completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "Look at the middle of each band. The Banker evenings centre near **−$76**, and the Tie evenings near **−$1,034**. A few Tie evenings still finish ahead: lucky runs of ties happen, but they're the exception."
+    text: "Look at each plan's thin expected line. Banker's ends near **−$76**, and Tie's near **−$1,034**. A few Tie evenings still finish ahead: lucky runs of ties happen, but they're the exception."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button

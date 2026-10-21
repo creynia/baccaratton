@@ -47,7 +47,7 @@ allowedBets: [player, panda-8, dragon-7]
 showEV: true
 steps:
   - id: bet
-    text: "At an EZ table: **$10 on Player** and **$5 on Panda 8**. Open the EV sheet on **Panda 8** and **Dragon 7**."
+    text: "At an EZ table: **$10 on Player** and **$5 on Panda 8**. Open the EV sheet on **Panda 8** and **Dragon 7**. Panda 8 is a Sucker bet, so it takes a second tap: **Bet it anyway**."
     allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: player, minAmount: 1000 } }, { betOnFelt: { bet: panda-8, minAmount: 500 } }, { previewed: { bet: panda-8 } }, { previewed: { bet: dragon-7 } } ] }
   - id: deal

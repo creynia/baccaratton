@@ -37,8 +37,8 @@ view: banker
 :::math How the table plays out
 Because the Banker sometimes stands on 3–6 and sometimes draws, it draws a little less often than the
 Player: 43.5% of all hands, against the Player's 50.3%. A ten-value card is the most common third card
-(16 of every 52 cards), and it counts as 0. That's why Banker 4 and 5 **stand** on a Player's 0: the
-Player probably didn't improve.
+(16 of every 52 cards), and it counts as 0. That's why Banker 4 and 5 **stand** on a Player's 0: a
+0 leaves the Player's total unchanged.
 :::
 
 ```scene

@@ -678,7 +678,10 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
     const id = 'the-tie-bet';
     expectQuoted(id, `about **${pct(X.pT, 1)}%** of hands, roughly one in every ${(1 / X.pT.v).toFixed(1)}`);
     const per1000 = 1000 * X.pT.v;
-    expectQuoted(id, `About ${Math.round(per1000)} are ties, and each pays $8: $${Math.round(8 * per1000)} in winnings`);
+    expectQuoted(
+      id,
+      `About ${Math.round(per1000)} are ties (${per1000.toFixed(1)}), each paying $8: about $${Math.round(8 * per1000)} in winnings`,
+    );
     expectQuoted(id, `other ${Math.round(1000 - per1000)} lose $1 each: −$${Math.round(1000 - per1000)}`);
     expectQuoted(id, `about **−$${Math.round(X.tie8.edge.v * 1000)}** per 1,000 hands, or **${pct(X.tie8.edge, 2)}%**`);
     expectQuoted(id, `about **${(1 / X.pT.v - 1).toFixed(1)} to 1**`);
@@ -692,7 +695,7 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
     expectQuoted(id, `≈ **−${pct(X.tie8.edge, 4)}%**`);
     expectQuoted(id, `≈ **−${pct(X.tie9.edge, 4)}%**`);
     expectQuoted(id, `≈ ${(1 / X.pT.v - 1).toFixed(3)} to 1`);
-    expectQuoted(id, `near **−${dollars(hourly(X.banker.edge, 10, 720))}**, and the Tie evenings near **−${dollars(hourly(X.tie8.edge, 10, 720))}**`);
+    expectQuoted(id, `near **−${dollars(hourly(X.banker.edge, 10, 720))}**, and Tie's near **−${dollars(hourly(X.tie8.edge, 10, 720))}**`);
     const q = quizzes(id);
     expect(q[0]!.explanation).toContain(`${pct(X.pT, 2)}% of hands, about 1 in ${(1 / X.pT.v).toFixed(1)}`);
     expect(q[1]!.explanation).toBe(`1 ÷ ${X.pT.v.toFixed(4)} − 1 ≈ ${(1 / X.pT.v - 1).toFixed(2)}.`);
@@ -941,9 +944,12 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
     });
     const maxAbs = Math.max(...effects.map(Math.abs));
     expect((maxAbs * 100).toFixed(3)).toBe('0.012');
-    expect(effects.indexOf(Math.max(...effects))).toBe(4); // a 4 helps the Banker most
+    expect(effects.indexOf(Math.max(...effects))).toBe(4); // removing a 4 helps the Banker most
     expect(effects.indexOf(Math.min(...effects))).toBe(6); // a 6 hurts it most
-    expectQuoted(id, 'at most **0.012%** (a 4 helps the Banker most,\na 6 hurts it most');
+    expectQuoted(
+      id,
+      'at most **0.012%** (removing a 4 helps the Banker most,\nremoving a 6 hurts it most',
+    );
   });
 });
 

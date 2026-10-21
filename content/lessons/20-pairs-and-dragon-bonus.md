@@ -40,7 +40,7 @@ pay here. When the Player wins, it wins by a wide margin a bit more often.
 
 :::math Dragon Bonus on Player, exactly (8 decks)
 P(Player wins with a natural) = 74989984/461223945 ≈ 16.259%. P(natural tie) = 1648498/92244789 ≈ 1.787%.
-P(Player wins without a natural by m), m = 4…9: 3.737%, 3.324%, 2.826%, 1.792%, 0.682%, 0.368% (exact fractions in §11).
+P(Player wins without a natural by m), m = 4…9: 3.737%, 3.324%, 2.826%, 1.792%, 0.682%, 0.368%.
 EV = 1·P(nat win) + Σ payₘ·P(win by m) − P(lose) = −103547854751/3904998652737 ≈ **−2.6517%**.
 Pairs: P(pair) = 13 · 32 · 31 / (416 · 415) = 31/415, so EV = 12 × 31/415 − 1 = −43/415 ≈ −10.3614%.
 With 6 decks: 23/311, EV −35/311 ≈ −11.2540%.
@@ -55,7 +55,7 @@ allowedBets: [player, player-pair, dragon-bonus-player]
 showEV: true
 steps:
   - id: bet
-    text: "Bet **$10 on Player**, **$5 on Player Pair** and **$5 on Dragon Bonus (Player)**. Open the EV sheet on each side bet as you place it."
+    text: "Bet **$10 on Player**, **$5 on Player Pair** and **$5 on Dragon Bonus (Player)**. Open the EV sheet on each side bet as you place it. Player Pair is a Sucker bet, so it takes a second tap: **Bet it anyway**."
     allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: player, minAmount: 1000 } }, { betOnFelt: { bet: player-pair, minAmount: 500 } }, { betOnFelt: { bet: dragon-bonus-player, minAmount: 500 } }, { previewed: { bet: player-pair } }, { previewed: { bet: dragon-bonus-player } } ] }
   - id: deal

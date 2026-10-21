@@ -43,8 +43,8 @@ mean the shoe is biased.
 
 :::math Is each hand really independent?
 Almost. The shoe is dealt without replacement, so each card used changes the odds very slightly. Removing
-one card from a fresh 8-deck shoe moves the Banker's EV by at most **0.012%** (a 4 helps the Banker most,
-a 6 hurts it most; lesson 17). The winner of the last hand says almost nothing about which cards were
+one card from a fresh 8-deck shoe moves the Banker's EV by at most **0.012%** (removing a 4 helps the Banker most,
+removing a 6 hurts it most; lesson 17). The winner of the last hand says almost nothing about which cards were
 used, so the effect of a streak is smaller still. The table above assumes independent hands with
 P(Banker | decided) = 279815987114/552096050907 ≈ 50.68%, and is a dynamic-programming result.
 :::
@@ -67,7 +67,7 @@ steps:
     allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { previewed: { bet: player } }, { previewed: { bet: banker } } ] }
   - id: same
-    text: "Exactly the same prices as a fresh shoe: Banker 1.06%, Player 1.24%. Place any $10 bet and deal."
+    text: "The sheet shows the fresh-shoe prices (Banker 1.06%, Player 1.24%), and after a streak the real odds are within a few hundredths of a percent of them. Place any $10 bet and deal."
     allowedActions: [set-bet, clear-bets, deal]
     allowedBets: [player, banker]
     completeWhen: { hands: 1 }

@@ -16,8 +16,8 @@
   "tie": {
     "name": "Tie",
     "summary": "Bet that both hands end on the same total. Pays 8 to 1, and loses when either hand wins.",
-    "howItWorks": "You bet before the deal. If both hands finish on the **same total**, the Tie bet wins 8 to 1: a $5 Tie bet wins $40, and your $5 comes back too.\n\nIf either hand wins, the Tie bet loses. Player and Banker bets on the same hand simply push.\n\nSome tables pay **9 to 1** on a Tie (the `tiePays` setting). It is still much dearer than Player or Banker.",
-    "tip": "8 to 1 sounds generous, but a tie comes up less often than once in nine hands. Check the EV sheet before you bet it.",
+    "howItWorks": "You bet before the deal. If both hands finish on the **same total**, the Tie bet wins 8 to 1: a $5 Tie bet wins $40, and your $5 comes back too.\n\nIf either hand wins, the Tie bet loses. Player and Banker bets on the same hand simply push.\n\nSome tables pay **9 to 1** on a Tie (**Tie pays** in Settings). It is still much dearer than Player or Banker.",
+    "tip": "8 to 1 sounds generous, but a tie comes up only about once in 10.5 hands. Check the EV sheet before you bet it.",
     "lessonId": "settling-bets"
   },
   "player-pair": {

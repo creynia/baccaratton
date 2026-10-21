@@ -54,7 +54,7 @@ steps:
     allowedActions: []
     completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "Count the wins: Banker usually wins a few more hands than Player. The expected lines end at about **−$76** for Banker and **−$89** for Player. Over 720 hands, luck still moves each result by about ±$250, so your run may look different."
+    text: "Count the wins: Banker wins about 9 more hands per 720 than Player on average, though a single run can go either way. The expected lines end at about **−$76** for Banker and **−$89** for Player. Over 720 hands, luck still moves each result by about ±$250, so your run may look different."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button

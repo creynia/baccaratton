@@ -8,7 +8,7 @@ checkpoint: true
 ---
 
 Last stop. The scene asks for five calls on random hands, then one bet on a variant table. The quiz covers
-the whole course. You can retake it any time. Your best score is kept.
+the whole course. You can retake it any time: **Retake exam** clears your answers, and your score counts only your first answer to each question.
 
 ```scene
 id: l24-s1

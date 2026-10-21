@@ -55,7 +55,7 @@ steps:
     allowedActions: [deal]
     completeWhen: { hands: 1 }
   - id: result
-    text: "Player had 2 and drew a jack: still 2. Banker's 7 stands. **Banker wins**: $20 less $1 commission, so you won **$19**. Tap the payout to see the commission line."
+    text: "Player had 2 and drew a jack: still 2. Banker's 7 stands. **Banker wins**: $20 less $1 commission, so you won **$19**. Tap the **$1.00 commission** line in the payout."
     allowedActions: []
     completeWhen: { tapped: commission }
 ```

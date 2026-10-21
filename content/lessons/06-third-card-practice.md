@@ -24,7 +24,7 @@ looks like magic, and nobody can fool you about what "should" have happened.
 
 The **Drill** tab is a quick-fire trainer for exactly this: it deals a hand, stops, and asks
 "Does the Banker draw?" (and other questions), then shows the rule row that decides it. Try a few
-rounds of **Banker table** until it feels easy.
+rounds of **Banker** mode until it feels easy.
 
 ```scene
 id: l06-s1

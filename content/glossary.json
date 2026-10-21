@@ -115,7 +115,7 @@
   },
   {
     "term": "EV sheet",
-    "definition": "The app's price tag for a bet: its [[expected value|EV]] in dollars, its [[house edge]], its rating, its cost per hour and a better choice if there is one. Tap and hold a bet spot, or tap **EV** beside it, before you bet.",
+    "definition": "The app's price tag for a bet: its [[expected value|EV]] in dollars, its [[house edge]], its rating, its cost per hour and a better choice if there is one. Tap and hold a bet spot, or tap **EV** under the table, before you bet.",
     "seeAlso": "expected-value",
     "see": ["ev", "house-edge"]
   },
@@ -235,7 +235,7 @@
   },
   {
     "term": "Betting system",
-    "definition": "A rule for changing your bet size after wins or losses, such as Martingale or Paroli. No system changes the [[house edge]] on each bet: it only changes how much you bet, and so how much you lose on average. See **More → Bets**.",
+    "definition": "A rule for changing your bet size after wins or losses, such as Martingale or Paroli. No system changes the [[house edge]] on each bet: it only changes how much you bet, and so how much you lose on average. Try them with **Auto-play** on the Play tab.",
     "see": ["house-edge", "flat-betting"],
     "seeAlso": "betting-systems"
   },

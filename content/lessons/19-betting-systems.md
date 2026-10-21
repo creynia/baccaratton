@@ -27,7 +27,7 @@ with a $10 unit on Banker:
 | D'Alembert | +1 unit after a loss, −1 after a win (1 to 20 units) | $45.73 | $34.84 |
 | Labouchère | Write 1-2-3-4. Bet first + last; a win crosses them off, a loss adds the bet to the end (bets capped at 100 units) | ≈ $125 | ≈ $95 (≈ simulated) |
 
-(Average bets are for a fresh one-hour session, ties included, with the caps shown and a bankroll that doesn't run out. Auto-play reports the same figures.)
+(Average bets are for a fresh one-hour session, ties included, with the caps shown and a bankroll that doesn't run out. Auto-play's exact line shows these figures for one system; in a comparison, each system's cost comes from the bets it actually placed, so it lands near them.)
 
 **Martingale, up close.** It feels unbeatable: keep doubling and one win gets everything back. It
 usually works. Then, about once every **141 series** on Banker, the table produces **seven losses in
@@ -47,7 +47,7 @@ from the first step, the exact expected bet on each of the 72 hands is summed an
 Banker edge 114753351728/10847218479825. Example: Martingale's E[total bet over 72 hands] = 239.30
 units, so the cost is 239.30 × $10 × 1.0579% = $25.32. Labouchère has no small state space, so it was
 simulated (200,000 one-hour sessions). Follow the shoe is ≈ 50.68% × 1.0579% + 49.32% × 1.2351% = 1.1453% of
-$720. On Player, the costs are higher (flat $8.89, Martingale $31.23; §7.2).
+$720. On Player, the costs are higher (flat $8.89, Martingale $31.23).
 :::
 
 ```scene
@@ -76,7 +76,7 @@ steps:
     allowedActions: []
     completeWhen: { autoPlayCompleted: { minHands: 72 } }
   - id: read
-    text: "Compare **cost per hour** with the table above: each system's expected line matches it. Every system lost about 1.06% of what it bet. Martingale shows many small wins and a few deep holes. Labouchère wagers the most by far."
+    text: "Compare **cost per hour** with the table above: each system lands near its figure. On average every bet still loses its edge, but over 100 hours the Actual column can wander a long way, even above zero. Martingale shows many small wins and a few deep holes. Labouchère wagers the most by far."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button

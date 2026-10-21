@@ -24,7 +24,7 @@ are no decisions. "Strategy" is just picking the cheapest bet, and that's Banker
 
 Two things often sold as strategy make **no** difference to the edge:
 
-* **When you bet.** Every hand of a fresh shoe costs the same per dollar. Skipping hands only means you play
+* **When you bet.** Without counting cards, every hand costs the same per dollar (lesson 17). Skipping hands only means you play
   fewer of them. That cuts your **hourly** cost (lesson 14), but not your edge per bet.
 * **Switching sides.** Mixing Player and Banker gives you a blend of 1.06% and 1.24%. Any Player bet just
   costs a little more than the same Banker bet would.

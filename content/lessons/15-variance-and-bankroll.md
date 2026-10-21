@@ -9,7 +9,7 @@ minutes: 8
 In the short run, baccarat is all luck. A $10 Banker bet loses about 11 cents on average, but each hand
 actually moves you about **$9.27 up or down** (one standard deviation). Over an hour (72 hands):
 
-| $10 Banker, flat | Expected | Typical swing (±1 SD) | Chance to be ahead (≈ approx.) |
+| $10 Banker, flat | Expected | Typical swing (±1 SD) | Chance to be ahead (≈) |
 |---|---|---|---|
 | 1 hour | −$7.62 | ±$79 | 46% |
 | 10 hours | −$76 | ±$249 | 38% |
@@ -62,7 +62,7 @@ steps:
     allowedActions: []
     completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "The band shows the middle 80% of results, and the survival curve shows how many sessions still had chips. About **8 in 100** run out within 10 hours with $500 (50 bets). The dashed expected line ends close to **−$76**: ten hours of the edge."
+    text: "The band shows the middle 80% of results, and the survival curve shows how many sessions still had chips. About **8 in 100** run out within 10 hours with $500 (50 bets). The thin expected line ends close to **−$76**: ten hours of the edge."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
