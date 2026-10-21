@@ -6,7 +6,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compileLesson, type CompiledLesson } from '../../src/content/compile';
-import { BET_IDS, STRATEGY_IDS, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
+import { BET_IDS, STRATEGY_IDS, expectedUnitsBet, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
 import type { BetId, SceneConfig, SceneStep } from '../../src/sim';
 
 const DIR = join(process.cwd(), 'content/lessons');
@@ -850,5 +850,26 @@ describe('lessons 20, 21, 23: the engine settles the forced hands as the step te
     const r = play('l23-s1');
     expect(r.hand.winner).toBe('banker');
     expect(net(r, 'banker')).toBe(1900);
+  });
+});
+
+// ---------------------------------------------------------------- strategy: the lesson 19 specs
+
+describe("lesson 19: the strategy registry's exact DP gives the lesson's figures for the scene's own specs", () => {
+  const SPEC_PIN: Record<string, keyof typeof SYSTEM_PINS> = {
+    'flat-banker': 'flat',
+    paroli: 'paroli',
+    'one-three-two-six': 'one-three-two-six',
+    fibonacci: 'fibonacci',
+    martingale: 'martingale',
+    dalembert: 'dalembert',
+  };
+  const specs = scene('l19-s1').autoPlay!.compare!.filter((c) => c.id in SPEC_PIN);
+  it.each(specs.map((s) => [s.id, s] as const))('%s', (id, spec) => {
+    const [avg, cost] = SYSTEM_PINS[SPEC_PIN[id]!]!;
+    const units = expectedUnitsBet(spec, 72, { win: pB, lose: pP, push: pT }) / 72;
+    expect(Math.abs(units - avg)).toBeLessThan(5e-5);
+    expect(units).toBeCloseTo(avgBet(SPEC_PIN[id]!), 9);
+    expect(cents((spec.unit / 100) * 72 * units * -num(EV.banker))).toBe(cost);
   });
 });
