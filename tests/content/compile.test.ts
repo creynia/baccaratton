@@ -181,7 +181,7 @@ describe('quiz blocks', () => {
       fails(hand('4h Zc', 'Kd 5s'), /Bad card code/);
       fails(hand('4h Ac 9d', '4h 5s'), /Duplicate/);
     });
-    it('rejects the old holdumb shape', () => {
+    it('rejects the old hole/board shape', () => {
       fails(quiz('- q: Q?\n  hand: { hole: Ah 5c }\n  options: [A, B]\n  answer: 0\n  explain: x'), /player/);
     });
   });
