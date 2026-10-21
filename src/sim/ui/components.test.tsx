@@ -281,7 +281,7 @@ describe('SessionPanel (curriculum §8.4)', () => {
     const { getByTestId, getByRole } = render(
       <SessionPanel summary={SESSION_FIXTURE} onTap={tap} />,
     );
-    const t = getByTestId('session-panel').textContent!;
+    const t = getByTestId('session-panel').textContent;
     expect(t).toContain('Total bet$520');
     expect(getByTestId('session-expected').textContent).toBe(`${MINUS}$5.65`);
     expect(getByTestId('session-actual').textContent).toBe('+$35.00');
