@@ -13,7 +13,8 @@ export function fullShoeEvs(rules: TableRules): BetEv[] {
   const key = rulesKey(rules);
   let hit = memo.get(key);
   if (!hit) {
-    hit = betEvs(outcomeDistribution(fullShoeRanks(rules.decks)), rules);
+    // Frozen (shallowly): the memo is shared by every caller.
+    hit = Object.freeze(betEvs(outcomeDistribution(fullShoeRanks(rules.decks)), rules)) as BetEv[];
     memo.set(key, hit);
   }
   return hit;
