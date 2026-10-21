@@ -2,7 +2,7 @@
 // Every preset bets one main bet per hand in units of `spec.unit`, plus any fixed `sideBets`.
 // Ties (and any push of the main bet) leave a progression where it is. Over a D28 limit a system
 // resets to step 1 (D'Alembert stays at its cap); each forced reset counts in memory `caps`.
-import type { BetId, HandResult, Slip, VisibleView } from '../engine/types';
+import type { BetId, HandResult, Slip, TableRules, VisibleView } from '../engine/types';
 import type { Strategy, StrategyId, StrategyLens, StrategyMemory, StrategySpec } from './types';
 
 /** The main-bet result that drives a progression. */
@@ -165,6 +165,28 @@ export function stepMemory(
     default:
       return mem;
   }
+}
+
+/** Largest main bet the table allows, in units: floor(max / unit) (Tie uses the side limits). */
+export function tableMaxUnits(spec: StrategySpec, rules: TableRules): number {
+  const max = mainBet(null, spec) === 'tie' ? rules.sideMax : rules.mainMax;
+  return Math.floor(max / spec.unit);
+}
+
+/**
+ * The table-maximum rule (simulator.md section 6.1), shared by the simulation and the exact
+ * costs: a next bet above `maxUnits` resets the system to step 1, except D'Alembert, which stays
+ * at the table cap (D28). Each reset or clamp counts in `caps`.
+ */
+export function tableCap(
+  mem: StrategyMemory,
+  spec: StrategySpec,
+  maxUnits: number,
+): StrategyMemory {
+  if (betUnits(mem, spec) <= maxUnits) return mem;
+  const caps = ((mem.caps as number | undefined) ?? 0) + 1;
+  if (spec.id === 'dalembert') return { units: Math.max(1, maxUnits), caps };
+  return { ...initMemory(spec), caps };
 }
 
 /** The main bet a spec plays on this view. */

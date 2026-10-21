@@ -1,12 +1,12 @@
 // Auto-play (simulator.md section 6.4, D9, D21): pick a system, unit, target, hands and sessions;
 // run the `simulate` job through the EvClient (time-sliced, same thread); show the charts and a
 // summary that labels what is exact and what is simulated (section 2.7).
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useId, useMemo, useRef, useState } from 'preact/hooks';
 import { formatMoney } from '../engine/money';
 import type { EvClient, Progress } from '../jobs/protocol';
-import { HAND_OPTIONS, MAX_HANDS, systemCost } from '../strategy/metrics';
+import { HAND_OPTIONS, MAX_HANDS, rulesFor, systemCost } from '../strategy/metrics';
 import type { SystemCost } from '../strategy/metrics';
-import { PICKER_GROUPS, STRATEGY_NAMES } from '../strategy/presets';
+import { mainBet, PICKER_GROUPS, STRATEGY_NAMES } from '../strategy/presets';
 import type {
   SessionSeries,
   SimulateResult,
@@ -51,6 +51,16 @@ export interface AutoPlayPanelProps {
   onEvent?: (e: AutoPlayEvent) => void;
   /** Optional "Watch" (≤ 72 hands on the felt), wired by the container. */
   onWatch?: (spec: StrategySpec) => void;
+}
+
+/** The unit clamped to the table limits of the system's main bet (Tie uses the side limits). */
+export function clampUnit(id: StrategyId, cents: number, s: SimSettings): number {
+  const rules = rulesFor(s.variant, s.tiePays);
+  const tie = mainBet(null, { id, unit: 1 }) === 'tie';
+  const min = tie ? rules.sideMin : rules.mainMin;
+  const max = tie ? rules.sideMax : rules.mainMax;
+  const whole = Math.round(cents / 100) * 100;
+  return Math.min(max, Math.max(min, Number.isFinite(whole) ? whole : min));
 }
 
 const pct = (v: number, d = 2): string => `${(v * 100).toFixed(d)}%`;
@@ -103,18 +113,34 @@ export function AutoPlayPanel({
   const ctl = useRef<AbortController | null>(null);
   useEffect(() => () => ctl.current?.abort(), []);
 
-  const unit = Math.max(100, Math.round(unitDollars) * 100);
+  const asked = Math.round(unitDollars) * 100;
+  const unit = clampUnit(id, asked, settings);
+  const selectId = useId();
   const bankroll = Math.max(0, Math.round(bankrollDollars) * 100);
-  const spec: StrategySpec = {
+  const picker: StrategySpec = {
     ...(defaultStrategy?.id === id ? defaultStrategy : {}),
     id,
     unit,
     ...(PROGRESSIONS.has(id) ? { target } : {}),
   };
-  const others: StrategySpec[] = sceneCompare?.length
-    ? sceneCompare.filter((s) => s.id !== id || s.target !== spec.target || s.unit !== unit)
-    : picked.filter((p) => p !== id).map((p) => ({ id: p, unit }));
-  const cost = exactCost(spec, settings, hands);
+  // A scene's compare list is the whole run: its first entry is the main series, the rest run
+  // alongside on the same seeds (entries may share an id and differ only in side bets or label).
+  const sceneMode = !!sceneCompare?.length;
+  const spec: StrategySpec = sceneMode ? sceneCompare[0]! : picker;
+  const others: StrategySpec[] = sceneMode
+    ? sceneCompare.slice(1)
+    : picked
+        .filter((p) => p !== id)
+        .map((p) => ({
+          id: p,
+          unit: clampUnit(p, asked, settings),
+          ...(PROGRESSIONS.has(p) ? { target } : {}),
+        }));
+  const specKey = JSON.stringify(spec);
+  const cost = useMemo(
+    () => exactCost(JSON.parse(specKey) as StrategySpec, settings, hands),
+    [specKey, settings.variant, settings.tiePays, settings.handsPerHour, hands],
+  );
 
   async function run(): Promise<void> {
     ctl.current?.abort();
@@ -142,7 +168,7 @@ export function AutoPlayPanel({
       );
       setResult({ res, bankroll, hands: h });
       setProgress(null);
-      onEvent?.({ type: 'auto-play-completed', hands: h, strategy: id });
+      onEvent?.({ type: 'auto-play-completed', hands: h, strategy: spec.id });
     } catch (e) {
       setProgress(null);
       if ((e as Error).name !== 'AbortError') setError((e as Error).message);
@@ -172,38 +198,49 @@ export function AutoPlayPanel({
       <div
         style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}
       >
-        <label style={{ ...field, gridColumn: '1 / -1' }}>
-          System
-          <select
-            style={control}
-            value={id}
-            data-testid="auto-strategy"
-            onChange={(e) => setId(e.currentTarget.value as StrategyId)}
-          >
-            {groups.map((g) => (
-              <optgroup key={g.lens} label={LENS_LABEL[g.lens]}>
-                {g.ids.map((s) => (
-                  <option key={s} value={s}>
-                    {STRATEGY_NAMES[s]}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-        <label style={field}>
-          Unit ($)
-          <input
-            style={control}
-            type="number"
-            min={1}
-            step={1}
-            inputMode="numeric"
-            value={unitDollars}
-            onInput={(e) => setUnit(Number(e.currentTarget.value))}
-          />
-        </label>
-        {PROGRESSIONS.has(id) ? (
+        {sceneMode ? null : (
+          <div style={{ ...field, gridColumn: '1 / -1' }}>
+            <label for={selectId}>System</label>
+            <select
+              id={selectId}
+              style={control}
+              value={id}
+              data-testid="auto-strategy"
+              onChange={(e) => setId(e.currentTarget.value as StrategyId)}
+            >
+              {groups.map((g) => (
+                <optgroup key={g.lens} label={LENS_LABEL[g.lens]}>
+                  {g.ids.map((s) => (
+                    <option key={s} value={s}>
+                      {STRATEGY_NAMES[s]}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
+        {sceneMode ? null : (
+          <label style={field}>
+            Unit ($)
+            <input
+              style={control}
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={unitDollars}
+              data-testid="auto-unit"
+              onInput={(e) => setUnit(Number(e.currentTarget.value))}
+            />
+            {asked !== unit ? (
+              <span style={{ color: 'var(--muted)' }} data-testid="auto-unit-note">
+                Table limits: using {formatMoney(unit)}.
+              </span>
+            ) : null}
+          </label>
+        )}
+        {!sceneMode && PROGRESSIONS.has(id) ? (
           <label style={field}>
             Bet on
             <select
@@ -215,34 +252,19 @@ export function AutoPlayPanel({
               <option value="player">Player</option>
             </select>
           </label>
-        ) : (
-          <label style={field}>
-            Bankroll ($)
-            <input
-              style={control}
-              type="number"
-              min={0}
-              step={1}
-              inputMode="numeric"
-              value={bankrollDollars}
-              onInput={(e) => setBankroll(Number(e.currentTarget.value))}
-            />
-          </label>
-        )}
-        {PROGRESSIONS.has(id) ? (
-          <label style={field}>
-            Bankroll ($)
-            <input
-              style={control}
-              type="number"
-              min={0}
-              step={1}
-              inputMode="numeric"
-              value={bankrollDollars}
-              onInput={(e) => setBankroll(Number(e.currentTarget.value))}
-            />
-          </label>
         ) : null}
+        <label style={field}>
+          Bankroll ($)
+          <input
+            style={control}
+            type="number"
+            min={0}
+            step={1}
+            inputMode="numeric"
+            value={bankrollDollars}
+            onInput={(e) => setBankroll(Number(e.currentTarget.value))}
+          />
+        </label>
         <label style={field}>
           Hands
           <select
@@ -426,8 +448,8 @@ function Results({
         >
           <caption style={{ textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}>
             {sessions > 1 ? `${sessions} sessions` : '1 session'} of {hands.toLocaleString('en-US')}{' '}
-            hands, same cards for every system. "Expected" is exact given the bets placed; the rest
-            is ≈ simulated.
+            hands, same cards for every system. Cost/h (edge × money bet per hour) and "Expected"
+            are exact given the bets placed; the rest is ≈ simulated.
           </caption>
           <thead>
             <tr>
@@ -435,7 +457,7 @@ function Results({
                 System
               </th>
               <th scope="col">Mean bet</th>
-              <th scope="col">Cost / hour (exact: edge × money bet)</th>
+              <th scope="col">Cost/h</th>
               <th scope="col">Expected</th>
               <th scope="col">Actual (≈)</th>
               {many ? <th scope="col">Busted (≈)</th> : null}
@@ -454,7 +476,7 @@ function Results({
         {sentence(main, settings.handsPerHour)}
       </p>
       {res.series.map((s, k) => (
-        <OutcomeHistogram key={k} series={s} bankroll={bankroll} index={k} />
+        <OutcomeHistogram key={k} series={s} bankroll={bankroll} index={k} showWinners={k === 0} />
       ))}
     </div>
   );

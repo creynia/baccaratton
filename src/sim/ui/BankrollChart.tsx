@@ -4,7 +4,9 @@
 // and a crosshair tooltip; an aria-label summary stands in for the picture.
 import { useState } from 'preact/hooks';
 import type { JSX } from 'preact';
+import { betDef } from '../engine/bets';
 import { formatMoney } from '../engine/money';
+import type { BetId } from '../engine/types';
 import { STRATEGY_NAMES } from '../strategy/presets';
 import type { SessionSeries, StrategySpec } from '../strategy/types';
 
@@ -46,8 +48,15 @@ export const seriesDash = (k: number): string => SERIES_DASHES[k % SERIES_DASHES
 /** Legend name: the spec's label, else the preset name (+ "on Player" for a Player target). */
 export function seriesLabel(spec: StrategySpec): string {
   if (spec.label) return spec.label;
-  const name = STRATEGY_NAMES[spec.id];
-  return spec.target === 'player' && !spec.id.startsWith('flat-') ? `${name} on Player` : name;
+  const base = STRATEGY_NAMES[spec.id];
+  const name =
+    spec.target === 'player' && !spec.id.startsWith('flat-') ? `${base} on Player` : base;
+  const sides = spec.id === 'side-bet-sprinkler' ? [] : Object.entries(spec.sideBets ?? {});
+  return sides.reduce(
+    (n, [bet, amount]) =>
+      amount ? `${n} + ${formatMoney(amount)} ${betDef(bet as BetId).label}` : n,
+    name,
+  );
 }
 
 export const W = 360;
@@ -141,7 +150,7 @@ export function BankrollChart({
   };
   const tipX = hover === null ? 0 : x(hover);
   return (
-    <figure class={cls} style={{ margin: 0, position: 'relative' }} data-testid="bankroll-chart">
+    <figure class={cls} style={{ margin: 0 }} data-testid="bankroll-chart">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
@@ -178,11 +187,11 @@ export function BankrollChart({
           const dash = seriesDash(k);
           return (
             <g key={`${s.strategy.id}-${k}`} data-series={k}>
-              {s.p10 && s.p90 ? (
+              {k === 0 && s.p10 && s.p90 ? (
                 <path
                   d={`${pathOf(s.p90, x, y)}L${pathOf(Array.from(s.p10).reverse(), (i) => x(hands - i), y).slice(1)}Z`}
                   fill={color}
-                  opacity={series.length > 1 ? '0.10' : '0.18'}
+                  opacity="0.16"
                   data-testid="band"
                 />
               ) : null}
@@ -201,9 +210,9 @@ export function BankrollChart({
                 d={pathOf(s.expected, x, y)}
                 fill="none"
                 stroke={color}
-                stroke-width="1.2"
-                stroke-dasharray="1 3"
-                stroke-linecap="round"
+                stroke-width="1"
+                stroke-dasharray={dash}
+                opacity="0.75"
                 data-testid="expected"
               />
             </g>
@@ -236,42 +245,42 @@ export function BankrollChart({
           onPointerMove={onMove}
           onPointerDown={onMove}
           onPointerLeave={() => setHover(null)}
+          onPointerUp={() => setHover(null)}
+          onPointerCancel={() => setHover(null)}
         />
       </svg>
-      {hover !== null ? (
-        <div
-          role="status"
-          data-testid="chart-tooltip"
-          style={{
-            position: 'absolute',
-            top: '4px',
-            [tipX > W / 2 ? 'left' : 'right']: '8px',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            border: '1px solid color-mix(in srgb, var(--muted) 40%, transparent)',
-            borderRadius: '6px',
-            padding: '4px 8px',
-            fontSize: '12px',
-            pointerEvents: 'none',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          <div style={{ color: 'var(--muted)' }}>Hand {hover.toLocaleString('en-US')}</div>
-          {series.map((s, k) => {
-            const line = lineOf(s);
-            return (
-              <div key={k} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <Swatch k={k} />
-                {seriesLabel(s.strategy)}: {line ? formatMoney(line[hover]!) : '—'}
-                {s.p10 && s.p90
-                  ? ` (${formatMoney(s.p10[hover]!)} to ${formatMoney(s.p90[hover]!)})`
-                  : ''}
-                , expected {formatMoney(s.expected[hover]!)}
-              </div>
-            );
-          })}
-        </div>
-      ) : null}
+      <div
+        role="status"
+        aria-live="polite"
+        data-testid="chart-readout"
+        style={{
+          minHeight: `${1.45 * (series.length + 1)}em`,
+          fontSize: '12px',
+          color: 'var(--text)',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {hover === null ? (
+          <div style={{ color: 'var(--muted)' }}>Touch or hover the chart to read the values.</div>
+        ) : (
+          <div data-testid="chart-tooltip">
+            <div style={{ color: 'var(--muted)' }}>Hand {hover.toLocaleString('en-US')}</div>
+            {series.map((s, k) => {
+              const line = lineOf(s);
+              return (
+                <div key={k} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Swatch k={k} />
+                  {seriesLabel(s.strategy)}: {line ? formatMoney(line[hover]!) : '—'}
+                  {s.p10 && s.p90
+                    ? ` (${formatMoney(s.p10[hover]!)} to ${formatMoney(s.p90[hover]!)})`
+                    : ''}
+                  , expected {formatMoney(s.expected[hover]!)}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
       <Legend series={series} />
       <figcaption style={{ fontSize: '12px', color: 'var(--muted)' }}>
         {many

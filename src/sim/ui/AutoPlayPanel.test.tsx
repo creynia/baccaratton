@@ -74,7 +74,7 @@ describe('charts', () => {
       fixture({ id: 'martingale', unit: 1000, target: 'player' }, 720, 100),
     ];
     const { container } = render(<BankrollChart series={series} bankroll={100_000} hands={720} />);
-    expect(container.querySelectorAll('[data-testid=band]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-testid=band]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-testid=median]')).toHaveLength(2);
     const legend = screen.getByTestId('legend');
     expect(legend.textContent).toContain('Martingale on Player');
@@ -98,6 +98,29 @@ describe('charts', () => {
     expect(screen.getByTestId('crosshair')).toBeTruthy();
     fireEvent.pointerLeave(rect);
     expect(screen.queryByTestId('chart-tooltip')).toBeNull();
+    fireEvent.pointerDown(rect, { clientX: 0 });
+    expect(screen.getByTestId('chart-tooltip')).toBeTruthy();
+    fireEvent.pointerUp(rect);
+    expect(screen.queryByTestId('chart-tooltip')).toBeNull();
+    fireEvent.pointerDown(rect, { clientX: 0 });
+    fireEvent.pointerCancel(rect);
+    expect(screen.queryByTestId('chart-tooltip')).toBeNull();
+    // the readout sits below the picture, not over it
+    const readout = screen.getByTestId('chart-readout');
+    expect(readout.previousElementSibling?.tagName.toLowerCase()).toBe('svg');
+  });
+  it('the band is drawn for series 0 only; each expected line has its own dash', () => {
+    const series = [
+      fixture({ id: 'flat-banker', unit: 1000 }, 72, 100),
+      fixture({ id: 'martingale', unit: 1000 }, 72, 100),
+      fixture({ id: 'paroli', unit: 1000 }, 72, 100),
+    ];
+    const { container } = render(<BankrollChart series={series} bankroll={100_000} hands={72} />);
+    expect(container.querySelectorAll('[data-testid=band]')).toHaveLength(1);
+    const dashes = [...container.querySelectorAll('[data-testid=expected]')].map((e) =>
+      e.getAttribute('stroke-dasharray'),
+    );
+    expect(new Set(dashes).size).toBe(3);
   });
   it('survival curve per series', () => {
     const series = [
@@ -190,6 +213,73 @@ describe('AutoPlayPanel', () => {
     render(<AutoPlayPanel evClient={evClient} settings={DEFAULT_SIM_SETTINGS} />);
     fireEvent.click(screen.getByTestId('auto-run'));
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/table minimum/));
+    evClient.dispose();
+  });
+});
+
+describe('AutoPlayPanel: scene compare, limits and targets', () => {
+  function capture() {
+    const seen: SimulateRequest[] = [];
+    function* job(req: SimulateRequest): Generator<Progress | undefined, SimulateResult, void> {
+      seen.push(req);
+      yield undefined;
+      const specs = [req.strategy, ...(req.compare ?? [])];
+      return { series: specs.map((s) => fixture(s, req.hands, req.sessions, req.bankroll)), ms: 1 };
+    }
+    return { seen, evClient: createEvClient({ jobs: { simulate: job } }) };
+  }
+  it('lesson 22: three flat-banker entries differing only in side bets all run', async () => {
+    const { seen, evClient } = capture();
+    const l22: StrategySpec[] = [
+      { id: 'flat-banker', unit: 1000, label: '$10 Banker' },
+      {
+        id: 'flat-banker',
+        unit: 1000,
+        sideBets: { 'dragon-bonus-player': 500 },
+        label: '+ $5 Dragon Bonus Player',
+      },
+      { id: 'flat-banker', unit: 1000, sideBets: { tie: 500 }, label: '+ $5 Tie' },
+    ];
+    render(
+      <AutoPlayPanel
+        evClient={evClient}
+        settings={DEFAULT_SIM_SETTINGS}
+        compare={l22}
+        handOptions={[72]}
+      />,
+    );
+    expect(screen.queryByTestId('auto-strategy')).toBeNull(); // the scene fixes the systems
+    fireEvent.click(screen.getByTestId('auto-run'));
+    await waitFor(() => expect(screen.getByTestId('auto-play-result')).toBeTruthy());
+    expect(seen[0]!.strategy).toEqual(l22[0]);
+    expect(seen[0]!.compare).toEqual(l22.slice(1));
+    const legend = screen.getAllByTestId('legend')[0]!.textContent;
+    for (const s of l22) expect(legend).toContain(s.label);
+    expect(screen.getAllByLabelText('Who won the hands')).toHaveLength(1);
+    evClient.dispose();
+  });
+  it('clamps the unit to the table minimum and passes the target to compared progressions', async () => {
+    const { seen, evClient } = capture();
+    render(<AutoPlayPanel evClient={evClient} settings={DEFAULT_SIM_SETTINGS} />);
+    fireEvent.change(screen.getByTestId('auto-strategy'), { target: { value: 'martingale' } });
+    fireEvent.change(screen.getByDisplayValue('Banker'), { target: { value: 'player' } });
+    fireEvent.input(screen.getByTestId('auto-unit'), { target: { value: '2' } });
+    expect(screen.getByTestId('auto-unit-note').textContent).toContain('$5');
+    fireEvent.click(screen.getByLabelText('Paroli'));
+    fireEvent.click(screen.getByLabelText('Flat Banker'));
+    fireEvent.click(screen.getByTestId('auto-run'));
+    await waitFor(() => expect(screen.getByTestId('auto-play-result')).toBeTruthy());
+    expect(seen[0]!.strategy).toMatchObject({ id: 'martingale', unit: 500, target: 'player' });
+    expect(seen[0]!.compare).toEqual([
+      { id: 'paroli', unit: 500, target: 'player' },
+      { id: 'flat-banker', unit: 500 },
+    ]);
+    evClient.dispose();
+  });
+  it('labels the System select with <label for>', () => {
+    const { evClient } = capture();
+    render(<AutoPlayPanel evClient={evClient} settings={DEFAULT_SIM_SETTINGS} />);
+    expect(screen.getByLabelText('System').tagName.toLowerCase()).toBe('select');
     evClient.dispose();
   });
 });

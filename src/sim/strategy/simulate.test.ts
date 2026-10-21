@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { systemCost } from './metrics';
 import { runSession, simulateJob } from './simulate';
 import type { SimulateRequest, SimulateResult, StrategySpec } from './types';
 
@@ -134,6 +135,9 @@ describe('simulate: bust and caps (D28)', () => {
     expect(() => sim(base({ id: 'flat-banker', unit: 1000 }, { hands: 20_001 }))).toThrow(/hands/);
     expect(() => sim(base({ id: 'flat-banker', unit: 1000 }, { sessions: 0 }))).toThrow(/sessions/);
     expect(() => sim(base({ id: 'flat-banker', unit: 0 }))).toThrow(/unit/);
+    expect(() => sim(base({ id: 'martingale', unit: 400 }))).toThrow(/table limits/);
+    expect(() => sim(base({ id: 'flat-banker', unit: 600_000 }))).toThrow(/table limits/);
+    expect(sim(base({ id: 'flat-tie', unit: 100 })).series[0]!.meanBetPerHand).toBe(100);
   });
 });
 
@@ -167,6 +171,24 @@ describe('simulate: auto-play reports what the lessons say (curriculum.md sectio
     },
     60_000,
   );
+  it.each([
+    ['martingale', 50_000],
+    ['dalembert', 50_000],
+    ['fibonacci', 10_000],
+  ] as const)(
+    '%s at a $%i-cent unit: the table maximum is the same rule in exact and simulate',
+    (id, unit) => {
+      const spec: StrategySpec = { id, unit };
+      const exact = systemCost(spec, 'punto-banco', 8);
+      const { mean, se } = run(spec);
+      expect(Math.abs(mean - exact.avgBetUnits!)).toBeLessThan(4 * se + 0.01);
+    },
+    60_000,
+  );
+  it('Martingale at $500: the exact cost honours the $5,000 maximum (≈ $794.59/h)', () => {
+    const c = systemCost({ id: 'martingale', unit: 50_000 }, 'punto-banco', 8);
+    expect((c.costPerHourCents! / 100).toFixed(2)).toBe('794.59');
+  });
   it('the expected line and cost per hour use the edge of the bets placed', () => {
     const r = sim(base({ id: 'martingale', unit: 1000 }, { sessions: 200, bankroll: 100_000_000 }));
     const s = r.series[0]!;

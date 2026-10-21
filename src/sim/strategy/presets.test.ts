@@ -4,7 +4,16 @@ import { BET_IDS } from '../engine/types';
 import type { HandResult, RoadEntry, VisibleView, Winner } from '../engine/types';
 import { seedRng, randBelow } from '../engine/rng';
 import { STRATEGY_IDS } from './ids';
-import { betUnits, getStrategy, initMemory, mainBet, stepMemory, STRATEGIES } from './presets';
+import {
+  betUnits,
+  getStrategy,
+  initMemory,
+  mainBet,
+  stepMemory,
+  STRATEGIES,
+  tableCap,
+  tableMaxUnits,
+} from './presets';
 import type { MainOutcome } from './presets';
 import type { StrategyId, StrategyMemory, StrategySpec } from './types';
 
@@ -116,6 +125,28 @@ describe('presets: D28 limits', () => {
     expect(betUnits(m, spec('labouchere'))).toBe(5);
     expect(m.line).toEqual([1, 2, 3, 4]);
     expect(n).toBeGreaterThan(5);
+  });
+});
+
+describe('presets: the table maximum (one shared rule)', () => {
+  it('maxUnits = floor(max / unit); Tie uses the side limits', () => {
+    expect(tableMaxUnits(spec('martingale', { unit: 50_000 }), DEFAULT_RULES)).toBe(10);
+    expect(tableMaxUnits(spec('flat-tie', { unit: 3_000 }), DEFAULT_RULES)).toBe(16);
+  });
+  it('a bet over the maximum resets to step 1 and counts a cap hit', () => {
+    const s = spec('martingale', { unit: 50_000 });
+    let m = initMemory(s);
+    for (let i = 0; i < 4; i++) m = tableCap(stepMemory(m, s, 'lose'), s, 10);
+    expect(betUnits(m, s)).toBe(1);
+    expect(m.caps).toBe(1);
+  });
+  it("D'Alembert clamps at the table cap instead of resetting (D28)", () => {
+    const s = spec('dalembert', { unit: 50_000 });
+    let m = initMemory(s);
+    for (let i = 0; i < 15; i++) m = tableCap(stepMemory(m, s, 'lose'), s, 10);
+    expect(betUnits(m, s)).toBe(10);
+    m = tableCap(stepMemory(m, s, 'win'), s, 10);
+    expect(betUnits(m, s)).toBe(9);
   });
 });
 

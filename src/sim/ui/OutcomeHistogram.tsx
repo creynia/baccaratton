@@ -49,9 +49,16 @@ export interface OutcomeHistogramProps {
   bankroll: number;
   /** Colour slot of this series in the compare legend. */
   index?: number;
+  /** The hand winners are the same cards for every compared system: show them once. */
+  showWinners?: boolean;
 }
 
-export function OutcomeHistogram({ series, bankroll, index = 0 }: OutcomeHistogramProps) {
+export function OutcomeHistogram({
+  series,
+  bankroll,
+  index = 0,
+  showWinners = true,
+}: OutcomeHistogramProps) {
   const [active, setActive] = useState<number | null>(null);
   const bins = binFinals(series.finals);
   const n = series.finals.length;
@@ -74,7 +81,7 @@ export function OutcomeHistogram({ series, bankroll, index = 0 }: OutcomeHistogr
         {seriesLabel(series.strategy)}
       </h4>
       {n > 1 ? (
-        <figure style={{ margin: 0, position: 'relative' }}>
+        <figure style={{ margin: 0 }}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             width="100%"
@@ -112,6 +119,8 @@ export function OutcomeHistogram({ series, bankroll, index = 0 }: OutcomeHistogr
                     onPointerEnter={() => setActive(i)}
                     onPointerDown={() => setActive(i)}
                     onPointerLeave={() => setActive(null)}
+                    onPointerUp={() => setActive(null)}
+                    onPointerCancel={() => setActive(null)}
                     onFocus={() => setActive(i)}
                     onBlur={() => setActive(null)}
                   />
@@ -151,55 +160,51 @@ export function OutcomeHistogram({ series, bankroll, index = 0 }: OutcomeHistogr
               {max}
             </text>
           </svg>
-          {active !== null && bins[active] ? (
-            <div
-              role="status"
-              style={{
-                position: 'absolute',
-                top: '2px',
-                right: '8px',
-                background: 'var(--surface)',
-                color: 'var(--text)',
-                border: '1px solid color-mix(in srgb, var(--muted) 40%, transparent)',
-                borderRadius: '6px',
-                padding: '2px 8px',
-                fontSize: '12px',
-                pointerEvents: 'none',
-              }}
-            >
-              {label(bins[active])}
-            </div>
-          ) : null}
+          <div role="status" aria-live="polite" style={{ minHeight: '1.45em', fontSize: '12px' }}>
+            {active !== null && bins[active] ? label(bins[active]) : null}
+          </div>
           <figcaption style={{ fontSize: '12px', color: 'var(--muted)' }}>
             {(series.probAhead * 100).toFixed(0)}% of sessions finished ahead (≈ simulated).
           </figcaption>
         </figure>
       ) : null}
-      <table
-        aria-label="Who won the hands"
-        style={{ borderCollapse: 'collapse', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}
-      >
-        <tbody>
-          {(['banker', 'player', 'tie'] as const).map((w) => (
-            <tr key={w}>
-              <th scope="row" style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}>
-                {w === 'banker' ? 'Banker won' : w === 'player' ? 'Player won' : 'Tie'}
-              </th>
-              <td style={{ textAlign: 'right' }}>
-                {series.winners[w].toLocaleString('en-US')} ({share(series.winners[w])})
-              </td>
-            </tr>
-          ))}
-          {Object.entries(series.sideBetHits).map(([bet, k]) => (
-            <tr key={bet}>
-              <th scope="row" style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}>
-                {betDef(bet as BetId).label} hits
-              </th>
-              <td style={{ textAlign: 'right' }}>{k.toLocaleString('en-US')}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {showWinners ? (
+        <table
+          aria-label="Who won the hands"
+          style={{
+            borderCollapse: 'collapse',
+            fontSize: '13px',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <tbody>
+            {(['banker', 'player', 'tie'] as const).map((w) => (
+              <tr key={w}>
+                <th
+                  scope="row"
+                  style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}
+                >
+                  {w === 'banker' ? 'Banker won' : w === 'player' ? 'Player won' : 'Tie'}
+                </th>
+                <td style={{ textAlign: 'right' }}>
+                  {series.winners[w].toLocaleString('en-US')} ({share(series.winners[w])})
+                </td>
+              </tr>
+            ))}
+            {Object.entries(series.sideBetHits).map(([bet, k]) => (
+              <tr key={bet}>
+                <th
+                  scope="row"
+                  style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}
+                >
+                  {betDef(bet as BetId).label} hits
+                </th>
+                <td style={{ textAlign: 'right' }}>{k.toLocaleString('en-US')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
     </div>
   );
 }
