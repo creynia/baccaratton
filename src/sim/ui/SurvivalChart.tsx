@@ -108,7 +108,7 @@ export function SurvivalChart({ series, hands, class: cls }: SurvivalChartProps)
         role="status"
         aria-live="polite"
         style={{
-          minHeight: `${1.45 * (series.length + 1)}em`,
+          minHeight: `${1.45 * Math.min(series.length + 1, 3)}em`,
           fontSize: '12px',
           color: 'var(--text)',
         }}

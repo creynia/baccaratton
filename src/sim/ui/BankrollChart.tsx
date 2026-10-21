@@ -254,7 +254,7 @@ export function BankrollChart({
         aria-live="polite"
         data-testid="chart-readout"
         style={{
-          minHeight: `${1.45 * (series.length + 1)}em`,
+          minHeight: `${1.45 * Math.min(series.length + 1, 3)}em`,
           fontSize: '12px',
           color: 'var(--text)',
           fontVariantNumeric: 'tabular-nums',
