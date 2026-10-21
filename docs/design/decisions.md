@@ -24,3 +24,16 @@
 | # | Topic | Decision |
 |---|---|---|
 | D9 | Betting systems | Every system is an auto-play preset (flat Banker/Player/Tie, Martingale, Paroli, 1-3-2-6, Fibonacci, D'Alembert, Labouchère, follow-the-shoe), compared on the same seed with bankroll charts. |
+| D13 | Ids | Bets: `player`, `banker`, `tie`, `player-pair`, `banker-pair`, `dragon-bonus-player`, `dragon-bonus-banker`, `dragon-7`, `panda-8` (the last two in `ez` only). Variants: `punto-banco` (default), `ez`, `super-6`; one `SimSettings.variant` field (architecture's `commission: 'classic'` is replaced). Tie 9:1 is a separate setting (`tiePays`). Strategies: `flat-banker`, `flat-player`, `flat-tie`, `martingale`, `paroli`, `one-three-two-six`, `fibonacci`, `dalembert`, `labouchere`, `follow-the-shoe`, `side-bet-sprinkler`. Chapter and lesson ids: curriculum.md §4 (24 lessons, 7 chapters). |
+| D14 | Primary metric | **House edge per bet placed**, ties counted as a push for Player and Banker. Shown as % and as $ per hand and $ per hour (72/h). The per-resolved-bet figure (ties excluded) appears only in "Why?". Element of risk is not used (it equals the house edge for every baccarat bet). |
+| D15 | Commission | Taken from the win at settlement. Rule: gross rounds down, commission rounds up (simulator.md §1.5). Bets are whole dollars, so rounding never fires; a registry test asserts this. The curriculum's "round commission down" note is superseded and moot. The commission box is lesson text only (chip). |
+| D16 | Table limits | $5 minimum and $5,000 maximum on Player/Banker; Tie and side bets $1–$500; chips $1, $5, $25, $100, $500 (curriculum.md §2.1). |
+| D17 | Shoe end | When the cut card comes out, the hand completes, **one more hand** is dealt, then the next Deal reshuffles. Forced cards are swapped into the shoe; a forced card with no copy left triggers a reshuffle first. |
+| D18 | EV transport | No Web Worker (architecture Plan A). The EV sheet is synchronous; exact full recompute ≈ 1.4 ms desktop. The Shoe tracker recomputes after every hand. Multi-hand simulation runs through the time-sliced same-thread job client (`src/sim/jobs`), one `simulate` job kind. |
+| D19 | Tiers | On edge per bet placed: `free` ≤ 0 < `good` ≤ 2% < `fair` ≤ 5% < `costly` < 9% ≤ `sucker`. Text label always. `sucker` needs a second tap ("Bet it anyway") when `confirmCostlyBets` (default on); `costly` shows the better-alternative card. In `super-6`, the alternative for Banker is Player. |
+| D20 | Empty-felt deal | Allowed (a no-money hand) for roads lessons and follow-the-shoe waiting. |
+| D21 | Auto-play lengths | 72 / 720 / 7,200 hands (1, 10, 100 hours). |
+| D22 | Roads & Drill placement | Roads in `src/sim/engine/roads.ts`; Drill in `src/sim/strategy/drill.ts`. |
+| D23 | Scenes | The `SceneConfig` in simulator.md §5.1 is authoritative; the curriculum's scene names map 1:1 (simulator.md §5.3). |
+| D24 | File ownership | simulator.md §8 wins inside `src/sim/**`; architecture.md for the rest. Content split: **content-a** lessons 1–8 + `content/*.json`; **content-b** lessons 9–16; **content-c** lessons 17–24. |
+| D25 | Pinned numbers | simulator.md §2.5 is the source of the pinned fractions; curriculum.md must match it. |
