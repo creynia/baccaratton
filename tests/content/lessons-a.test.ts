@@ -15,8 +15,11 @@ import {
   handTotal,
   isNatural,
   parseCards,
+  playHand,
   playerDraws,
+  settleHand,
 } from '../../src/sim/engine';
+import type { Slip } from '../../src/sim/engine';
 import type { Card, CardValue, ForcedHand } from '../../src/sim/engine';
 import { fullShoeEvs } from '../../src/sim/math';
 import { validateScene } from '../../src/sim/scene';
@@ -161,6 +164,24 @@ const OUTCOMES: Record<string, [Played['winner'], number, number]> = {
   'l07-s2/deal': ['tie', 6, 6],
 };
 
+/** The bets on the felt for each forced hand, and what the text says it pays (cents). */
+const PAYS: Record<string, [Slip, number, number?]> = {
+  'l01-s2/deal': [{ player: 1000 }, 1000],
+  'l02-s1/total': [{ player: 1000 }, 1000],
+  'l03-s1/natural': [{ player: 1000 }, 1000],
+  'l03-s2/draws': [{ player: 1000 }, 1000],
+  'l03-s2/stands': [{ player: 1000 }, -1000],
+  'l04-s1/banker-draws': [{ banker: 1000 }, 950, 50],
+  'l04-s1/tie': [{ banker: 1000 }, 0],
+  'l05-s1/b3-p8': [{ banker: 1000 }, 950, 50],
+  'l05-s1/b4-p2': [{ banker: 1000 }, 950, 50],
+  'l05-s1/b5-p3': [{ banker: 1000 }, -1000],
+  'l05-s1/b6-p7': [{ banker: 1000 }, 950, 50],
+  'l05-s1/b6-p5': [{ banker: 1000 }, -1000],
+  'l07-s1/deal': [{ banker: 2000 }, 1900, 100],
+  'l07-s2/deal': [{ player: 1000, tie: 500 }, 4000],
+};
+
 describe('scenes', () => {
   it('validate, are numbered lNN-sN, and each lesson ends with a quiz', () => {
     IDS.forEach((id, i) => {
@@ -202,6 +223,38 @@ describe('scenes', () => {
         });
       }
     expect(seen.sort()).toEqual(Object.keys(OUTCOMES).sort());
+  });
+
+  it('deal and settle the same way in the engine (playHand, settleHand)', () => {
+    const forced = IDS.flatMap((id) => scenesOf(id)).flatMap((s) =>
+      (s.steps ?? []).flatMap((st) => (st.deals ? [[s, st] as const] : [])),
+    );
+    for (const [s, st] of forced) {
+      const key = `${s.id}/${st.id}`;
+      const h = st.deals![0]!;
+      const pc = parseCards(h.player.join(' '));
+      const bc = parseCards(h.banker.join(' '));
+      const order = [pc[0]!, bc[0]!, pc[1]!, bc[1]!, ...pc.slice(2), ...bc.slice(2)];
+      let i = 0;
+      const rec = playHand(() => order[i++]!);
+      expect(i, `${key}: every forced card is used`).toBe(order.length);
+      expect(rec.player.cards, key).toEqual(pc);
+      expect(rec.banker.cards, key).toEqual(bc);
+      const [slip, net, commission = 0] = PAYS[key]!;
+      // The felt: the scene's preset bets, or what the betting step asks for.
+      if (s.bets) expect(s.bets, key).toEqual(slip);
+      const res = settleHand(
+        { ...rec, n: 1, shoeNo: 1, handInShoe: 1, forced: true },
+        slip,
+        DEFAULT_RULES,
+      );
+      expect(res.net, key).toBe(net);
+      expect(
+        res.settlements.reduce((a, x) => a + x.commission, 0),
+        key,
+      ).toBe(commission);
+    }
+    expect(forced.map(([s, st]) => `${s.id}/${st.id}`).sort()).toEqual(Object.keys(PAYS).sort());
   });
 
   it('follow the step rules of D26/D27', () => {
