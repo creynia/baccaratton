@@ -44,8 +44,9 @@ export interface TableProps {
 }
 
 /**
- * Layout shell (simulator.md §4.2–4.3). Portrait: status, felt, roads, notices, chip rack, action
- * bar. Landscape (844 × 390): the felt on the left and a 324 px rail whose Deal button is always
+ * Layout shell (simulator.md §4.2–4.3). Portrait: status, felt, roads, notices, then the chip rack
+ * and action bar docked (sticky) above the tab bar, so Deal never leaves the screen. Landscape
+ * (844 × 390): the status line and the felt on the left, a 324 px rail whose Deal button is always
  * visible.
  */
 export function Table({
@@ -66,15 +67,17 @@ export function Table({
         aria-label="Table"
         data-orientation="landscape"
       >
-        <div class="sim-table-felt">{felt}</div>
+        <div class="sim-table-felt-col">
+          {status}
+          <div class="sim-table-felt">{felt}</div>
+        </div>
         <aside class="sim-rail" aria-label="Controls">
           <div class="sim-rail-actions">{actions}</div>
           {notices}
           {chips}
-          <div class="sim-rail-body">
+          <div class="sim-rail-body" tabindex={0} role="region" aria-label="Bets, EV and roads">
             {sheet}
             {rail}
-            {status}
             {roads}
           </div>
         </aside>
@@ -87,8 +90,10 @@ export function Table({
       <div class="sim-table-felt">{felt}</div>
       {roads}
       {notices}
-      {chips}
-      <div class="sim-table-actions">{actions}</div>
+      <div class="sim-table-dock">
+        {chips}
+        <div class="sim-table-actions">{actions}</div>
+      </div>
       {sheet}
     </section>
   );

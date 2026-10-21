@@ -66,10 +66,51 @@
   height: var(--sim-table-h, 100dvh);
   min-height: 0;
 }
-.sim-table-landscape .sim-table-felt,
-.sim-table-landscape .sim-felt-wrap,
-.sim-table-landscape .sim-felt {
+.sim-table-felt-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.sim-table-felt-col > .sim-status {
+  flex: none;
+  min-height: 32px;
+  padding: 2px 8px;
+}
+.sim-table-landscape .sim-table-felt-col {
   height: 100%;
+}
+.sim-table-landscape .sim-table-felt {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+}
+.sim-table-landscape .sim-felt-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+.sim-table-landscape .sim-felt {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+/* Portrait: chips + actions stay on screen above the app's tab bar (58 px incl. its border). */
+.sim-table-dock {
+  position: sticky;
+  bottom: var(--sim-dock-bottom, 0px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0 8px;
+  background: var(--bg);
+  box-shadow: 0 -6px 10px -8px rgba(0, 0, 0, 0.4);
+}
+@media (max-width: 767px) {
+  :root {
+    --sim-dock-bottom: calc(58px + env(safe-area-inset-bottom));
+  }
 }
 .sim-rail {
   display: flex;
@@ -106,8 +147,8 @@
   font-family: inherit;
 }
 .sim-felt-portrait .sim-felt {
-  max-height: calc(100dvh - 330px);
-  min-height: 260px;
+  max-height: calc(100dvh - 400px);
+  min-height: 240px;
 }
 .sim-felt-bg {
   fill: var(--felt);
@@ -146,6 +187,26 @@
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
   opacity: 0.55;
+}
+
+.sim-skip {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 800;
+  color: var(--felt-text);
+  background: rgba(20, 8, 12, 0.85);
+  border: 2px solid var(--felt-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.sim-skip:focus-visible {
+  outline: 3px solid var(--sim-hl);
+  outline-offset: 2px;
 }
 
 /* bet spots */
@@ -952,12 +1013,42 @@ button.sim-evmini-btn {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+.sim-why {
+  container-type: inline-size;
+}
 .sim-why-count {
   display: block;
-  overflow-wrap: anywhere;
   color: var(--muted);
   font-weight: 400;
   font-size: 0.75rem;
+}
+.sim-why-approx {
+  display: none;
+  font: inherit;
+  color: inherit;
+  min-height: 44px;
+  padding: 0 4px;
+  margin-left: -4px;
+  background: none;
+  border: 0;
+  text-decoration: underline dotted;
+  cursor: pointer;
+  text-align: left;
+}
+.sim-why-approx:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+@container (max-width: 480px) {
+  .sim-why-approx {
+    display: inline;
+  }
+  .sim-why-full {
+    display: none;
+  }
+  .sim-why-full.is-open {
+    display: block;
+  }
 }
 .sim-why-formula,
 .sim-why-note,
@@ -1065,8 +1156,7 @@ button.sim-evmini-btn {
   padding: 0 6px;
 }
 .sim-tab-stood {
-  font-size: 0.72rem;
-  max-width: 52px;
+  font-size: 0.7rem;
 }
 .sim-tab-cell {
   font-weight: 800;
@@ -1090,6 +1180,27 @@ button.sim-evmini-btn {
 .sim-tab-nat {
   font-size: 0.78rem;
   color: var(--muted);
+}
+/* The read-only chart fits the width (no scrolling at 360 px); the tappable one keeps 44 px cells. */
+.sim-tableau:not(.is-tap) .sim-tab-banker {
+  width: 100%;
+  table-layout: fixed;
+}
+.sim-tableau:not(.is-tap) .sim-tab-banker th,
+.sim-tableau:not(.is-tap) .sim-tab-banker td {
+  min-width: 0;
+}
+.sim-tableau:not(.is-tap) .sim-tab-scroll {
+  flex: 1 1 100%;
+}
+.sim-tab-col-head {
+  width: 28px;
+}
+.sim-tab-col-stood {
+  width: 46px;
+}
+.sim-tab abbr {
+  text-decoration: none;
 }
 .sim-tableau.is-tap .sim-tab th,
 .sim-tableau.is-tap .sim-tab td {

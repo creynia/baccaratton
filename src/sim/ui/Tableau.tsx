@@ -133,19 +133,26 @@ function BankerChart({
   onCell?: (c: TableauCellId) => void;
 }) {
   return (
-    <div class="sim-tab-scroll">
+    <div class="sim-tab-scroll" tabindex={0} role="region" aria-label="Banker drawing chart">
       <table class="sim-tab sim-tab-banker" data-chart="banker">
         <caption>Banker (two-card total) against the Player’s third card</caption>
+        <colgroup>
+          <col class="sim-tab-col-head" />
+          <col class="sim-tab-col-stood" />
+          {P_VALUES.map((v) => (
+            <col key={v} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             <th scope="col" rowSpan={2}>
-              Banker
+              <abbr title="Banker total">B</abbr>
             </th>
             <th scope="col" rowSpan={2} class="sim-tab-stood">
-              Player stood
+              <abbr title="The Player stood (no third card)">Stood</abbr>
             </th>
             <th scope="colgroup" colSpan={10}>
-              Player’s third card
+              Player’s 3rd card
             </th>
           </tr>
           <tr>

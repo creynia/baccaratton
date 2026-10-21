@@ -1,4 +1,5 @@
 import './sim.css';
+import { useEffect } from 'preact/hooks';
 // The felt as one SVG (simulator.md sections 4.1–4.3): both hands, the bet spots of the variant,
 // the burn card and the result banner. Presentational: everything comes in as props.
 import { cardName } from '../engine/cards';
@@ -26,6 +27,8 @@ export interface FeltProps {
   timeline?: Timeline | null;
   /** Visuals flushed (tap to skip). */
   skipped?: boolean;
+  /** The timeline is still running (shows the Skip button; Escape / Space skip). */
+  playing?: boolean;
   onSkip?: () => void;
   winner?: Winner | null;
   /** Per bet, how the last hand settled (glow / dim). */
@@ -68,6 +71,7 @@ export function Felt({
   fourColor,
   timeline,
   skipped,
+  playing,
   onSkip,
   winner,
   results,
@@ -84,6 +88,20 @@ export function Felt({
 }: FeltProps) {
   const L = feltLayout(orientation, rules.variant);
   const tl = !skipped && timeline && timeline.totalMs > 0 ? timeline : null;
+  const canSkip = !!tl && !!onSkip && playing !== false;
+  useEffect(() => {
+    if (!canSkip) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const interactive = !!t?.closest?.('button, input, select, textarea, a, [role="button"]');
+      if (e.key === 'Escape' || ((e.key === ' ' || e.key === 'Spacebar') && !interactive)) {
+        e.preventDefault();
+        onSkip?.();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [canSkip, onSkip]);
   const evOf = new Map((sheet ?? []).map((b) => [b.bet, b]));
   const burnStep = tl?.steps.find((s) => s.kind === 'burn');
   const resultStep = tl?.steps.find((s) => s.kind === 'result');
@@ -190,6 +208,20 @@ export function Felt({
           </g>
         ) : null}
       </svg>
+      {canSkip ? (
+        <button
+          type="button"
+          class="sim-skip"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSkip?.();
+          }}
+          data-action="skip"
+          data-hit="skip"
+        >
+          Skip
+        </button>
+      ) : null}
       <p class="sim-sr" aria-live="polite">
         {summaryOf(player, banker)}
       </p>

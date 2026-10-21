@@ -14,7 +14,7 @@
   --player: #1f5fbf;
   --banker: #c0262d;
   --tie: #1a7f4b;
-  --tier-free: #1a7f4b;
+  --tier-free: #0f766e;
   --tier-good: #2e7d32;
   --tier-fair: #8a6d00;
   --tier-costly: #b45309;
@@ -61,7 +61,7 @@
     --player: #6da8ff;
     --banker: #ff7b72;
     --tie: #4cc38a;
-    --tier-free: #4cc38a;
+    --tier-free: #5eead4;
     --tier-good: #7bd88f;
     --tier-fair: #e0c14d;
     --tier-costly: #f0a04b;
@@ -103,7 +103,7 @@
   --player: #6da8ff;
   --banker: #ff7b72;
   --tie: #4cc38a;
-  --tier-free: #4cc38a;
+  --tier-free: #5eead4;
   --tier-good: #7bd88f;
   --tier-fair: #e0c14d;
   --tier-costly: #f0a04b;

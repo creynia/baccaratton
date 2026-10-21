@@ -118,7 +118,8 @@ export const SPOT_LINES: Readonly<Record<BetId, readonly string[]>> = {
   'panda-8': ['PANDA 8'],
 };
 
-const commissionPct = (rules: Pick<TableRules, 'commission'>): string => {
+/** "5%" from the rules' commission odds. */
+export const commissionPct = (rules: Pick<TableRules, 'commission'>): string => {
   const [n, d] = rules.commission;
   return `${Number(((n / d) * 100).toFixed(2))}%`;
 };
@@ -207,17 +208,30 @@ export function perfectStrategyLine(sheet: readonly BetEv[]): string {
   return `Perfect strategy: ${BET_LABEL[best]}, house edge ${ev ? pct(ev.edge) : '—'}.`;
 }
 
-/** "−$0.11 per hand · −$7.62/hour" for `amount` cents on a bet with this EV per $1. */
+/** "About $7.62 an hour at 72 hands" (curriculum.md §8.1: the cost as a positive amount). */
+export function perHourText(evCentsPerHand: Num, handsPerHour: number): string {
+  const perHour = toNum(evCentsPerHand) * handsPerHour;
+  const amount = moneyC(Math.abs(perHour));
+  return perHour > 0
+    ? `About ${amount} an hour in your favour at ${handsPerHour} hands`
+    : `About ${amount} an hour at ${handsPerHour} hands`;
+}
+
+/** "−$0.11 per hand" and "About $7.62 an hour at 72 hands" for `amount` cents on a bet. */
 export function costLine(
   ev: Fraction,
   amount: Cents,
   handsPerHour: number,
 ): { perHand: string; perHour: string } {
   const perHand = fracMul(ev, amount);
-  return {
-    perHand: `${moneyC(perHand)} per hand`,
-    perHour: `${moneyC(fracMul(perHand, handsPerHour))}/hour`,
-  };
+  return { perHand: `${moneyC(perHand)} per hand`, perHour: perHourText(perHand, handsPerHour) };
+}
+
+/** Sheet footer (curriculum.md §8.1): "This hand: −$1.70 expected · about $122.43 an hour". */
+export function slipFooter(totalEvCents: Num, handsPerHour: number): string {
+  const perHour = toNum(totalEvCents) * handsPerHour;
+  const tail = perHour > 0 ? ' in your favour' : '';
+  return `This hand: ${moneyC(totalEvCents)} expected · about ${moneyC(Math.abs(perHour))} an hour${tail}`;
 }
 
 /** Better-alternative copy (curriculum.md §8.3). */
@@ -281,11 +295,11 @@ export function resultHeadline(r: HandResult): string {
   const nat = r.hand.natural ? ' (natural)' : '';
   return `${WINNER_LABEL[winner]} wins ${w} to ${l}${nat}.`;
 }
-/** "You win $23.75." / "You lose $25." / "Your bets push." / "No money on this hand." */
+/** "You win $23.75." / "You lose $25.00." / "Your bets push." / "No money on this hand." */
 export function resultMoney(r: HandResult): string {
   if (r.settlements.length === 0) return 'No money on this hand.';
-  if (r.net > 0) return `You win ${money(r.net)}.`;
-  if (r.net < 0) return `You lose ${money(-r.net)}.`;
+  if (r.net > 0) return `You win ${money(r.net, { cents: 'always' })}.`;
+  if (r.net < 0) return `You lose ${money(-r.net, { cents: 'always' })}.`;
   return r.settlements.every((s) => s.result === 'push') ? 'Your bets push.' : 'You break even.';
 }
 /** "$1.25 commission (5% of $25)" or null when no commission was taken. */

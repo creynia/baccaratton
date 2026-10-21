@@ -144,8 +144,8 @@ function Strip({
         ref={ref}
         class={`sim-road-scroll${onTap ? ' is-tap' : ''}`}
         style={`--sim-cell:${cell}px`}
-        role={onTap ? 'button' : 'img'}
-        tabIndex={onTap ? 0 : undefined}
+        role={onTap ? 'button' : 'region'}
+        tabindex={0}
         aria-label={label}
         data-target={road === 'bead' ? 'bead-plate' : 'big-road'}
         data-hit={onTap ? (road === 'bead' ? 'bead-plate' : 'big-road') : undefined}

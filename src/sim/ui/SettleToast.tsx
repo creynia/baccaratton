@@ -1,7 +1,16 @@
 import './sim.css';
 import { useState } from 'preact/hooks';
 import type { HandResult, TableRules } from '../engine/types';
-import { BET_LABEL, commissionLine, money, resultHeadline, resultMoney } from './text';
+import type { Fraction } from '../math/types';
+import {
+  BET_LABEL,
+  commissionLine,
+  commissionPct,
+  money,
+  pct,
+  resultHeadline,
+  resultMoney,
+} from './text';
 
 export interface SettleToastProps {
   result: HandResult;
@@ -11,13 +20,23 @@ export interface SettleToastProps {
   onDismiss?: () => void;
   /** Show the per-bet lines. */
   details?: boolean;
+  /** The variant's Banker house edge from the EV sheet, for the explainer. */
+  bankerEdge?: Fraction | null;
 }
 
 /**
  * The settlement toast (D35): "Banker wins 7 to 5. You win $23.75." with a tappable line
  * "$1.25 commission (5% of $25)" that opens a short explainer.
  */
-export function SettleToast({ result, rules, onCommission, onDismiss, details }: SettleToastProps) {
+export function SettleToast({
+  result,
+  rules,
+  onCommission,
+  onDismiss,
+  details,
+  bankerEdge,
+}: SettleToastProps) {
+  const rate = rules ? commissionPct(rules) : '5%';
   const [open, setOpen] = useState(false);
   const line = commissionLine(result, rules);
   const c = result.settlements.find((s) => s.commission > 0);
@@ -53,10 +72,10 @@ export function SettleToast({ result, rules, onCommission, onDismiss, details }:
       ) : null}
       {open && c ? (
         <p class="sim-settle-explain" data-testid="commission-explainer">
-          A winning Banker bet pays 1 to 1, less 5% of the win: {money(c.amount)} × 5% ={' '}
+          A winning Banker bet pays 1 to 1, less {rate} of the win: {money(c.amount)} × {rate} ={' '}
           {money(c.commission, { cents: 'always' })}, so you get{' '}
           {money(c.profit, { cents: 'always' })}. Banker wins a little more often than Player; the
-          commission is what keeps a house edge (1.06%) on it.
+          commission is what keeps a house edge{bankerEdge ? ` (${pct(bankerEdge)})` : ''} on it.
         </p>
       ) : null}
       {details && result.settlements.length > 0 ? (

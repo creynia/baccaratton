@@ -61,6 +61,7 @@ const FORCED: Record<string, ForcedHand> = {
 };
 
 interface Dealt {
+  before: GameState;
   state: GameState;
   events: GameEvent[];
 }
@@ -74,7 +75,7 @@ function dealHand(variant: VariantId, bets: Slip, forced: ForcedHand | null, see
   });
   const r = applyAction(s0, { type: 'deal' });
   if (!r.ok) throw new Error(r.error.message);
-  return { state: r.state, events: r.events };
+  return { before: s0, state: r.state, events: r.events };
 }
 function playShoe(hands: number, seed = 11): GameState {
   let s = createGame({ seed });
@@ -125,6 +126,7 @@ function PlayTable({
   const [why, setWhy] = useState<BetId | null>(whyFor ?? null);
   const [confirming, setConfirming] = useState<BetId | null>(confirmFor ?? null);
   const [handKey, setHandKey] = useState(0);
+  const [before, setBefore] = useState<GameState | null>(null);
   const p = useMemo(() => preview(rules, state.bets), [rules, state.bets]);
   const tl = useMemo(() => buildTimeline(events, speed), [events]);
   const motion = useSkippableMotion(handKey, tl.totalMs);
@@ -133,6 +135,7 @@ function PlayTable({
     if (r.ok) {
       setState(r.state);
       if (a.type === 'deal') {
+        setBefore(state);
         setEvents(r.events);
         setHandKey((k) => k + 1);
       }
@@ -154,6 +157,9 @@ function PlayTable({
     : null;
   const slipTotal = Object.values(state.bets).reduce((a: number, b) => a + (b ?? 0), 0);
   const confirmEv = confirming ? p.sheet.find((b) => b.bet === confirming) : null;
+  // History, bankroll and shoe change only when the animation ends (the engine is already final).
+  const shown = motion.playing && before ? before : state;
+  const bankerEdge = p.sheet.find((b) => b.bet === 'banker')?.edge;
   const felt = (
     <Felt
       orientation={orientation}
@@ -166,6 +172,7 @@ function PlayTable({
       fourColor={four}
       timeline={tl}
       skipped={motion.skipped}
+      playing={motion.playing}
       onSkip={motion.skip}
       winner={showHand ? last.hand.winner : null}
       results={motion.playing ? null : results}
@@ -188,7 +195,8 @@ function PlayTable({
           mode="confirm"
           bet={confirming}
           tier={confirmEv.tier}
-          text={suckerPrompt(confirming, confirmEv.ev, 1000)}
+          text={suckerPrompt(confirming, confirmEv.ev, chip)}
+          autoFocus
           to={p.alternative?.to ?? (variant === 'super-6' ? 'player' : 'banker')}
           onConfirm={() => {
             setConfirming(null);
@@ -202,7 +210,9 @@ function PlayTable({
           onDismiss={() => setConfirming(null)}
         />
       ) : null}
-      {showHand && !motion.playing ? <SettleToast result={last} rules={rules} details /> : null}
+      {showHand && !motion.playing ? (
+        <SettleToast result={last} rules={rules} bankerEdge={bankerEdge} details />
+      ) : null}
     </>
   );
   const sheet = sheetOpen ? (
@@ -223,28 +233,32 @@ function PlayTable({
         });
         if (s2.ok) setState(s2.state);
       }}
-      mode={orientation === 'landscape' ? 'panel' : 'inline'}
+      mode={orientation === 'landscape' ? 'panel' : 'dialog'}
       onClose={() => setSheetOpen(false)}
     />
   ) : null;
-  const left = visibleView(state).unseenRanks.reduce((a, b) => a + b, 0);
+  const left = visibleView(shown).unseenRanks.reduce((a, b) => a + b, 0);
   return (
     <Table
       orientation={orientation}
       status={
         <StatusBar
-          bankroll={state.bankroll}
-          onFelt={slipTotal}
-          sessionNet={state.stats.hands ? (last?.net ?? 0) : null}
+          bankroll={shown.bankroll}
+          onFelt={
+            motion.playing
+              ? Object.values(state.lastBets).reduce((a: number, b) => a + (b ?? 0), 0)
+              : slipTotal
+          }
+          sessionNet={shown.stats.hands ? (shown.lastResult?.net ?? 0) : null}
           shoe={{
             cardsLeft: left,
-            cutCardOut: state.shoe.cutCardOut,
-            finished: state.shoe.finished,
+            cutCardOut: shown.shoe.cutCardOut,
+            finished: shown.shoe.finished,
           }}
         />
       }
       felt={felt}
-      roads={<Scoreboard entries={state.history} view={['bead']} minColumns={14} />}
+      roads={<Scoreboard entries={shown.history} view={['bead']} minColumns={14} />}
       notices={notices}
       chips={<ChipRack selected={chip} onSelect={setChip} compact={orientation === 'landscape'} />}
       actions={
@@ -292,10 +306,15 @@ function DealtTable({
       orientation={orientation}
       status={
         <StatusBar
-          bankroll={d.state.bankroll}
-          onFelt={0}
-          sessionNet={r.net}
-          shoe={{ cardsLeft: visibleView(d.state).unseenRanks.reduce((a, b) => a + b, 0) }}
+          bankroll={(motion.playing ? d.before : d.state).bankroll}
+          onFelt={motion.playing ? r.wagered : 0}
+          sessionNet={motion.playing ? null : r.net}
+          shoe={{
+            cardsLeft: visibleView(motion.playing ? d.before : d.state).unseenRanks.reduce(
+              (a, b) => a + b,
+              0,
+            ),
+          }}
         />
       }
       felt={
@@ -309,14 +328,32 @@ function DealtTable({
           fourColor={four}
           timeline={tl}
           skipped={motion.skipped}
+          playing={motion.playing}
           onSkip={motion.skip}
           winner={r.hand.winner}
-          results={Object.fromEntries(r.settlements.map((s) => [s.bet, s.result]))}
+          results={
+            motion.playing ? null : Object.fromEntries(r.settlements.map((s) => [s.bet, s.result]))
+          }
           banner={r.hand.winner === 'tie' ? 'Tie' : `${BET_LABEL[r.hand.winner]} wins`}
         />
       }
-      roads={<Scoreboard entries={d.state.history} view={['bead']} minColumns={14} />}
-      notices={<SettleToast result={r} rules={rules} details />}
+      roads={
+        <Scoreboard
+          entries={motion.playing ? d.before.history : d.state.history}
+          view={['bead']}
+          minColumns={14}
+        />
+      }
+      notices={
+        motion.playing ? null : (
+          <SettleToast
+            result={r}
+            rules={rules}
+            bankerEdge={p.sheet.find((b) => b.bet === 'banker')?.edge}
+            details
+          />
+        )
+      }
       chips={<ChipRack selected={2500} onSelect={() => {}} compact={orientation === 'landscape'} />}
       actions={
         <ActionBar

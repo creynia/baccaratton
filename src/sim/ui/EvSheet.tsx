@@ -10,10 +10,8 @@ import {
   alternativeText,
   bestMainBet,
   costLine,
-  fracMul,
-  fracNeg,
+  slipFooter,
   money,
-  moneyC,
   payoutShort,
   perfectStrategyLine,
   pct,
@@ -100,11 +98,7 @@ function Row({
         </strong>
         : <strong class="sim-money">{c.perHand}</strong> · house edge <strong>{pct(b.edge)}</strong>
       </p>
-      <p class="sim-evrow-sub sim-money">
-        {onSlip
-          ? c.perHour
-          : `About ${moneyC(fracNeg(fracMul(b.ev, amount * hph)))} an hour at ${hph} hands`}
-      </p>
+      <p class="sim-evrow-sub sim-money">{c.perHour}</p>
       {trackerRow ? (
         <p class="sim-evrow-tracker" data-testid={`tracker-line-${b.bet}`}>
           <strong>This shoe</strong>: {pct(trackerRow.ev)} (exact for the {trackerCards} cards left)
@@ -254,8 +248,8 @@ export function EvSheet({
           <p class="sim-ev-foot sim-money" data-testid="ev-slip-total">
             {preview.totalWagered > 0 ? (
               <>
-                <strong>This slip</strong>: {money(preview.totalWagered)} per hand, expected{' '}
-                {moneyC(preview.totalEvCents)} per hand, {moneyC(preview.perHourCents)}/hour
+                {slipFooter(preview.totalEvCents, handsPerHour)}{' '}
+                <span class="sim-muted">({money(preview.totalWagered)} on the felt)</span>
               </>
             ) : (
               <>No chips on the felt. Lines show {money(unitCents)} on each bet.</>
