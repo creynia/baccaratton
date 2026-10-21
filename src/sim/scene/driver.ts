@@ -78,6 +78,7 @@ export interface Reveal {
 }
 export interface PredictFeedback extends AnswerKey {
   hand: number;
+  pause: PausePoint;
   kind: PredictKind;
   correct: boolean;
   chosen: string;
@@ -485,6 +486,7 @@ export class SimDriver {
     this.feedback = {
       ...key,
       hand: a.hand,
+      pause: a.pause,
       kind: a.kind,
       correct,
       chosen: answer,
