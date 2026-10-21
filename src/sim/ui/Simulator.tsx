@@ -5,15 +5,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'preact/hooks';
 import { equity, visibleView } from '../engine/game';
 import { slipTotal } from '../engine/validate';
-import type {
-  Action,
-  BetId,
-  Cents,
-  GameEvent,
-  GameState,
-  HandResult,
-  Slip,
-} from '../engine/types';
+import type { Action, BetId, Cents, GameEvent, GameState, HandResult, Slip } from '../engine/types';
 import { previewSlip } from '../math/preview';
 import { shoeTracker } from '../math/tracker';
 import type { Alternative, SlipPreview } from '../math/types';
@@ -27,7 +19,8 @@ import { ActionBar } from './ActionBar';
 import type { ActionId } from './ActionBar';
 import { AltCard } from './AltCard';
 import { AutoPlayPanel } from './AutoPlayPanel';
-import { ChipRack, CHIP_DENOMS } from './ChipRack';
+import { ChipRack } from './ChipRack';
+import { CHIP_DENOMS } from './ChipStack';
 import { EvList } from './EvList';
 import { EvSheet } from './EvSheet';
 import { Felt } from './Felt';
@@ -45,7 +38,7 @@ import type { Toast } from './Toasts';
 import { buildTimeline, cardsUpTo, useSkippableMotion } from './animation';
 import { fromSnapshot, toSnapshot } from './persist';
 import { defaultChip, parseSandboxQuery, pickSpeed, randomSeed, tableOf } from './settings';
-import { alternativeText, BET_LABEL } from './text';
+import { alternativeText, BET_LABEL, suckerPrompt } from './text';
 import type { SimSettings } from './types';
 import './simulator.css';
 
@@ -129,7 +122,6 @@ export function Simulator(props: SimulatorProps) {
   const restored = useMemo(
     () => (sandbox ? fromSnapshot(props.snapshot, table) : null),
     // Only the first render restores; later snapshots are our own.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const [chip, setChip] = useState<Cents>(() =>
@@ -151,11 +143,10 @@ export function Simulator(props: SimulatorProps) {
     });
   const [driver, setDriver] = useState(() => makeDriver(true));
   const [, force] = useReducer((n: number) => n + 1, 0);
-  useEffect(() => driver.subscribe(force), [driver]);
+  useEffect(() => driver.subscribe(() => force(0)), [driver]);
   useEffect(() => {
     const r = driver.state.rules;
     if (r.variant !== table.variant || r.tiePays !== table.tiePays) setDriver(makeDriver(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableKey]);
   useEffect(() => {
     if (sandbox) driver.setShoeTracker(settings.shoeTracker);
@@ -165,7 +156,9 @@ export function Simulator(props: SimulatorProps) {
   const orientation = useOrientation(scene?.ui?.orientation ?? 'auto');
   const landscape = orientation === 'landscape';
   const [watch, setWatch] = useState<Watch | null>(null);
-  const speed = watch ? pickSpeed(settings, 'fast') : pickSpeed(settings, scene?.ui?.speed ?? q.speed);
+  const speed = watch
+    ? pickSpeed(settings, 'fast')
+    : pickSpeed(settings, scene?.ui?.speed ?? q.speed);
 
   // ---------- the staged reveal ----------
   const events = v.lastEvents;
@@ -175,9 +168,7 @@ export function Simulator(props: SimulatorProps) {
   const awaiting = v.awaiting && v.awaiting.hand === handN ? v.awaiting : null;
   const fb = v.feedback && v.feedback.hand === handN ? v.feedback : null;
   const pause = awaiting?.pause ?? fb?.pause ?? null;
-  const pauseIdx = pause
-    ? events.findIndex((e) => e.type === 'pause-point' && e.at === pause)
-    : -1;
+  const pauseIdx = pause ? events.findIndex((e) => e.type === 'pause-point' && e.at === pause) : -1;
   const phase: 'one' | 'two' | 'all' = awaiting ? 'one' : fb && pauseIdx >= 0 ? 'two' : 'all';
   const tl = useMemo(() => {
     const evs =
@@ -277,7 +268,6 @@ export function Simulator(props: SimulatorProps) {
       pushToast('Shoe finished. The next Deal shuffles a new shoe.');
     else if (events.some((e) => e.type === 'cut-card'))
       pushToast('The cut card is out: one more hand, then a new shoe.');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealing, v.eventSeq]);
 
   // ---------- persistence ----------
@@ -389,7 +379,11 @@ export function Simulator(props: SimulatorProps) {
   const allowed = (a: Action['type']) => sandbox || gateActions.includes(a);
   const highlight = (v.step?.highlight ?? scene?.highlight ?? []) as string[];
   const resultShown = !revealing && !!last && slipEmpty;
-  const winnerText = last ? (last.hand.winner === 'tie' ? 'Tie' : `${BET_LABEL[last.hand.winner]} wins`) : null;
+  const winnerText = last
+    ? last.hand.winner === 'tie'
+      ? 'Tie'
+      : `${BET_LABEL[last.hand.winner]} wins`
+    : null;
   const banner = revealing
     ? null
     : resultShown && handN !== null
@@ -409,7 +403,7 @@ export function Simulator(props: SimulatorProps) {
       ghost={resultShown}
       sheet={showEV && !practiceHidden ? preview.sheet : null}
       fourColor={settings.fourColorDeck}
-      timeline={tl}
+      timeline={motion.playing ? tl : null}
       skipped={motion.skipped}
       onSkip={motion.skip}
       winner={revealing ? null : (last?.hand.winner ?? null)}
@@ -437,11 +431,13 @@ export function Simulator(props: SimulatorProps) {
           mode="confirm"
           bet={confirming}
           tier={confirmEv.tier}
-          text={`${BET_LABEL[confirming]}: ${suckerLine(confirmEv.ev, chip)} Bet it anyway?`}
+          text={suckerPrompt(confirming, confirmEv.ev, Math.max(chip, settings.unitCents))}
           to={cheapest}
           autoFocus
           onConfirm={() => place(confirming)}
-          onUse={() => useAlternative({ from: confirming, to: cheapest, amount: altAmount(confirming) })}
+          onUse={() =>
+            useAlternative({ from: confirming, to: cheapest, amount: altAmount(confirming) })
+          }
           onDismiss={() => setConfirming(null)}
         />
       ) : null}
@@ -477,7 +473,10 @@ export function Simulator(props: SimulatorProps) {
         />
       ) : null}
       {toasts.length ? (
-        <Toasts toasts={toasts} onDismiss={(id) => setToasts((t) => t.filter((x) => x.id !== id))} />
+        <Toasts
+          toasts={toasts}
+          onDismiss={(id) => setToasts((t) => t.filter((x) => x.id !== id))}
+        />
       ) : null}
     </>
   );
@@ -500,7 +499,9 @@ export function Simulator(props: SimulatorProps) {
       onClear={() => act({ type: 'clear-bets' })}
       onEv={() => (sheetOpen ? setSheetOpen(false) : openSheet())}
       evOpen={sheetOpen}
-      highlight={highlight.filter((h) => ['deal', 'rebet', 'clear', 'ev'].includes(h)) as ActionId[]}
+      highlight={
+        highlight.filter((h) => ['deal', 'rebet', 'clear', 'ev'].includes(h)) as ActionId[]
+      }
       hidden={hidden}
       busy={revealing}
       layout={landscape ? 'rail' : 'bar'}
@@ -562,19 +563,20 @@ export function Simulator(props: SimulatorProps) {
         onClose={() => setSheetOpen(false)}
       />
     ) : null;
-  const step = scene && !sandbox ? (
-    <StepPanel
-      step={display.step}
-      index={display.index}
-      count={v.stepCount}
-      done={display.done}
-      showNext={v.showNext && !revealing}
-      onNext={() => driver.acknowledge()}
-      hint={(v.rejection?.text ?? null) || (idleHint ? (v.step?.hint ?? null) : null)}
-      busy={revealing}
-      compact={landscape}
-    />
-  ) : null;
+  const step =
+    scene && !sandbox ? (
+      <StepPanel
+        step={display.step}
+        index={display.index}
+        count={v.stepCount}
+        done={display.done}
+        showNext={v.showNext && !revealing}
+        onNext={() => driver.acknowledge()}
+        hint={(v.rejection?.text ?? null) || (idleHint ? (v.step?.hint ?? null) : null)}
+        busy={revealing}
+        compact={landscape}
+      />
+    ) : null;
 
   // ---------- tools and panels ----------
   const [autoOpen, setAutoOpen] = useState(!!q.system);
@@ -637,7 +639,11 @@ export function Simulator(props: SimulatorProps) {
         </>
       ) : null}
       {watch ? (
-        <button type="button" class="sim-btn sim-btn-danger sim-tool" onClick={() => setWatch(null)}>
+        <button
+          type="button"
+          class="sim-btn sim-btn-danger sim-tool"
+          onClick={() => setWatch(null)}
+        >
           Stop watching ({watch.left} left)
         </button>
       ) : null}
@@ -736,10 +742,4 @@ export function Simulator(props: SimulatorProps) {
       {auto}
     </div>
   );
-}
-
-/** "Tie loses $1.44 per $10." for the inline Sucker confirm (D19). */
-function suckerLine(ev: { num: bigint; den: bigint }, unit: Cents): string {
-  const loss = (-Number(ev.num) / Number(ev.den)) * unit;
-  return `loses about $${(loss / 100).toFixed(2)} per $${unit / 100} on average.`;
 }

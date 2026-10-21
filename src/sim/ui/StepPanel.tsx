@@ -78,7 +78,12 @@ export function StepPanel({
 }: StepPanelProps) {
   if (done || !step) {
     return (
-      <section class="sim-step is-done" aria-label="Lesson step" data-testid="step-panel" data-done="true">
+      <section
+        class="sim-step is-done"
+        aria-label="Lesson step"
+        data-testid="step-panel"
+        data-done="true"
+      >
         <p class="sim-step-count">
           <span aria-hidden="true">✓ </span>Done. The table is yours: keep playing if you like.
         </p>
