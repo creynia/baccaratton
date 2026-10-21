@@ -5,7 +5,8 @@ import type { Progress } from '../engine/job';
 import { applyAction, createGame, equity, visibleView } from '../engine/game';
 import type { BetId, GameState, HandResult, Slip, Winner } from '../engine/types';
 import { betFigures, rulesFor, slipEvCents } from './metrics';
-import { getStrategy, initMemory, mainBet } from './presets';
+import { formatMoney } from '../engine/money';
+import { getStrategy, initMemory, tableCap, tableMaxUnits, unitLimits } from './presets';
 import type {
   SessionSeries,
   SimulateRequest,
@@ -75,7 +76,7 @@ export function* runSession(
   out.eq[0] = start;
   let state = createGame({ rules, bankroll: start, seed: req.seed + index });
   let mem: StrategyMemory = strat.init(spec);
-  let extraCaps = 0;
+  const maxUnits = tableMaxUnits(spec, rules);
   let stopped = false;
   for (let h = 1; h <= req.hands; h++) {
     if (!stopped) {
@@ -89,15 +90,9 @@ export function* runSession(
     let slip: Slip = {};
     if (!stopped) {
       const view = visibleView(state);
+      // A next bet above the table maximum: the shared rule (reset, or D'Alembert's clamp).
+      mem = tableCap(mem, spec, maxUnits);
       slip = strat.decide(view, mem, spec);
-      const main = mainBet(view, spec);
-      const max = MAIN.has(main) ? rules.mainMax : rules.sideMax;
-      if ((slip[main] ?? 0) > max) {
-        // A next bet above the table maximum resets the system, like a D28 limit.
-        mem = { ...initMemory(spec), caps: (mem.caps as number | undefined) ?? 0 };
-        extraCaps++;
-        slip = strat.decide(view, mem, spec);
-      }
       if (total(slip) > state.bankroll) {
         // Bust (D28): the next bet can't be covered. Bets are never shrunk to fit.
         if (out.bustedAt < 0) out.bustedAt = h - 1;
@@ -134,7 +129,7 @@ export function* runSession(
     const p = tick();
     if (p) yield p;
   }
-  out.capHits = ((mem.caps as number | undefined) ?? 0) + extraCaps;
+  out.capHits = (mem.caps as number | undefined) ?? 0;
   return out;
 }
 
@@ -150,8 +145,15 @@ export function validateRequest(req: SimulateRequest): void {
   if (!int(req.sessions) || req.sessions < 1 || req.sessions > 1_000)
     throw new RangeError('simulate: sessions must be 1..1,000');
   if (!int(req.bankroll) || req.bankroll < 0) throw new RangeError('simulate: bad bankroll');
-  for (const s of [req.strategy, ...(req.compare ?? [])])
+  const rules = rulesFor(req.variant, req.tiePays);
+  for (const s of [req.strategy, ...(req.compare ?? [])]) {
     if (!int(s.unit) || s.unit <= 0) throw new RangeError(`simulate: bad unit for ${s.id}`);
+    const { min, max } = unitLimits(s, rules);
+    if (s.unit < min || s.unit > max)
+      throw new RangeError(
+        `simulate: the ${s.id} unit must be ${formatMoney(min)} to ${formatMoney(max)} (table limits)`,
+      );
+  }
 }
 
 export function* simulateJob(

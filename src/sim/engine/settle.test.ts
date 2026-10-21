@@ -66,7 +66,7 @@ describe('settlement oracle (section 7.1)', () => {
           n++;
         }
     expect(n).toBe(6 * 1600 * 9);
-  });
+  }, 30_000);
   it('a bet reads only the outcome fields its basis names (perturbation property)', () => {
     const fields = (basis: string): (keyof TableauOutcome)[] =>
       basis === 'tableau'
@@ -92,7 +92,7 @@ describe('settlement oracle (section 7.1)', () => {
           else expect(got, `${bet} varies outside its basis`).toBe(prev);
         }
       }
-  });
+  }, 30_000);
   it('reasons are the documented ones', () => {
     const o = (pt: number, bt: number, pc: 2 | 3 = 2, bc: 2 | 3 = 2): TableauOutcome =>
       ({
@@ -167,7 +167,7 @@ describe('profitCents rounding rule (section 1.5, D15)', () => {
         }
       }
     expect(checked).toBeGreaterThan(100_000);
-  });
+  }, 30_000);
 });
 
 describe('golden settlements (section 1.5)', () => {

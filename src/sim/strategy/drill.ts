@@ -205,7 +205,10 @@ export const BANKER_WEIGHTING: Readonly<
   'banker-5': { share: 0.4, set: [3, 8] },
   'banker-6': { share: 0.6, set: [5, 6, 7, 8] },
 };
-/** Mixed mode: categories in rough proportion to the questions real play asks. */
+/**
+ * Mixed mode: fixed teaching weights (not measured frequencies). Every category appears; the
+ * questions a learner meets on every hand (Player draw, Banker decisions, totals) weigh more.
+ */
 export const MIXED_WEIGHTS: Readonly<Record<DrillCategoryId, number>> = {
   'hand-total': 2,
   natural: 2,

@@ -6,7 +6,7 @@ import type { BetId, Slip, TableRules, TiePays, VariantId } from '../engine/type
 import { fullShoeEvs } from '../math';
 import type { BetEv, Fraction } from '../math/types';
 import { expectedUnitsBet } from './costs';
-import { mainBet, sideBetsOf } from './presets';
+import { mainBet, sideBetsOf, tableMaxUnits } from './presets';
 import type { StrategySpec } from './types';
 
 export const HANDS_PER_HOUR = 72; // D5
@@ -102,7 +102,12 @@ export function systemCost(
     };
   const f = fig[main];
   const units =
-    expectedUnitsBet(spec, hands, { win: f.pWin, lose: f.pLose, push: f.pPush }) / hands;
+    expectedUnitsBet(
+      spec,
+      hands,
+      { win: f.pWin, lose: f.pLose, push: f.pPush },
+      tableMaxUnits(spec, rulesFor(variant, tiePays)),
+    ) / hands;
   const side = sideBetsOf(spec);
   let sideCents = 0;
   let sideEv = 0;

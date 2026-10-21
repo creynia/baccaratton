@@ -4,7 +4,18 @@ import { BET_IDS } from '../engine/types';
 import type { HandResult, RoadEntry, VisibleView, Winner } from '../engine/types';
 import { seedRng, randBelow } from '../engine/rng';
 import { STRATEGY_IDS } from './ids';
-import { betUnits, getStrategy, initMemory, mainBet, stepMemory, STRATEGIES } from './presets';
+import {
+  betUnits,
+  getStrategy,
+  initMemory,
+  mainBet,
+  stepMemory,
+  STRATEGIES,
+  firstBetUnits,
+  tableCap,
+  tableMaxUnits,
+  unitLimits,
+} from './presets';
 import type { MainOutcome } from './presets';
 import type { StrategyId, StrategyMemory, StrategySpec } from './types';
 
@@ -116,6 +127,42 @@ describe('presets: D28 limits', () => {
     expect(betUnits(m, spec('labouchere'))).toBe(5);
     expect(m.line).toEqual([1, 2, 3, 4]);
     expect(n).toBeGreaterThan(5);
+  });
+});
+
+describe('presets: the table maximum (one shared rule)', () => {
+  it('maxUnits = floor(max / unit); Tie uses the side limits', () => {
+    expect(tableMaxUnits(spec('martingale', { unit: 50_000 }), DEFAULT_RULES)).toBe(10);
+    expect(tableMaxUnits(spec('flat-tie', { unit: 3_000 }), DEFAULT_RULES)).toBe(16);
+  });
+  it('a bet over the maximum resets to step 1 and counts a cap hit', () => {
+    const s = spec('martingale', { unit: 50_000 });
+    let m = initMemory(s);
+    for (let i = 0; i < 4; i++) m = tableCap(stepMemory(m, s, 'lose'), s, 10);
+    expect(betUnits(m, s)).toBe(1);
+    expect(m.caps).toBe(1);
+  });
+  it("D'Alembert clamps at the table cap instead of resetting (D28)", () => {
+    const s = spec('dalembert', { unit: 50_000 });
+    let m = initMemory(s);
+    for (let i = 0; i < 15; i++) m = tableCap(stepMemory(m, s, 'lose'), s, 10);
+    expect(betUnits(m, s)).toBe(10);
+    m = tableCap(stepMemory(m, s, 'win'), s, 10);
+    expect(betUnits(m, s)).toBe(9);
+  });
+});
+
+describe('presets: unit limits (the first bet must fit)', () => {
+  it('first bets: 1 unit for every system, 5 for Labouchère 1-2-3-4', () => {
+    for (const id of STRATEGY_IDS) expect(firstBetUnits({ id })).toBe(id === 'labouchere' ? 5 : 1);
+    expect(firstBetUnits({ id: 'labouchere', sequence: [2, 3, 5] })).toBe(7);
+    expect(firstBetUnits({ id: 'labouchere', sequence: [4] })).toBe(4);
+  });
+  it('max unit = floor(table max / first bet); Tie uses the side limits', () => {
+    expect(unitLimits({ id: 'labouchere' }, DEFAULT_RULES)).toEqual({ min: 500, max: 100_000 });
+    expect(unitLimits({ id: 'martingale' }, DEFAULT_RULES)).toEqual({ min: 500, max: 500_000 });
+    expect(unitLimits({ id: 'flat-tie' }, DEFAULT_RULES)).toEqual({ min: 100, max: 50_000 });
+    expect(unitLimits({ id: 'labouchere', sequence: [2, 3, 5] }, DEFAULT_RULES).max).toBe(71_400);
   });
 });
 
