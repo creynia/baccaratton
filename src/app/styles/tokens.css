@@ -15,7 +15,7 @@
   --banker: #c0262d;
   --tie: #1a7f4b;
   --tier-free: #1a7f4b;
-  --tier-good: #1f5fbf;
+  --tier-good: #2e7d32;
   --tier-fair: #8a6d00;
   --tier-costly: #b45309;
   --tier-sucker: #b42318;
@@ -30,6 +30,17 @@
   --chip-25: #1a7f4b;
   --chip-100: #1b2430;
   --chip-500: #6b3fa0;
+  --tier-on: #ffffff;
+  --felt-text: #f5ecd7;
+  --felt-muted: #e3cfa6;
+  --felt-spot: rgba(0, 0, 0, 0.18);
+  --card-edge: #8a7d6a;
+  --card-back: #1b2a4a;
+  --card-back-line: #d4af37;
+  --chip-edge: #f5ecd7;
+  --chip-text: #ffffff;
+  --road-bg: #ffffff;
+  --road-line: #e3d9d2;
   font-family:
     system-ui,
     -apple-system,
@@ -51,7 +62,7 @@
     --banker: #ff7b72;
     --tie: #4cc38a;
     --tier-free: #4cc38a;
-    --tier-good: #6da8ff;
+    --tier-good: #7bd88f;
     --tier-fair: #e0c14d;
     --tier-costly: #f0a04b;
     --tier-sucker: #ff7b72;
@@ -66,6 +77,17 @@
     --chip-25: #4cc38a;
     --chip-100: #6b5a5d;
     --chip-500: #a97be0;
+    --tier-on: #17100f;
+    --felt-text: #f5ecd7;
+    --felt-muted: #e3cfa6;
+    --felt-spot: rgba(0, 0, 0, 0.18);
+    --card-edge: #8a7d6a;
+    --card-back: #1b2a4a;
+    --card-back-line: #d4af37;
+    --chip-edge: #f5ecd7;
+    --chip-text: #ffffff;
+    --road-bg: #231918;
+    --road-line: #3d2c2a;
   }
 }
 :root[data-theme='dark'] {
@@ -82,7 +104,7 @@
   --banker: #ff7b72;
   --tie: #4cc38a;
   --tier-free: #4cc38a;
-  --tier-good: #6da8ff;
+  --tier-good: #7bd88f;
   --tier-fair: #e0c14d;
   --tier-costly: #f0a04b;
   --tier-sucker: #ff7b72;
@@ -97,6 +119,17 @@
   --chip-25: #4cc38a;
   --chip-100: #6b5a5d;
   --chip-500: #a97be0;
+  --tier-on: #17100f;
+  --felt-text: #f5ecd7;
+  --felt-muted: #e3cfa6;
+  --felt-spot: rgba(0, 0, 0, 0.18);
+  --card-edge: #8a7d6a;
+  --card-back: #1b2a4a;
+  --card-back-line: #d4af37;
+  --chip-edge: #f5ecd7;
+  --chip-text: #ffffff;
+  --road-bg: #231918;
+  --road-line: #3d2c2a;
 }
 body {
   margin: 0;
