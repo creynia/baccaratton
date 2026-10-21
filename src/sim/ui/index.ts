@@ -7,3 +7,7 @@ export { Tableau } from './Tableau';
 export { Scoreboard } from './Scoreboard';
 export { DEFAULT_SIM_SETTINGS } from './types';
 export type { SimSettings, SessionSummary } from './types';
+export { AutoPlayPanel, type AutoPlayPanelProps, type AutoPlayEvent } from './AutoPlayPanel';
+export { BankrollChart, type BankrollChartProps } from './BankrollChart';
+export { SurvivalChart, type SurvivalChartProps } from './SurvivalChart';
+export { OutcomeHistogram, type OutcomeHistogramProps } from './OutcomeHistogram';

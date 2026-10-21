@@ -1,16 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import * as scene from './scene';
-import * as strategy from './strategy';
 
 // Math, strategy and scene-runner surfaces throw their TODO marker until their WP lands.
 describe('math / strategy / scene stubs', () => {
   const stubs: [RegExp, () => unknown][] = [
-    [/TODO\(strategy\)/, () => strategy.getStrategy('martingale')],
-    [/TODO\(strategy\)/, () => strategy.nextSpot({} as never, { mode: 'mixed' })],
-    [/TODO\(strategy\)/, () => strategy.gradeSpot({} as never, 'Draw')],
-    [/TODO\(strategy\)/, () => strategy.spotCode({} as never)],
-    [/TODO\(strategy\)/, () => strategy.spotFromCode('')],
-    [/TODO\(strategy\)/, () => strategy.simulateJob({} as never)],
     [/TODO\(integration\)/, () => scene.initScene({} as never)],
     [/TODO\(integration\)/, () => scene.currentStep({} as never, {} as never)],
     [/TODO\(integration\)/, () => scene.gateAction({} as never, {} as never, {} as never)],
