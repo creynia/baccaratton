@@ -4,11 +4,13 @@ export function Home() {
   return (
     <div class="page">
       <section class="hero">
-        <h1>baccaratton</h1>
-        <p class="muted">
-          Learn Baccarat from zero to perfect strategy, with a practice table that shows the EV of
-          every bet before you confirm it.
-        </p>
+        <div>
+          <h1>baccaratton</h1>
+          <p class="muted">
+            Learn Baccarat from zero to perfect strategy, with a practice table that shows the EV of
+            every bet before you confirm it.
+          </p>
+        </div>
       </section>
       <nav class="grid" aria-label="Quick links">
         <Link to="/learn" class="card">
