@@ -2,16 +2,11 @@
 // simulator.md section 2.5 (D25). The app always computes from the registry; PINNED is only for tests.
 import type { BetId, TableRules, TiePays, VariantId } from '../engine/types';
 import { fullShoeRanks, outcomeDistribution } from './distribution';
-import { betEvs } from './evs';
+import { betEvs, rulesKey } from './evs';
 import { frac, mul } from './fraction';
 import type { BetEv, Fraction } from './types';
 
 const memo = new Map<string, BetEv[]>();
-
-/** The memo key: everything a payout or the composition may read. */
-export function rulesKey(rules: TableRules): string {
-  return [rules.variant, rules.tiePays, rules.decks, rules.commission.join(':')].join('|');
-}
 
 /** Memoised; equals the pinned values of simulator.md section 2.5 in tests. */
 export function fullShoeEvs(rules: TableRules): BetEv[] {

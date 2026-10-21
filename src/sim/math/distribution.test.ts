@@ -107,8 +107,8 @@ describe('outcomeDistribution', () => {
     expect(() => outcomeDistribution(new Array(13).fill(33))).toThrow(/2\^53/);
     expect(() => outcomeDistribution([5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])).toThrow(/needs 6/);
     expect(() => outcomeDistribution([1, 2])).toThrow(/13 entries/);
-    expect(() => outcomeDistribution([...new Array(12).fill(1), -1])).toThrow();
-    expect(() => outcomeDistribution([...new Array(12).fill(1), 0.5])).toThrow();
+    expect(() => outcomeDistribution([...new Array<number>(12).fill(1), -1])).toThrow();
+    expect(() => outcomeDistribution([...new Array<number>(12).fill(1), 0.5])).toThrow();
   });
 
   it('memoises by composition', () => {
