@@ -13,9 +13,32 @@ export {
 export { handTotal, isNatural, playerDraws, bankerDraws, playHand, TABLEAU } from './tableau';
 export { BET_IDS_BY_VARIANT, BET_OFFERED_IN, RULE_PRESET_IDS, DEFAULT_VARIANT } from './ids';
 export { DEFAULT_RULES, VARIANT_RULES, resolveRules } from './rules';
-export { betDef, betsOffered } from './bets';
-export { profitCents, settleHand } from './settle';
-export { validateAction, validateForcedHand } from './validate';
+export {
+  BETS,
+  DRAGON_BONUS_TABLE,
+  DRAGON_BONUS_NATURAL_PAYS,
+  PAIR_PAYS,
+  DRAGON_7_PAYS,
+  PANDA_8_PAYS,
+  betDef,
+  betsOffered,
+  isOffered,
+} from './bets';
+export { profitCents, grossCents, commissionCents, settleBet, settleHand } from './settle';
+export { seedRng, nextU32, randBelow, shuffle } from './rng';
+export { formatMoney, formatPct } from './money';
+export { validateAction, validateForcedHand, betLimits, slipTotal, rebetSlip } from './validate';
+export {
+  burnValue,
+  newShoe,
+  placeForced,
+  unseenRanks,
+  cardsLeft,
+  needsShuffle,
+  removedCards,
+  MIN_UNSEEN,
+} from './shoe';
+export { applyLogged, replayLog } from './log';
 export { roadEntry, beadPlate, bigRoad, roadCounts, parseRoadString } from './roads';
 export type { RoadCounts } from './roads';
 export {
