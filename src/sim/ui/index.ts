@@ -48,3 +48,9 @@ export type { Speed, Timeline, TimelineStep, Segment } from './animation';
 export { feltLayout } from './layouts';
 export type { FeltLayout, Orientation, Rect, Pt } from './layouts';
 export * as uiText from './text';
+
+// strategy charts and auto-play panel
+export { AutoPlayPanel, type AutoPlayPanelProps, type AutoPlayEvent } from './AutoPlayPanel';
+export { BankrollChart, type BankrollChartProps } from './BankrollChart';
+export { SurvivalChart, type SurvivalChartProps } from './SurvivalChart';
+export { OutcomeHistogram, type OutcomeHistogramProps } from './OutcomeHistogram';
