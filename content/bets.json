@@ -1,0 +1,53 @@
+{
+  "player": {
+    "name": "Player",
+    "summary": "Bet that the Player hand finishes closer to 9. Even money; a tie pushes.",
+    "howItWorks": "You bet before the deal. If the **Player** hand ends with the higher total, you win 1 to 1: bet $10, win $10.\n\nIf the Banker wins, you lose the bet. On a **tie** your bet **pushes**: it comes back, with no win and no loss.\n\nThe name is just the name of the hand. You are not the Player, and you never make a decision once the cards are out.",
+    "tip": "The second-cheapest bet on the table. Banker is a little cheaper, even after its commission.",
+    "lessonId": "settling-bets"
+  },
+  "banker": {
+    "name": "Banker",
+    "summary": "Bet that the Banker hand finishes closer to 9. Pays 1 to 1 less 5% commission; a tie pushes.",
+    "howItWorks": "You bet before the deal. If the **Banker** hand ends with the higher total, you win 1 to 1 **less 5% commission**: a $20 win pays $19. Commission is charged only on wins.\n\nIf the Player wins, you lose the bet. On a **tie** your bet **pushes** and comes back.\n\nThe Banker acts last, after seeing whether the Player drew, so it wins a little more often. The commission takes most of that advantage back, but not all of it.\n\nIn **EZ Baccarat** there is no commission, but a Banker win with a three-card 7 pushes. In **Super 6** there is no commission, but a Banker win on a total of 6 pays only 1 to 2 (half).",
+    "tip": "The lowest-edge bet on a standard table. Bet in $20 steps and the commission is always a round $1 per $20.",
+    "lessonId": "settling-bets"
+  },
+  "tie": {
+    "name": "Tie",
+    "summary": "Bet that both hands end on the same total. Pays 8 to 1, and loses when either hand wins.",
+    "howItWorks": "You bet before the deal. If both hands finish on the **same total**, the Tie bet wins 8 to 1: a $5 Tie bet wins $40, and your $5 comes back too.\n\nIf either hand wins, the Tie bet loses. Player and Banker bets on the same hand simply push.\n\nSome tables pay **9 to 1** on a Tie (the `tiePays` setting). It is still much dearer than Player or Banker.",
+    "tip": "8 to 1 sounds generous, but a tie comes up less often than once in nine hands. Check the EV sheet before you bet it.",
+    "lessonId": "settling-bets"
+  },
+  "player-pair": {
+    "name": "Player Pair",
+    "summary": "A side bet that the Player's first two cards are the same rank. Pays 11 to 1.",
+    "howItWorks": "Wins when the Player's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet."
+  },
+  "banker-pair": {
+    "name": "Banker Pair",
+    "summary": "A side bet that the Banker's first two cards are the same rank. Pays 11 to 1.",
+    "howItWorks": "Wins when the Banker's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet."
+  },
+  "dragon-bonus-player": {
+    "name": "Dragon Bonus (Player)",
+    "summary": "A side bet that pays more the more the Player wins by.",
+    "howItWorks": "Pays when the **Player** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural."
+  },
+  "dragon-bonus-banker": {
+    "name": "Dragon Bonus (Banker)",
+    "summary": "A side bet that pays more the more the Banker wins by.",
+    "howItWorks": "Pays when the **Banker** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural.\n\nThe paytable is the same as the Player version, but the Banker's big wins are rarer, so this side costs much more."
+  },
+  "dragon-7": {
+    "name": "Dragon 7",
+    "summary": "EZ Baccarat only: the Banker wins with a three-card 7. Pays 40 to 1.",
+    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Banker wins with a total of 7 made with three cards**. Pays 40 to 1. Anything else loses.\n\nThat same hand is the one where an EZ Banker bet **pushes** instead of winning: it is how EZ tables earn their money without a commission."
+  },
+  "panda-8": {
+    "name": "Panda 8",
+    "summary": "EZ Baccarat only: the Player wins with a three-card 8. Pays 25 to 1.",
+    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Player wins with a total of 8 made with three cards**. Pays 25 to 1. Anything else loses."
+  }
+}
