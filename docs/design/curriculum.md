@@ -11,7 +11,7 @@ Punto Banco tableau over the shoe's composition, without replacement, in exact r
 **Monte Carlo estimates** or **normal approximations**. Those are marked "≈ … simulated" or
 "≈ approx." wherever they appear. §12 lists the method behind each figure. The scratch code is in
 `/tmp/baccaratton-scratch/curriculum/` (`tableau.py`, `bets.py`, `eor.py`, `systems.py`, `sessions.py`,
-`shoe_burn.c`, `streaks.py`, `deals.py`, `comps.py`).
+`shoe_d17.c`, `streaks.py`, `ruin.py`, `bust72.py`, `deals.py`, `comps.py`, and the scene checkers `checkdoc.py` / `checkdoc2.py`).
 
 User answers that shape this file (from `decisions.md`):
 
@@ -103,7 +103,7 @@ This file doesn't define its own schema. The rules (D26–D28, D36) that apply t
   bust rare (§7.2). `compare` entries all run on the **same seed** (the same cards), each with its own full
   spec (`label` when two entries share an id), and `autoPlayCompleted` fires only when **every** entry has finished.
 
-Every forced hand in this file is machine-checked against the tableau (`deals.py`, `checkdoc.py`). The totals and winner
+Every forced hand in this file is machine-checked against the tableau, and every scene against the D26–D28 dialect rules (`deals.py`, `checkdoc.py`, `checkdoc2.py`). The totals and winner
 each step's text describes match the engine's settlement.
 
 ### 1.3 Ids
@@ -111,7 +111,7 @@ each step's text describes match the engine's settlement.
 * Bet ids: `player`, `banker`, `tie`, `player-pair`, `banker-pair`, `dragon-7`, `panda-8` (both EZ only),
   `dragon-bonus-player`, `dragon-bonus-banker`.
 * Mentioned-only side bets (copy only, no engine id): `either-pair`, `perfect-pair`, `lucky-6`, `big`, `small`,
-  `super-6-side`, `tie-9-to-1` (a paytable, not simulated).
+  `super-6-side`. Tie 9:1 is not a separate bet: it's the `tiePays: 9` setting (D13).
 * Rule variant ids: `punto-banco` (default), `ez`, `super-6`.
 * Strategy (auto-play preset) ids: `flat-banker`, `flat-player`, `flat-tie`, `martingale`, `paroli`,
   `one-three-two-six`, `fibonacci`, `dalembert`, `labouchere`, `follow-the-shoe`.
@@ -128,7 +128,7 @@ each step's text describes match the engine's settlement.
 
 | Rule | Value |
 |---|---|
-| Shoe | 8 decks (416 cards), shuffled together. The first card is turned up and that many cards are **burned** face down (T/J/Q/K burn 10). A **cut card** goes 16 cards from the end. The hand in progress when it appears is finished, plus one more hand by the common rule (simulator decides; see §13). Then the shoe is reshuffled (D8). |
+| Shoe | 8 decks (416 cards), shuffled together. The first card is turned up and that many cards are **burned** face down (T/J/Q/K burn 10). A **cut card** goes 16 cards from the end. The hand in progress when it appears is finished, plus **one more hand**, and the next Deal reshuffles (D8, D17). |
 | Card values | A = 1, 2–9 = face value, T/J/Q/K = 0. A hand's **total** is the sum of its cards, **last digit only** (7 + 8 = 15 → 5). Totals run 0–9. |
 | Deal | Player, Banker, Player, Banker: two cards each, face up. |
 | Natural | If either hand totals **8 or 9** on two cards, both hands stand. Nobody draws. |
@@ -139,7 +139,7 @@ each step's text describes match the engine's settlement.
 | Player bet | Pays **1:1**. On a tie it **pushes** (returned). |
 | Banker bet | Pays **1:1 less 5% commission** (a $20 win pays $19). Pushes on a tie. In the app, commission is taken at settlement in cents. A real table tracks it in a commission box (lesson 23). |
 | Tie bet | Pays **8:1**. Loses when either hand wins. |
-| Limits (app defaults) | $5 minimum, $5,000 maximum on Player/Banker; Tie and side bets $1–$500. Chips $1, $5, $25, $100, $500. (Simulator owns these; they only matter to the systems lesson.) |
+| Limits (app defaults) | $5 minimum, $5,000 maximum on Player/Banker; Tie and side bets $1–$500. Chips $1, $5, $25, $100, $500. (D16.) |
 
 ### 2.2 The Banker's third-card table (Player drew a third card)
 
@@ -166,7 +166,7 @@ The memory hook used in lesson 5: **"From 3, the window starts at 0 and slides u
 
 Lesson-only variants:
 
-* **Tie 9:1**: 4.8440%.
+* **Tie 9:1**: 4.8440%. This is the Settings option `tiePays: 9` (D13), available in every variant.
 * **4% commission**: Banker edge 0.5993%.
 * **6-deck shoe**: Banker 1.0558%, Player 1.2374%, Tie 8:1 14.4382%, Pair 11.2540%.
 * **Chemin de Fer** and **Baccarat Banque**: players bank, and the Player's draw on 5 is optional. These are
@@ -208,8 +208,9 @@ Baccarat's main bets **push** on a tie, so there are two honest ways to quote th
 
 **Recommendation (for `decisions.md`): house edge per hand is the one primary metric.** It's the figure
 casinos and most sources quote. It maps straight to money: **expected cost per hand = edge × bet**,
-and **expected cost per hour = 72 × bet × edge** (D5). The per-resolved figure is shown only in the
-"Show the math" box of lesson 13, so that a learner who meets "1.17%" elsewhere knows what it is. Element
+and **expected cost per hour = 72 × bet × edge** (D5, D14). The per-resolved figure (ties excluded) appears in
+the EV sheet's "Why?", in More → Bets detail and in lesson 13/14 prose (D32), so that a learner who meets
+"1.17%" elsewhere knows what it is. It's **never** on the EV sheet's headline. Element
 of risk is **identical** to the per-hand edge for every baccarat bet: you can't add money to a bet once the
 cards are out. It's mentioned once (lesson 14) and never displayed.
 
@@ -909,6 +910,7 @@ steps:
     completeWhen: { predicted: { correct: true, count: 5 } }
   - id: done
     text: "That's the whole third-card rule. Keep it sharp in **Drill**."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -1082,7 +1084,7 @@ over a few hands you can be well up or well down. What it means is that the aver
 **The EV sheet.** Tap and hold any bet spot (or tap the **EV** button by it) before you bet. The sheet shows:
 
 * the bet's **EV in dollars** for the chips you're about to place, and its **house edge**;
-* its **rating**: Good bet, Fair, Poor bet or Sucker bet, always written out, never shown by colour alone;
+* its **rating**: Good bet, Fair, Costly or Sucker bet, always written out, never shown by colour alone;
 * what it costs **per hour** at 72 hands an hour;
 * a better choice, if there is one on this table.
 
@@ -1352,7 +1354,7 @@ Two things often sold as strategy make **no** difference to the edge:
 * **Switching sides.** Mixing Player and Banker gives you a blend of 1.06% and 1.24%. Any Player bet just
   costs a little more than the same Banker bet would.
 
-The Banker-vs-Player difference is small: at $10 a hand it's $1.27 an hour. If you prefer Player
+The Banker-vs-Player difference is small: at $10 a hand it's $1.28 an hour. If you prefer Player
 for some reason, that's not a disaster. But Tie and most side bets cost **ten times** as much, and that's
 where the real money goes. Lesson 17 covers card counting: the one way the edge can move, and why it
 almost never helps.
@@ -1396,7 +1398,7 @@ steps:
 - q: "Which costs more per hour at $10: Player instead of Banker, or Tie instead of Banker?"
   options: ["Player instead of Banker", "Tie instead of Banker", "They cost the same"]
   answer: 1
-  explain: "Player costs $1.27 an hour more than Banker; Tie costs $95.77 more."
+  explain: "Player costs $1.28 an hour more than Banker; Tie costs $95.77 more."
 ```
 
 ---
@@ -1638,8 +1640,8 @@ number. You can change it in Settings. At 72 hands:
 
 Two things stand out:
 
-* **Bet size dominates.** Going from $10 to $25 costs $11.42 more an hour. Switching from Banker to Player
-  at $10 costs $1.27.
+* **Bet size dominates.** Going from $10 to $25 costs $11.43 more an hour. Switching from Banker to Player
+  at $10 costs $1.28.
 * **Pace matters.** A big table with the squeeze (lesson 23) deals about 40 hands an hour. The same $10
   Banker bet then costs $4.23 an hour. Sitting out hands, chatting and taking breaks all lower the
   hourly cost without changing the edge.
@@ -1686,7 +1688,7 @@ steps:
 - q: Which change saves more per hour at a $10 Banker bet?
   options: ["Switching to Player", "Playing 40 hands an hour instead of 72", "Neither changes anything"]
   answer: 1
-  explain: "Switching to Player costs $1.27 more. Slowing to 40 hands saves $3.39."
+  explain: "Switching to Player costs $1.28 more. Slowing to 40 hands saves $3.39."
 - q: A book says Banker's edge is 1.17%. The app says 1.06%. Who's right?
   options: ["The book", "The app", "Both: the book leaves ties out", "Neither"]
   answer: 2
@@ -1720,7 +1722,7 @@ Luck grows with the **square root** of the number of hands, and the edge grows i
 luck dominates a night out, and the edge dominates a lifetime.
 
 Some bets swing much harder than others (SD per $1 bet, per hand): Banker 0.93, Player 0.95,
-Dragon Bonus on Player 2.47, Tie 2.64, Pair 3.42, Dragon 7 6.08. Hard swingers give you more big
+Dragon Bonus on Player 2.47, Tie 2.64, Pair 3.15, Dragon 7 6.08. Hard swingers give you more big
 wins **and** more busted sessions, at a much higher average cost.
 
 **How much to bring.** Here's the chance that flat $10 Banker bets run a bankroll down until you can't
@@ -1916,10 +1918,10 @@ moves the Banker EV by at most 0.012%. A huge imbalance is needed to overcome a 
 | 6 | **−0.0113%** | +0.0113% |
 | 5 | −0.0083% | +0.0084% |
 
-In our simulation of a real shoe (burn, cut card 16 from the end), with **perfect knowledge** of every card
-left, the Banker bet was in your favour in about **1 hand in 900**, and then only by about **0.3%**. Betting
-$100 only on those hands would earn about **3 cents an hour**. Even a shoe stripped of all its 4s with
-twice the usual 6s left leaves the Banker at −0.46%.
+In our simulation of a real shoe (burn, cut card 16 from the end, one more hand after it), with **perfect
+knowledge** of every card left, the Banker bet was in your favour in about **1 hand in 500**, and then only by
+about **0.4%**. Betting $100 only on those hands would earn about **5 cents an hour** (≈ simulated). Even with
+52 cards left, no 4s and eight 6s, the Banker is still at −0.46%.
 
 **The exception: Dragon 7.** The EZ side bet that pays 40 to 1 on a Banker three-card 7 is far more
 sensitive. **8s and 9s** left in the shoe hurt it (they make naturals and spoil three-card 7s), and **4s to 7s**
@@ -1930,8 +1932,8 @@ help it. The best-known count (by Eliot Jacobson) is:
 | Count | −1 | **+2** | 0 |
 
 Divide the running count by the decks left. When it's **+4 or more**, the Dragon 7 has an edge for the
-player. In our simulation that happened on about **9% of hands**, worth about **+7%** per bet on those
-hands: roughly **$11 an hour** for a $25 Dragon 7 bettor (≈ simulated).
+player. In our simulation that happened on about **9% of hands**, worth about **+8%** per bet on those
+hands: roughly **$13 an hour** for a $25 Dragon 7 bettor (≈ simulated).
 
 That's real, but casinos know it. They cap Dragon 7 bets, watch players who bet it only late in the shoe,
 and can shuffle at will. Counting the Dragon 7 is legal, but it isn't welcome.
@@ -1947,9 +1949,9 @@ not yet shown. The face-down burn cards are still unseen, so they count as in th
 exact for that composition.
 Effects of removal (fresh 8 decks, % per card, Dragon 7): 0s +0.086, A +0.050, 2 −0.090, 3 −0.108, 4 −0.268,
 5 −0.263, 6 −0.324, 7 −0.358, 8 **+0.538**, 9 **+0.479**. The count's signs follow these.
-Simulation: 3,000 shoes, 239,739 hands, exact EV before every hand. Banker +EV in 0.113% of hands (average
-+0.32% when positive). Dragon 7 +EV in 11.0% of hands. With the count at a true +4 or more: 8.7% of hands, average
-+7.03% per bet.
+Simulation (≈): 3,000 shoes, 243,382 hands, exact EV before every hand. Banker +EV in about 0.19% of hands (average
+about +0.4% when positive). Dragon 7 +EV in about 11.5% of hands, Panda 8 in about 5%. With the count at a true +4 or
+more: about 9.2% of hands, average about +7.6% to +7.8% per bet (two independent runs).
 :::
 
 **Simulator scenes**
@@ -2062,7 +2064,7 @@ Habits that cost real money, at $10 a hand for an hour:
 | A $10 Tie bet every hand, alongside Banker | +$103.39 |
 | A $5 Pair bet every hand | +$37.30 |
 | Raising the bet from $10 to $25 "when it's hot" half the time | +$5.71 |
-| Betting Player instead of Banker | +$1.27 |
+| Betting Player instead of Banker | +$1.28 |
 | Sitting out every other hand | −$3.81 (saves) |
 
 :::tip
@@ -2148,7 +2150,7 @@ with a $10 unit on Banker:
 | D'Alembert | +1 unit after a loss, −1 after a win (1 to 20 units) | $45.74 | $34.84 |
 | Labouchère | Write 1-2-3-4. Bet first + last; a win crosses them off, a loss adds the bet to the end (bets capped at 100 units) | ≈ $125 | ≈ $95 (≈ simulated) |
 
-(Average bets are for a fresh one-hour session, ties included.)
+(Average bets are for a fresh one-hour session, ties included, with the caps shown and a bankroll that doesn't run out. Auto-play reports the same figures.)
 
 **Martingale, up close.** It feels unbeatable: keep doubling and one win gets everything back. It
 usually works. Then, about once every **141 series** on Banker, the table produces **seven losses in
@@ -2433,7 +2435,7 @@ Here's what each $5 side bet buys in an hour (72 hands), next to what it costs:
 
 | $5 side bet | Big win | Big wins per hour (avg) | Cost per hour |
 |---|---|---|---|
-| Dragon Bonus, Player | 30:1 / 10:1 / 6:1 (wins by 9, 8, 7) | 2.1 (all three) | **$9.55** |
+| Dragon Bonus, Player | 30:1 / 10:1 / 6:1 (wins by 9, 8, 7) | 2.0 (all three) | **$9.55** |
 | Tie 9:1 (if offered) | 9:1 | 6.9 | $17.44 |
 | Dragon 7 (EZ) | 40:1 | 1.6 | $27.40 |
 | Panda 8 (EZ) | 25:1 | 2.5 | $36.68 |
@@ -2718,7 +2720,7 @@ an hour. Tier per §8.2.
 | `tie` | all | 8:1 | 9.5156% | — | −103841353768/723147898655 | **14.3596%** | = | 2.6409 | $103.39 | Sucker bet |
 | `banker` | `ez` | 1:1; three-card 7 win pushes | 43.6064% | 11.7690% | −66274384744/6508331087895 | **1.0183%** | 1.1541% | 0.9393 | $7.33 | Good bet |
 | `banker` | `super-6` | 1:1; win on 6 pays 1:2 | 45.8597% | 9.5156% | −284694798368/19524993263685 | **1.4581%** | 1.6114% | 0.9296 | $10.50 | Good bet |
-| (lesson only) Tie | 9:1 | 9:1 | 9.5156% | — | −63053127805/1301666217579 | 4.8440% | = | 2.9343 | $34.88 | Fair |
+| `tie` (`tiePays: 9`) | all | 9:1 | 9.5156% | — | −63053127805/1301666217579 | 4.8440% | = | 2.9343 | $34.88 | Fair |
 | (lesson only) Banker | 4% commission | 1:1 less 4% | 45.8597% | 9.5156% | −2925372930848/488124831592125 | 0.5993% | — | — | $4.31 | Good bet |
 | (illustration) Banker | no commission | 1:1 | 45.8597% | 9.5156% | +241149546272/19524993263685 | −1.2351% (player edge) | — | 0.9512 | — | — |
 
@@ -2726,17 +2728,17 @@ an hour. Tier per §8.2.
 
 | Bet id | Pays | P(any win) | Exact EV per $1 | Edge | SD | $/h @ $10 | Tier | In app |
 |---|---|---|---|---|---|---|---|---|
-| `player-pair` / `banker-pair` | 11:1 | 31/415 = 7.4699% | −43/415 | **10.3614%** | 3.4163 | $74.60 | Sucker bet | simulated |
+| `player-pair` / `banker-pair` | 11:1 | 31/415 = 7.4699% | −43/415 | **10.3614%** | 3.1549 | $74.60 | Sucker bet | simulated |
 | `dragon-bonus-player` | §2.4 | 28.9887% (+1.7871% push) | −103547854751/3904998652737 | **2.6517%** | 2.4736 | $19.09 | Fair | simulated |
 | `dragon-bonus-banker` | §2.4 | 28.2795% (+1.7871% push) | −9683026823/103306842665 | **9.3731%** | 2.3045 | $67.49 | Sucker bet | simulated |
-| `dragon-7` (EZ) | 40:1 | 2.2534% | −64613588827/848912750595 | **7.6113%** | 6.0849 | $54.80 | Poor bet | simulated |
+| `dragon-7` (EZ) | 40:1 | 2.2534% | −64613588827/848912750595 | **7.6113%** | 6.0849 | $54.80 | Costly | simulated |
 | `panda-8` (EZ) | 25:1 | 3.4543% | −153010345753/1501922558745 | **10.1876%** | 4.7481 | $73.35 | Sucker bet | simulated |
 | Either Pair | 5:1 | 340163/2365251 = 14.3817% | −108091/788417 | 13.7099% | — | $98.71 | Sucker bet | lesson |
-| Perfect Pair | 25:1, 200:1 both | 56513/1689465 = 3.3450% | −135952/1689465 | 8.0470% | — | $57.94 | Poor bet | lesson |
+| Perfect Pair | 25:1, 200:1 both | 56513/1689465 = 3.3450% | −135952/1689465 | 8.0470% | — | $57.94 | Costly | lesson |
 | Perfect Pair (25:1 only) | 25:1 | 3.3450% | −220127/1689465 | 13.0294% | — | $93.81 | Sucker bet | lesson |
 | Lucky 6 | 12:1 / 20:1 | 5.3864% | −47209656769/282970916865 | 16.6836% | 3.5956 | $120.12 | Sucker bet | lesson |
 | Big | 0.54:1 | 62.1132% | −22999/529230 | 4.3457% | 0.7471 | $31.29 | Fair | lesson |
-| Small | 1.5:1 | 37.8868% | −19571/370461 | 5.2829% | 1.2128 | $38.04 | Poor bet | lesson |
+| Small | 1.5:1 | 37.8868% | −19571/370461 | 5.2829% | 1.2128 | $38.04 | Costly | lesson |
 | Super 6 side bet | 12:1 | 5.3864% | −90046773893/300384511749 | 29.9772% | — | $215.84 | Sucker bet | lesson |
 | Super 6 side bet | 15:1 | 5.3864% | −539594847041/3904998652737 | 13.8181% | — | $99.49 | Sucker bet | lesson |
 
@@ -2781,22 +2783,23 @@ an hour. Tier per §8.2.
 
 ### 7.1 Auto-play presets (D9; definitions for `strategy/`)
 
-Every preset bets one main bet per hand (`bet`, default `banker`), with a unit `unit` (cents), and optional
-fixed side bets `side: {betId: cents}` on every hand. Ties leave a progression unchanged (the bet is
-repeated). "Win" and "loss" refer to the main bet. When a progression would exceed the table maximum or
-the bankroll, it **resets to its first step** (Martingale, Fibonacci, Labouchère) or **stays at its cap**
-(D'Alembert). A session ends at the requested hands or when the next bet can't be covered (bust).
+Every preset bets one main bet per hand (`StrategySpec.target`, default `banker`), with a unit `unit` (cents), and
+optional fixed side bets `sideBets: {betId: cents}` on every hand. Ties leave a progression unchanged (the bet is
+repeated). "Win" and "loss" refer to the main bet. Caps are `StrategySpec` fields (D28): `maxSteps` (Martingale,
+7), `maxUnits` (D'Alembert, 20) and `maxBetUnits` (Labouchère, 100). Fibonacci resets after a loss on 89. Over a
+limit the system **resets to step 1**, except D'Alembert, which **stays at its cap**. A session ends at the
+requested hands or when the next bet can't be covered (bust).
 
 | id | Bets | Rule |
 |---|---|---|
 | `flat-banker` / `flat-player` / `flat-tie` | 1 unit | Same bet every hand on that spot. |
 | `follow-the-shoe` | 1 unit | Bet the side that won the last **decided** hand (ties skipped). First hand of a shoe: Banker. |
-| `martingale` | 1, 2, 4, … 64 units | Double after a loss. Back to 1 after a win. After 7 straight losses (or when the next bet is over the limit), back to 1. |
+| `martingale` (`maxSteps: 7`) | 1, 2, 4, … 64 units | Double after a loss. Back to 1 after a win. After 7 straight losses (or when the next bet is over the limit), back to 1. |
 | `paroli` | 1, 2, 4 units | Next step after a win. After the third win, or any loss, back to 1. |
 | `one-three-two-six` | 1, 3, 2, 6 units | Next step after a win. After the fourth win, or any loss, back to 1. |
 | `fibonacci` | 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 units | A loss moves one step forward, and a win two steps back (not below the first). A loss on 89 resets to the first step. |
-| `dalembert` | 1–20 units | +1 unit after a loss, −1 after a win, between 1 and 20. |
-| `labouchere` | line 1-2-3-4 | Bet the first + last numbers (one number left: bet it). A win crosses them off, and a loss appends the amount bet. An empty line restarts at 1-2-3-4. A bet over 100 units restarts the line, betting 5. |
+| `dalembert` (`maxUnits: 20`) | 1–20 units | +1 unit after a loss, −1 after a win, between 1 and 20. |
+| `labouchere` (`sequence: [1,2,3,4]`, `maxBetUnits: 100`) | line 1-2-3-4 | Bet the first + last numbers (one number left: bet it). A win crosses them off, and a loss appends the amount bet. An empty line restarts at 1-2-3-4. A bet over 100 units restarts the line, betting 5. |
 
 The app's default limits ($5 minimum, $5,000 maximum) allow every preset at a $10 unit (largest bets: Martingale $640,
 Labouchère $1,000).
@@ -2817,6 +2820,11 @@ Cost = 10 × E[total bet] × edge. Labouchère is simulated (200,000 sessions, �
 | dalembert | 4.5735 | $34.84 | 5.0061 | $44.52 |
 | labouchere | ≈ 12.46 | ≈ $94.93 | ≈ 13.31 | ≈ $118.36 |
 
+These are the expectations with D28's caps and a bankroll that never runs out. Lesson 19's scene uses a $10,000
+bankroll, where a one-hour bust is negligible (≈ 0% for Martingale, Fibonacci and D'Alembert, ≈ 0.03% for Labouchère;
+at $3,000 Labouchère busts ≈ 15% of hours, ≈ simulated). Auto-play's expected line for a 72-hand run is
+Σ bet × edge over the bets actually placed, so its mean over sessions equals this table within sampling noise.
+
 Steady-state averages (a session that never restarts) are higher. For example, Martingale on Banker
 is 3.4301 units ($26.13/h), and D'Alembert on Banker is 9.5967 ($73.10/h). The app always quotes the fresh-session
 figures above, which match what auto-play reports at 72 hands.
@@ -2826,17 +2834,19 @@ on Player ≈ 0.8590% (1 in 116.4). On Banker, a win after k losses nets 1 − 0
 
 ### 7.3 Card counting (lesson 17; ≈ simulated with exact per-hand EV)
 
-3,000 shoes of 8 decks with burn and a cut card at 16 (D8), 239,739 hands (≈ 79.9 per shoe). The exact EV
-before every hand was computed from the unseen cards.
+3,000 shoes of 8 decks with burn, a cut card at 16 and **one more hand after it** (D8/D17), 243,382 hands
+(≈ 81.1 per shoe), `shoe_d17.c`. The exact EV before every hand was computed from the unseen cards (the face-down
+burn cards count as unseen). The design review's independent run gave Banker 0.19% / +0.37%, Panda 8 ≈ 5.3%, and the
+count ≈ 9.2% / ≈ +7.8%. The lesson copy uses rounded words that fit both runs.
 
 | Bet | Hands with +EV | Average EV when +EV | Gain per hand if you bet 1 unit only then |
 |---|---|---|---|
-| Banker | 0.113% | +0.32% | 0.000004 units |
-| Player | 0.103% | +0.40% | 0.000004 units |
-| Tie 8:1 | 0.070% | +4.5% | 0.00003 units |
-| Dragon 7 | 11.0% | +6.4% | 0.0071 units |
-| Panda 8 | 4.6% | +6.1% | 0.0028 units |
-| Dragon 7 with the count (true count ≥ +4) | 8.7% of hands bet | +7.03% per bet | ≈ 0.0061 units |
+| Banker | 0.196% | +0.40% | 0.000008 units |
+| Player | 0.163% | +0.53% | 0.000009 units |
+| Tie 8:1 | 0.151% | +6.9% | 0.0001 units |
+| Dragon 7 | 11.45% | +7.1% | 0.0082 units |
+| Panda 8 | 4.96% | +7.0% | 0.0035 units |
+| Dragon 7 with the count (true count ≥ +4) | 9.15% of hands bet | +7.63% per bet | ≈ 0.0070 units |
 
 ---
 
@@ -2847,7 +2857,7 @@ crappy and holdumb.
 
 ### 8.1 The EV sheet (one per bet spot)
 
-Opened by long-press or the "EV" affordance on a spot, and automatically before confirming a Sucker bet. For
+Opened by long-press or the "EV" affordance on a spot (it never opens by itself; a Sucker bet asks for an inline second tap instead). For
 the chips about to be placed (or one table unit if the spot is empty), it shows:
 
 1. **EV in dollars and the edge**: "**Banker $10**: **−$0.11** per hand · house edge **1.06%**". Dollars are shown
@@ -2855,9 +2865,12 @@ the chips about to be placed (or one table unit if the spot is empty), it shows:
 2. **Tier badge** with its text label (§8.2), plus "**Lowest edge on this table**" on the cheapest main bet
    for the current variant. That's Banker for `punto-banco` and `ez`, and Player for `super-6`.
 3. **Per hour**: "About **$7.62 an hour** at 72 hands" (D5; follows Settings).
-4. **Better alternative** (only if the tier is worse than the cheapest main bet's): §8.3 copy.
-5. **Why?** (expandable): win / push / lose percentages and the paytable. "Wins 45.86% · pushes 9.52% · loses
-   44.62%. Pays 1:1 less 5%."
+4. **Better alternative** on every bet except the cheapest main bet: §8.3 copy. Its "**Use this**" button always moves
+   the amount to the **cheapest main bet**: Banker, or Player in `super-6` (D31). A cheaper side bet may be named in
+   the text only.
+5. **Why?** (expandable): win / push / lose percentages, the paytable and the **ties-excluded** edge (D32). "Wins 45.86% ·
+   pushes 9.52% · loses 44.62%. Pays 1:1 less 5%. Counting only decided hands: 1.17%." The ties-excluded figure is
+   never in the headline.
 6. With the **Shoe tracker** on (D6), a second line: "**This shoe**: −1.03% (exact for the 214 cards left)". It's
    labelled "this shoe", and the full-shoe line stays first.
 
@@ -2870,16 +2883,19 @@ Several bets at once: the sheet footer totals "**This hand**: −$0.82 expected 
 
 | Tier id | Edge | Badge text | Colour | Confirm | Bets |
 |---|---|---|---|---|---|
-| `free` | ≤ 0 | "**Player advantage**" | teal | one tap | Only possible on the Shoe tracker line, never in the full-shoe sheet |
+| `free` | ≤ 0 | "**No house edge**" (Shoe tracker: "**Edge to you**") | teal | one tap | Only possible on the Shoe tracker line, never in the full-shoe sheet |
 | `good` | ≤ 2% | "**Good bet**" | green | one tap | Banker (all variants), Player |
-| `fair` | ≤ 5% | "**Fair**" | yellow | one tap | Dragon Bonus Player; Tie 9:1, Big (lesson only) |
-| `poor` | < 9% | "**Poor bet**" | orange | one tap + alternative card | Dragon 7; Perfect Pair 25/200, Small (lesson only) |
-| `avoid` | ≥ 9% | "**Sucker bet**" | red | **second tap** ("Bet it anyway") when `confirmCostlyMoves` is on (default on) | Tie 8:1, Pairs, Dragon Bonus Banker, Panda 8; Either Pair, Lucky 6, Super 6 side bet (lesson only) |
+| `fair` | ≤ 5% | "**Fair**" | yellow | one tap | Dragon Bonus Player, Tie 9:1 (`tiePays: 9`); Big (lesson only) |
+| `costly` | < 9% | "**Costly**" | orange | one tap + alternative card | Dragon 7; Perfect Pair 25/200, Small (lesson only) |
+| `sucker` | ≥ 9% | "**Sucker bet**" | red | inline **second tap** ("Bet it anyway") when `confirmCostlyBets` is on (default on) | Tie 8:1, Pairs, Dragon Bonus Banker, Panda 8; Either Pair, Lucky 6, Super 6 side bet (lesson only) |
 
 Colour never stands alone: every badge has its text, and the tier is in the spot's aria label ("Tie, 8 to 1,
 Sucker bet, house edge 14.36%").
 
 ### 8.3 Better-alternative copy
+
+Every row's "Use this" moves the stake to the cheapest main bet (D31). Text may mention a cheaper side bet, but the
+button never moves money to one.
 
 | Situation | Copy |
 |---|---|
@@ -2890,7 +2906,7 @@ Sucker bet, house edge 14.36%").
 | Dragon Bonus Banker | "**Dragon Bonus on Player** pays the same table for 2.65% instead of 9.37%." |
 | Dragon 7 | "A 40 to 1 thrill at 7.61%. For the same budget, **Dragon Bonus on Player** costs about a third as much." |
 | Panda 8 | "**Dragon 7** is cheaper (7.61% vs 10.19%), and **Banker** far cheaper (1.02%)." |
-| Any side bet, tracker shows `free` | "With the cards left, this bet has a **{edge} player advantage** this hand (exact). Casinos limit this; see lesson 17." |
+| Any bet, tracker shows `free` | Tracker line only, badge "**Edge to you**": "With the cards left, this bet has a **{edge} edge to you** this hand (exact). Casinos limit this; see lesson 17." |
 
 ### 8.4 Session panel
 
@@ -2911,7 +2927,7 @@ so "Expected" means the same thing everywhere (D6).
   and the number keeps its sign.
 * Never call a betting system or a road pattern a strategy that changes the edge. Never suggest any bet wins in the long run
   on a full shoe.
-* Never present the Shoe tracker's "Player advantage" as a recommendation. It's information, with the lesson 17 caveat.
+* Never present the Shoe tracker's "Edge to you" as a recommendation. It's information, with the lesson 17 caveat.
 * Card values in prose: "a ten-value card (10, J, Q, K) counts 0".
 
 ---
@@ -2922,23 +2938,36 @@ Drill (`#/drill`, D11) is a quick-fire trainer. Spot generation is a pure seeded
 `src/sim/strategy/drill.ts`. It deals from a fresh 8-deck shoe composition and keeps a spot only if it matches
 the category filter. Each spot shows the cards so far (a staged deal), asks one question with two or three big
 buttons, and grades at once. Wrong answers show the deciding **rule row** highlighted in the tableau card, with a
-link to the lesson. `?cat=mixed` draws categories in proportion to how often they arise in real play.
+link to the lesson. Mode `mixed` draws categories in proportion to how often they arise in real play.
 `?focus=misses` replays missed spots.
 
 ### 9.1 Categories
 
+These are the 14 `DrillCategoryId`s (D29). `DrillSpot` and `DrillFilter` carry `category`. `DrillMode` groups them:
+
+| Mode | Categories |
+|---|---|
+| `player` | `natural`, `player-draw` |
+| `banker` | `banker-player-stood`, `banker-0-2`, `banker-3`, `banker-4`, `banker-5`, `banker-6`, `banker-7`, `banker-mixed` |
+| `winner` | `who-wins` |
+| `payout` | `settle` |
+| `mixed` | all of the above, plus `hand-total` and `which-bet` (which appear only here) |
+
+Progress (streak, accuracy, misses) is persisted per category. Routes take `?cat=<id>` and `?focus=misses`.
+There is no `total` mode.
+
 | id | Question | Buttons | Filter | Pinned example (answer) |
 |---|---|---|---|---|
 | `hand-total` | "What's the {Player/Banker} total?" | 0–9 keypad | any 2 or 3 cards | {{9c 6d}} → 5 |
-| `natural` | "Does anybody draw?" | "Natural, nobody draws" / "Someone draws" | two cards each; 50% naturals | {{4s 5d}} vs {{Qh 8c}} → Natural |
-| `player-draw` | "Does the Player draw?" | Draws / Stands | no natural | {{Qs 6h}} → Stands |
-| `banker-player-stood` | "Does the Banker draw?" | Draws / Stands | Player stood on 6–7 | Player 7, Banker {{4h Jd}} → Draws |
-| `banker-0-2` | same | same | Player drew, Banker 0–2 | Banker 2, P3 = 9 → Draws |
-| `banker-3` | same | same | Player drew, Banker 3; P3 = 8 in 30% of spots | Banker 3, P3 = 8 → Stands |
-| `banker-4` | same | same | Player drew, Banker 4; P3 = 0/1/8/9 in 50% | Banker 4, P3 = 1 → Stands |
-| `banker-5` | same | same | Player drew, Banker 5; P3 = 3 or 8 in 40% | Banker 5, P3 = 3 → Stands |
-| `banker-6` | same | same | Player drew, Banker 6; P3 = 5, 6, 7, 8 in 60% | Banker 6, P3 = 7 → Draws |
-| `banker-7` | same | same | Player drew, Banker 7 | Banker 7, P3 = 6 → Stands |
+| `natural` | "Does the Player draw?" | Draw / Stand | two cards each; 50% naturals (answer Stand, rule `natural`) | {{4s 5d}} vs {{Qh 8c}} → Stand |
+| `player-draw` | "Does the Player draw?" | Draw / Stand | no natural | {{Qs 6h}} → Stand |
+| `banker-player-stood` | "Does the Banker draw?" | Draw / Stand | Player stood on 6–7 | Player 7, Banker {{4h Jd}} → Draw |
+| `banker-0-2` | same | same | Player drew, Banker 0–2 | Banker 2, P3 = 9 → Draw |
+| `banker-3` | same | same | Player drew, Banker 3; P3 = 8 in 30% of spots | Banker 3, P3 = 8 → Stand |
+| `banker-4` | same | same | Player drew, Banker 4; P3 = 0/1/8/9 in 50% | Banker 4, P3 = 1 → Stand |
+| `banker-5` | same | same | Player drew, Banker 5; P3 = 3 or 8 in 40% | Banker 5, P3 = 3 → Stand |
+| `banker-6` | same | same | Player drew, Banker 6; P3 = 5, 6, 7, 8 in 60% | Banker 6, P3 = 7 → Draw |
+| `banker-7` | same | same | Player drew, Banker 7 | Banker 7, P3 = 6 → Stand |
 | `banker-mixed` | same | same | any Banker decision (the main mode) | — |
 | `who-wins` | "Who wins?" | Player / Banker / Tie | whole hand shown at once, unresolved | P {{2h 3c 4d}}, B {{Td 7h}} → Player |
 | `settle` | "What's this bet paid?" | 3 amounts | Banker win (commission), Tie, Pair, Dragon Bonus | $25 Banker wins → $23.75 |
@@ -2991,7 +3020,7 @@ shows accuracy per (Banker total, Player third card) cell, as text percentages i
 | any | Big | Small | Big | 4.35% vs 5.28% |
 | any | Perfect Pair 25/200 | Either Pair 5:1 | Perfect Pair | 8.05% vs 13.71% |
 | 4% table vs EZ | Banker 4% | EZ Banker | Banker 4% | 0.60% vs 1.02% |
-| per hour | $25 Banker | $10 Player + $5 Tie | $25 Banker | $19.04/h vs $60.58/h |
+| per hour | $25 Banker | $10 Player + $5 Tie | $25 Banker | $19.04/h vs $60.59/h |
 | per hour | $10 Martingale (Banker) | $25 flat Banker | $25 flat Banker | $25.32/h vs $19.04/h |
 
 ---
@@ -3001,7 +3030,7 @@ shows accuracy per (Banker total, Player third card) cell, as text percentages i
 | Quantity | Method | Cost |
 |---|---|---|
 | Full-shoe EV of every bet, every variant | **Constants** in the payout registry tests (§11), *and* recomputable by the same enumerator as the tracker (one call per variant at startup is cheap, so it's a test, not a table) | 0 |
-| Shoe tracker (D6) | **Exact enumeration** of the tableau over 10 point classes of the **unseen** cards: P1, B1, P2, B2, then P3, B3 only where the rule draws. Integer weights are products of remaining counts. With ≤ 416 cards, every weight and every outcome-class sum is ≤ 416·415·414·413·412·411 ≈ 5.0 × 10¹⁵ < 2⁵³ ≈ 9.0 × 10¹⁵, so **plain JS numbers are exact**. Accumulate integer weights per outcome class (winner × totals × card counts × natural flag, 205 classes for a full shoe), then turn them into `bigint` fractions for the payouts. Pairs use the 13-rank composition: P(pair) = Σ nᵣ(nᵣ−1) / (N(N−1)). | Python: 0.19 s per composition; JS est. 5–20 ms on a mid-range phone. Run in the worker after each hand. |
+| Shoe tracker (D6) | **Exact enumeration** of the tableau over 10 point classes of the **unseen** cards: P1, B1, P2, B2, then P3, B3 only where the rule draws. Integer weights are products of remaining counts. With ≤ 416 cards, every weight and every outcome-class sum is ≤ 416·415·414·413·412·411 ≈ 5.0 × 10¹⁵ < 2⁵³ ≈ 9.0 × 10¹⁵, so **plain JS numbers are exact**. Accumulate integer weights per outcome class (winner × totals × card counts × natural flag, 205 classes for a full shoe), then turn them into `bigint` fractions for the payouts. Pairs use the 13-rank composition: P(pair) = Σ nᵣ(nᵣ−1) / (N(N−1)). | Python: 0.19 s per composition; JS ≈ 1.4 ms on desktop (simulator measurement), a few ms on a phone. It runs on the same thread after each hand (D18, no Web Worker). |
 | Drill, scenes | Engine settlement only | — |
 | Auto-play / systems | Simulation for paths and bands; exact expected costs from §7.2 constants (DP), labelled "Expected" | — |
 
@@ -3099,7 +3128,7 @@ one 7 removed: banker −2344783820668/219924374673375 ; player −419731067296/
 * **Bankroll survival** (`ruin.py`): DP over bankroll in 5¢ steps, with independent hands.
 * **Streaks** (`streaks.py`): DP for runs in 73 decided hands, independent with P(B | decided), plus a Monte Carlo
   average of the longest run.
-* **Shoe study** (`shoe_burn.c`): 3,000 shoes, xorshift RNG, burn by first card, cut at 16. Exact EV (double precision)
+* **Shoe study** (`shoe_d17.c`): 3,000 shoes, xorshift RNG, burn by first card, cut at 16, one more hand after the cut card (D17). Exact EV (double precision)
   before each hand from the unseen composition.
 * **Scenes** (`deals.py`): every forced deal is replayed through the tableau. A third card must be present exactly when drawn, and
   the totals and winner are as described.
@@ -3137,25 +3166,23 @@ Prediction steps with random deals (l06-s1, l13-s1, l24-s1) use fixed seeds. The
 
 ## 13. Assumptions and open points for decisions.md
 
-1. **Primary metric**: house edge per hand, ties as pushes (§3). Ties-excluded appears only in lesson 13/14 copy.
-   Recommend recording it as a decision.
-2. **Scene schema**: §1.2 names (`deals` with player/banker arrays, `pauseAt`, `predict`, `predicted`, `shoe.remaining`,
-   `history`, `ui.roads`, `ui.shoeTracker`, `tapped: commission|bead-plate|big-road|shoe-tracker|session`). These were sent to main for
-   the simulator spike. If simulator.md differs, it's mapped like holdumb D25.
-3. **Predict buttons**: `player-draws` and `banker-draws` show "Draws" / "Stands", plus "Natural, nobody draws" when paused at
-   `two-cards`. `hand-total` shows a 0–9 keypad. `winner` shows Player / Banker / Tie.
+1. **Primary metric**: house edge per bet placed, ties as pushes (D14). Ties excluded appears in "Why?", More → Bets
+   detail and lesson 13/14 prose only (D32).
+2. **Scene schema**: settled. Scenes use simulator.md §5.1 `SceneConfig` (D23, D26–D28, D36): `variant`, `set-bet`,
+   `predict.side`, `shoe.removed`, `target`/`sideBets`/`maxSteps`/`maxUnits`/`maxBetUnits`, and step `skipNaturals`.
+3. **Predict buttons** (D26): Draw · Stand, a 0–9 keypad for `hand-total`, and Player · Banker · Tie for `winner`. No natural
+   button: on a natural, "Does the Player draw?" is answered Stand (rule `natural`).
 4. **Cut card**: the hand in progress finishes, plus **one more hand** (common casino practice). The simulator owns this.
-   The shoe study (§7.3) stopped dealing at the cut card, which changes nothing material.
-5. **Commission** is taken at settlement (D2 says 5%; amounts are always exact cents because bets are whole dollars; for
-   odd-cent amounts, recommend **round the commission down to the cent**, in the player's favour). A commission-box mode is a chip.
+   The shoe study (§7.3) follows this rule (D17).
+5. **Commission** is taken at settlement (D15: gross rounds down and commission rounds up; with whole-dollar bets rounding never
+   fires). The commission box is lesson text only (chip).
 6. **Labouchère** has no exact figure (simulated, ≈). The other systems are exact by DP. Auto-play's "Expected" line for systems
    should use Σ bet × edge over the bets actually placed, which is exact per run.
 7. **Follow-the-shoe** cost (≈ $8.25/h) treats hands as independent. The auto-play run reports its own exact expected value.
-8. **Lesson 17 scene l17-s2** needs `shoe.remaining` support (a 52-card EZ composition with no 8s). If the simulator can't start a
-   shoe from a composition, the fallback is a forced sequence of earlier hands, which is much slower.
+8. **Lesson 17 scene l17-s2** uses `shoe: { removed }` for a 52-card EZ shoe. D36 allows it: the burn's face-up card comes from
+   the removed set, and the scene has no deal step.
 9. **Squeeze** is described in lesson 23 only (D7). No scene or setting uses it.
 10. **Mentioned-only bets** (§2.4) have no engine ids. More → Bets lists them in a "Not in this app" section with the edges in §6.2.
-11. **Table limits** in §2.1 ($5–$5,000; side bets $1–$500) are a proposal. Lessons 19 and 22 need the $5,000 maximum (Labouchère
-    reaches $1,000).
+11. **Table limits** (D16): $5–$5,000, side bets $1–$500. Lesson 19 needs the $5,000 maximum (Labouchère reaches $1,000).
 12. **Chips (deferred)**: a commission-box mode; Dragon 7 true-count display in the tracker; derived roads drawn (D4 says
-    explained only); 6-deck shoe option; Tie 9:1 paytable option; Lucky 6 / Big-Small simulation.
+    explained only); 6-deck shoe option; Lucky 6 / Big-Small simulation.
