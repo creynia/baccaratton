@@ -18,7 +18,8 @@ import type {
   Winner,
 } from '../engine/types';
 import { VARIANT_IDS } from '../engine/types';
-import { formatCents, rulesFor } from './metrics';
+import { formatMoney } from '../engine/money';
+import { rulesFor } from './metrics';
 import { DRILL_CATEGORY_IDS, DRILL_MODE_CATEGORIES } from './types';
 import type {
   DrillCategoryId,
@@ -46,18 +47,116 @@ export interface WhichBetSpot {
   perHour?: boolean;
 }
 export const WHICH_BET_SPOTS: readonly WhichBetSpot[] = [
-  { table: 'standard', a: 'Banker', b: 'Player', answer: 'a', edgeA: '1.06%', edgeB: '1.24%', savingPerHour: '$1.28' },
-  { table: 'super-6', a: 'Banker', b: 'Player', answer: 'b', edgeA: '1.46%', edgeB: '1.24%', savingPerHour: '$1.61' },
-  { table: 'standard vs EZ', a: 'Banker (5%)', b: 'EZ Banker', answer: 'b', edgeA: '1.06%', edgeB: '1.02%', savingPerHour: '$0.29' },
-  { table: 'standard', a: 'Tie 8:1', b: 'Dragon Bonus Banker', answer: 'b', edgeA: '14.36%', edgeB: '9.37%', savingPerHour: '$35.90' },
-  { table: 'standard', a: 'Player Pair', b: 'Dragon Bonus Player', answer: 'b', edgeA: '10.36%', edgeB: '2.65%', savingPerHour: '$55.51' },
-  { table: 'EZ', a: 'Dragon 7', b: 'Panda 8', answer: 'a', edgeA: '7.61%', edgeB: '10.19%', savingPerHour: '$18.55' },
-  { table: 'any', a: 'Tie 9:1', b: 'Dragon 7', answer: 'a', edgeA: '4.84%', edgeB: '7.61%', savingPerHour: '$19.92' },
-  { table: 'any', a: 'Big', b: 'Small', answer: 'a', edgeA: '4.35%', edgeB: '5.28%', savingPerHour: '$6.70' },
-  { table: 'any', a: 'Perfect Pair 25/200', b: 'Either Pair 5:1', answer: 'a', edgeA: '8.05%', edgeB: '13.71%', savingPerHour: '$40.75' },
-  { table: '4% table vs EZ', a: 'Banker 4%', b: 'EZ Banker', answer: 'a', edgeA: '0.60%', edgeB: '1.02%', savingPerHour: '$3.02' },
-  { table: 'per hour', a: '$25 Banker', b: '$10 Player + $5 Tie', answer: 'a', edgeA: '$19.04/h', edgeB: '$60.59/h', savingPerHour: '$41.55', perHour: true },
-  { table: 'per hour', a: '$10 Martingale (Banker)', b: '$25 flat Banker', answer: 'b', edgeA: '$25.32/h', edgeB: '$19.04/h', savingPerHour: '$6.28', perHour: true },
+  {
+    table: 'standard',
+    a: 'Banker',
+    b: 'Player',
+    answer: 'a',
+    edgeA: '1.06%',
+    edgeB: '1.24%',
+    savingPerHour: '$1.28',
+  },
+  {
+    table: 'super-6',
+    a: 'Banker',
+    b: 'Player',
+    answer: 'b',
+    edgeA: '1.46%',
+    edgeB: '1.24%',
+    savingPerHour: '$1.61',
+  },
+  {
+    table: 'standard vs EZ',
+    a: 'Banker (5%)',
+    b: 'EZ Banker',
+    answer: 'b',
+    edgeA: '1.06%',
+    edgeB: '1.02%',
+    savingPerHour: '$0.29',
+  },
+  {
+    table: 'standard',
+    a: 'Tie 8:1',
+    b: 'Dragon Bonus Banker',
+    answer: 'b',
+    edgeA: '14.36%',
+    edgeB: '9.37%',
+    savingPerHour: '$35.90',
+  },
+  {
+    table: 'standard',
+    a: 'Player Pair',
+    b: 'Dragon Bonus Player',
+    answer: 'b',
+    edgeA: '10.36%',
+    edgeB: '2.65%',
+    savingPerHour: '$55.51',
+  },
+  {
+    table: 'EZ',
+    a: 'Dragon 7',
+    b: 'Panda 8',
+    answer: 'a',
+    edgeA: '7.61%',
+    edgeB: '10.19%',
+    savingPerHour: '$18.55',
+  },
+  {
+    table: 'any',
+    a: 'Tie 9:1',
+    b: 'Dragon 7',
+    answer: 'a',
+    edgeA: '4.84%',
+    edgeB: '7.61%',
+    savingPerHour: '$19.92',
+  },
+  {
+    table: 'any',
+    a: 'Big',
+    b: 'Small',
+    answer: 'a',
+    edgeA: '4.35%',
+    edgeB: '5.28%',
+    savingPerHour: '$6.70',
+  },
+  {
+    table: 'any',
+    a: 'Perfect Pair 25/200',
+    b: 'Either Pair 5:1',
+    answer: 'a',
+    edgeA: '8.05%',
+    edgeB: '13.71%',
+    savingPerHour: '$40.75',
+  },
+  {
+    table: '4% table vs EZ',
+    a: 'Banker 4%',
+    b: 'EZ Banker',
+    answer: 'a',
+    edgeA: '0.60%',
+    edgeB: '1.02%',
+    savingPerHour: '$3.02',
+  },
+  {
+    table: 'per hour',
+    a: '$25 Banker',
+    b: '$10 Player + $5 Tie',
+    answer: 'a',
+    edgeA: '$19.04/h',
+    edgeB: '$60.59/h',
+    savingPerHour: '$41.55',
+    perHour: true,
+  },
+  {
+    table: 'per hour',
+    a: '$10 Martingale (Banker)',
+    b: '$25 flat Banker',
+    answer: 'b',
+    edgeA: '$25.32/h',
+    edgeB: '$19.04/h',
+    savingPerHour: '$6.28',
+    perHour: true,
+  },
 ];
 
 // ---------- copy (curriculum.md section 9.2) ----------
@@ -134,7 +233,10 @@ const SETTLE_BETS: readonly BetId[] = [
 const SETTLE_AMOUNTS: readonly Cents[] = [500, 1_000, 2_500, 10_000];
 
 export function modeOf(category: DrillCategoryId): DrillMode {
-  for (const [mode, cats] of Object.entries(DRILL_MODE_CATEGORIES) as [DrillMode, readonly DrillCategoryId[]][])
+  for (const [mode, cats] of Object.entries(DRILL_MODE_CATEGORIES) as [
+    DrillMode,
+    readonly DrillCategoryId[],
+  ][])
     if (cats.includes(category)) return mode;
   return 'mixed';
 }
@@ -214,10 +316,17 @@ function settleProfit(player: readonly Card[], banker: readonly Card[], x: Settl
 }
 
 function settleOptions(profit: number, amount: number): string[] {
-  const cands = [profit, profit + amount, amount, Math.round(amount * 0.95), 2 * amount, 3 * amount];
+  const cands = [
+    profit,
+    profit + amount,
+    amount,
+    Math.round(amount * 0.95),
+    2 * amount,
+    3 * amount,
+  ];
   const picked: number[] = [profit];
   for (const c of cands) if (picked.length < 3 && c > 0 && !picked.includes(c)) picked.push(c);
-  return picked.sort((a, b) => a - b).map((c) => formatCents(c));
+  return picked.sort((a, b) => a - b).map((c) => formatMoney(c));
 }
 
 function build(
@@ -244,7 +353,14 @@ function build(
         cell: '',
         question: 'Which bet costs less?',
         options: [w.a, w.b],
-        whichBet: { table: w.table, a: w.a, b: w.b, answer: w.answer, edgeA: w.edgeA, edgeB: w.edgeB },
+        whichBet: {
+          table: w.table,
+          a: w.a,
+          b: w.b,
+          answer: w.answer,
+          edgeA: w.edgeA,
+          edgeB: w.edgeB,
+        },
       };
     }
     case 'hand-total': {
@@ -280,7 +396,15 @@ function build(
     }
     case 'who-wins':
     case 'settle': {
-      const full = playFrom(dealOrder(player, banker));
+      if (player.length < 2 || player.length > 3 || banker.length < 2 || banker.length > 3)
+        fail(code, 'not a complete hand');
+      const order = dealOrder(player, banker);
+      let full: Dealt;
+      try {
+        full = playFrom([...order, ...order]); // padding: an incomplete hand draws past its cards
+      } catch (e) {
+        return fail(code, (e as Error).message);
+      }
       if (codeOf(full.player) !== codeOf(player) || codeOf(full.banker) !== codeOf(banker))
         fail(code, 'not a complete hand');
       const base = {
@@ -291,8 +415,7 @@ function build(
         banker,
         cell: handCell(player, banker),
       };
-      if (category === 'who-wins')
-        return { ...base, question: 'Who wins?', options: WHO };
+      if (category === 'who-wins') return { ...base, question: 'Who wins?', options: WHO };
       const x = extra as SettleExtra;
       const profit = settleProfit(player, banker, x);
       return {
@@ -354,7 +477,8 @@ function build(
 export function spotCode(spot: Omit<DrillSpot, 'code'>): string {
   if (spot.category === 'which-bet') {
     const i = WHICH_BET_SPOTS.findIndex(
-      (w) => w.table === spot.whichBet?.table && w.a === spot.whichBet?.a && w.b === spot.whichBet?.b,
+      (w) =>
+        w.table === spot.whichBet?.table && w.a === spot.whichBet?.a && w.b === spot.whichBet?.b,
     );
     return `which-bet:${i}`;
   }
@@ -397,14 +521,22 @@ export function spotFromCode(code: string): DrillSpot {
   return build(code, category, player, banker);
 }
 
-function finish(category: DrillCategoryId, player: Card[], banker: Card[], extra?: SettleExtra | number): DrillSpot {
+function finish(
+  category: DrillCategoryId,
+  player: Card[],
+  banker: Card[],
+  extra?: SettleExtra | number,
+): DrillSpot {
   const tmp = build('', category, player, banker, extra);
   const code = spotCode(tmp);
   return { ...tmp, code };
 }
 
 // ---------- generation ----------
-function pickWeighted<T extends string>(rng: RngState, items: readonly [T, number][]): [T, RngState] {
+function pickWeighted<T extends string>(
+  rng: RngState,
+  items: readonly [T, number][],
+): [T, RngState] {
   const total = items.reduce((s, [, w]) => s + w, 0);
   const [u, r] = randBelow(rng, total);
   let acc = 0;
@@ -420,7 +552,11 @@ const coin = (rng: RngState, p: number): [boolean, RngState] => {
 };
 
 /** One spot of `category` (rejection sampling from fresh shoes). */
-function sample(rng: RngState, category: DrillCategoryId, variant: VariantId): [DrillSpot, RngState] {
+function sample(
+  rng: RngState,
+  category: DrillCategoryId,
+  variant: VariantId,
+): [DrillSpot, RngState] {
   let r = rng;
   if (category === 'which-bet') {
     const [i, next] = randBelow(r, WHICH_BET_SPOTS.length);
@@ -468,7 +604,8 @@ function sample(rng: RngState, category: DrillCategoryId, variant: VariantId): [
         return [finish(category, d.player, d.banker), r];
       case 'settle': {
         const x = settle!;
-        if (settleProfit(d.player, d.banker, x) > 0) return [finish(category, d.player, d.banker, x), r];
+        if (settleProfit(d.player, d.banker, x) > 0)
+          return [finish(category, d.player, d.banker, x), r];
         continue;
       }
       default: {
@@ -517,7 +654,11 @@ export function nextSpot(rng: RngState, filter: DrillFilter): { spot: DrillSpot;
 }
 
 // ---------- grading ----------
-function correctAnswer(spot: DrillSpot): { answer: string; rule: TableauRuleId | null; detail: string } {
+function correctAnswer(spot: DrillSpot): {
+  answer: string;
+  rule: TableauRuleId | null;
+  detail: string;
+} {
   const pt = handTotal(spot.player.slice(0, 2));
   const bt = handTotal(spot.banker.slice(0, 2));
   switch (spot.category) {
@@ -545,7 +686,7 @@ function correctAnswer(spot: DrillSpot): { answer: string; rule: TableauRuleId |
     case 'settle': {
       const p = spot.payout!;
       const profit = settleProfit(spot.player, spot.banker, p);
-      return { answer: formatCents(profit), rule: null, detail: '' };
+      return { answer: formatMoney(profit), rule: null, detail: '' };
     }
     case 'which-bet': {
       const w = spot.whichBet!;
@@ -564,7 +705,9 @@ function correctAnswer(spot: DrillSpot): { answer: string; rule: TableauRuleId |
 }
 
 function whichBetBody(spot: DrillSpot): string {
-  const w = WHICH_BET_SPOTS.find((x) => x.table === spot.whichBet?.table && x.a === spot.whichBet?.a && x.b === spot.whichBet?.b)!;
+  const w = WHICH_BET_SPOTS.find(
+    (x) => x.table === spot.whichBet?.table && x.a === spot.whichBet?.a && x.b === spot.whichBet?.b,
+  )!;
   const [cheap, cheapEdge, dear, dearEdge] =
     w.answer === 'a' ? [w.a, w.edgeA, w.b, w.edgeB] : [w.b, w.edgeB, w.a, w.edgeA];
   return w.perHour

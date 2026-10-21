@@ -49,8 +49,4 @@ describe('createEvClient (in-thread)', () => {
     c.dispose();
     await expect(c.run('simulate', hands(1))).rejects.toThrow(/disposed/);
   });
-
-  it('the WP0 simulate stub rejects with its TODO marker', async () => {
-    await expect(createEvClient().run('simulate', req)).rejects.toThrow(/TODO\(strategy\)/);
-  });
 });

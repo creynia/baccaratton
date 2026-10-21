@@ -1,6 +1,6 @@
 // Per-hand and per-hour figures (simulator.md section 6.1, decisions D5, D14, D21). Every edge
 // comes from math's full-shoe EVs (one source of truth); nothing here is typed in.
-import { VARIANT_RULES } from '../engine/rules';
+import { resolveRules } from '../engine/rules';
 import { BET_IDS } from '../engine/types';
 import type { BetId, Slip, TableRules, TiePays, VariantId } from '../engine/types';
 import { fullShoeEvs } from '../math';
@@ -21,9 +21,7 @@ export function fracToNumber(f: Fraction): number {
 }
 
 export function rulesFor(variant: VariantId, tiePays: TiePays): TableRules {
-  const base = VARIANT_RULES[variant];
-  if (!base) throw new Error(`Unknown variant "${String(variant)}"`);
-  return { ...base, tiePays };
+  return resolveRules({ variant, tiePays });
 }
 
 export interface BetFigures {
@@ -36,7 +34,10 @@ export interface BetFigures {
 const cache = new Map<string, Readonly<Record<BetId, BetFigures>>>();
 
 /** Full-shoe EV and probabilities of every bet, as numbers (memoised per variant and tie pay). */
-export function betFigures(variant: VariantId, tiePays: TiePays): Readonly<Record<BetId, BetFigures>> {
+export function betFigures(
+  variant: VariantId,
+  tiePays: TiePays,
+): Readonly<Record<BetId, BetFigures>> {
   const key = `${variant}/${tiePays}`;
   const hit = cache.get(key);
   if (hit) return hit;
@@ -92,7 +93,13 @@ export function systemCost(
   const main = mainBet(null, spec);
   const edge = -fig[main].ev;
   if (spec.id === 'labouchere' || spec.id === 'follow-the-shoe')
-    return { avgBetUnits: null, avgBetCents: null, costPerHourCents: null, edge, kind: 'simulated' };
+    return {
+      avgBetUnits: null,
+      avgBetCents: null,
+      costPerHourCents: null,
+      edge,
+      kind: 'simulated',
+    };
   const f = fig[main];
   const units =
     expectedUnitsBet(spec, hands, { win: f.pWin, lose: f.pLose, push: f.pPush }) / hands;
@@ -111,16 +118,4 @@ export function systemCost(
     edge,
     kind: 'exact',
   };
-}
-
-/** Whole cents → "$1,234.56" (sign optional). */
-export function formatCents(cents: number, opts: { sign?: boolean; whole?: boolean } = {}): string {
-  const neg = cents < 0;
-  const abs = Math.abs(cents) / 100;
-  const body = abs.toLocaleString('en-US', {
-    minimumFractionDigits: opts.whole ? 0 : 2,
-    maximumFractionDigits: opts.whole ? 0 : 2,
-  });
-  const sign = neg ? '−' : opts.sign && cents > 0 ? '+' : '';
-  return `${sign}$${body}`;
 }
