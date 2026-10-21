@@ -115,7 +115,7 @@ const SEPARATORS = /[\s,]*/y;
  * Parses road tokens `[BPT][b]?[p]?[n]?[0-9]?` (section 3.1): the winner letter, then optional
  * `b` (Banker pair), `p` (Player pair), `n` (natural) in that order, then an optional winning or
  * tied total (default 7 for B/P, 0 for T, and 9 for any natural). Tokens may be separated by
- * whitespace or commas, or run together with no separator at all: `B Bbp P5 T Pn9`, `B,P,T` and
+ * whitespace or commas, or (leniently) run together with no separator at all: `B Bbp P5 T Pn9`, `B,P,T` and
  * `BBPBTPPpPb` all parse. Throws on anything else, including results that cannot happen (a natural
  * below 8, a Player or Banker win on 0), so content validation catches typos. An empty string is
  * an empty list.
