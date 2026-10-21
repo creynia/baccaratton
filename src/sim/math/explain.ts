@@ -107,7 +107,8 @@ function formulaOf(rows: readonly WhyRow[], ev: Fraction): string {
     if (i === 0) return r.net.num < 0n ? `${MINUS}${t}` : t;
     return r.net.num < 0n ? `${MINUS} ${t}` : `+ ${t}`;
   });
-  return `${parts.join(' ')} = ${signed(toFixed(ev, 5))}`;
+  // A ties-only shoe (every row pushes) has no terms: '0 = 0.00000'.
+  return `${parts.length ? parts.join(' ') : '0'} = ${signed(toFixed(ev, 5))}`;
 }
 
 function noteOf(bet: BetId, ev: BetEv, rules: TableRules): string | undefined {

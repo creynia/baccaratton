@@ -3,7 +3,7 @@ import { VARIANT_RULES } from '../engine/rules';
 import type { Slip, TableRules } from '../engine/types';
 import { fullShoeRanks } from './distribution';
 import { fullShoeEvs, perHourCents } from './edges';
-import { add, frac, mul, toFixed, ZERO } from './fraction';
+import { add, frac, mul, sub, toFixed, ZERO } from './fraction';
 import { cheapestMain, previewSlip } from './preview';
 
 const PB = VARIANT_RULES['punto-banco'];
@@ -89,5 +89,38 @@ describe('previewSlip', () => {
   it('perHourCents rejects fractional hands', () => {
     expect(perHourCents(frac(1n), 72)).toEqual(frac(72n));
     expect(() => perHourCents(frac(1n), 1.5)).toThrow();
+  });
+
+  it('D42: the moved amount is at least the main minimum, and the saving uses it', () => {
+    const a = preview({ tie: 100 }).alternative!;
+    expect([a.from, a.to, a.amount]).toEqual(['tie', 'banker', 500]);
+    expect(a.toEvCents).toEqual(
+      mul(fullShoeEvs(PB).find((e) => e.bet === 'banker')!.ev, frac(500n)),
+    );
+    expect(a.savingPerHourCents).toEqual(mul(sub(a.toEvCents, a.fromEvCents), frac(72n)));
+    expect(dollars(a.savingPerHourCents)).toBe('6.53');
+    // $1 Dragon Bonus Player costs less than a $5 Banker: no alternative.
+    expect(preview({ 'dragon-bonus-player': 100 }).alternative).toBeNull();
+    // At or above the minimum the amount is unchanged.
+    expect(preview({ tie: 1000 }).alternative!.amount).toBe(1000);
+  });
+
+  it('a ties-only shoe: formula "0 = 0.00000", no per-resolved edge, free, no alternative', () => {
+    const ranks = new Array<number>(13).fill(0);
+    ranks[8] = 6; // six nines: every hand is a natural 8-8 tie
+    const p = preview({ banker: 1000, player: 500 }, PB, ranks);
+    for (const bet of ['player', 'banker'] as const) {
+      const e = p.sheet.find((x) => x.bet === bet)!;
+      expect(e.why.formula).toBe('0 = 0.00000');
+      expect(e.edgePerResolved).toBeUndefined();
+      expect(e.tier).toBe('free');
+    }
+    expect(p.alternative).toBeNull();
+    expect(p.needsConfirm).toEqual([]);
+  });
+
+  it('rejects more unseen cards than the shoe holds', () => {
+    const ranks = fullShoeRanks(8);
+    expect(() => preview({}, { ...PB, decks: 6 }, ranks)).toThrow(/6 decks hold 312/);
   });
 });
