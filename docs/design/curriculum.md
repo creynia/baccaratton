@@ -54,50 +54,56 @@ Same format as holdumb (`architecture.md` §3.2 there):
 | Show the math | `:::math Title` … `:::` | A collapsible box, closed by default. The lesson must read fine with every box closed. |
 | Tip | `:::tip` … `:::` | Etiquette or practical advice. |
 | Inline cards | `{{9h Kd}}` | Cards drawn inline, with suit glyphs and an aria label. They also render in quizzes. |
-| Rule table | ` ```tableau ` YAML `{view: player \| banker \| full, highlight?}` | The third-card rule, drawn from the engine's own rule table and never typed by hand. `highlight: [{banker: 4, p3: 2}]` marks a cell. |
+| Rule table | ` ```tableau ` YAML `{view: player \| banker \| full, highlight?}` | The third-card rule, drawn from the engine's own rule table and never typed by hand. `highlight: [b4/p2]` marks a cell, using the simulator's `TableauCellId` syntax (`b4/p7`, `b6/s`, `p5`, `nat`), the same one as `#/rules?highlight=` (D34). |
 | Scene | ` ```scene ` YAML | An embedded simulator (1.2). |
-| Quiz | ` ```quiz ` YAML list `{q, options, answer (0-based), explain, hand?}` | At the end of each lesson. `hand: {player: [..], banker: [..]}` draws the cards above the question. |
+| Quiz | ` ```quiz ` YAML list `{q, options, answer (0-based), explain, hand?}` | At the end of each lesson. `hand: {player: [Jc, 7s], banker: [4d, 4h]}` (YAML arrays) draws the cards above the question. |
+| Roads | ` ```roads ` string | A static Bead Plate / Big Road picture, parsed by engine `parseRoadString` (`engine/roads.ts`, D34). Not used in v1 lessons (scenes prefill `history` instead). |
 
 Card codes: rank `A23456789TJQK` plus suit `shdc` (`9h`, `Td`). Point values: A = 1, 2–9 face value,
 T/J/Q/K = 0. In compositions, value class `0` means the 16 ten-value cards per deck.
 
 ### 1.2 Scenes
 
-Scenes are written in the simulator's `SceneConfig` (owned by `simulator.md`). This file uses the
-field names sent to main on the curriculum spike's second message. If the simulator spike chose
-other names, reconciliation maps them like holdumb's D25. The fields used:
+Scenes are written in the simulator's **`SceneConfig`** (`simulator.md` §5.1, authoritative per D23/D26).
+This file doesn't define its own schema. The rules (D26–D28, D36) that apply to every scene here:
 
-* `rules: { variant: punto-banco | ez | super-6 }` (default `punto-banco`). Money is in **cents**: `bankroll`,
-  `bets: { player, banker, tie, player-pair, banker-pair, dragon-7, panda-8, dragon-bonus-player, dragon-bonus-banker }`.
-* `allowedBets` lists the bet spots that accept chips. `allowedActions` takes values from `place-bet`, `clear-bets`,
-  `deal`, `rebet`.
-* **Forced deals go on the step that deals them**: `deals: [{ player: [c1, c2, c3?], banker: [c1, c2, c3?] }]`.
-  The engine deals them in the real order (P1, B1, P2, B2, then P3, then B3). `validateScene` checks that
-  each hand obeys the tableau: a third card is present exactly when the rule draws one.
-* **Betting steps lock Deal.** They allow only `place-bet` / `clear-bets` and complete on `betOnFelt`.
-  A separate step allows only `deal` and carries the forced cards.
-* **Prediction steps** (third-card teaching): `predict: { kind: player-draws | banker-draws | hand-total |
-  winner }` with `pauseAt: two-cards | player-third`. The step deals its `deals` (or a random hand) on
-  start, with no Deal tap, and pauses there. Buttons: "Draws" / "Stands" (plus "Natural, nobody draws" at
-  `two-cards`), a 0–9 keypad for `hand-total`, and Player / Banker / Tie for `winner`. The learner answers with buttons, and the hand then plays out. A
-  wrong answer shows the `hint` plus the matching rule row, and the step waits for the right answer. With
-  random deals, `skipNaturals: true` skips hands where nobody draws.
-* Conditions: `action {type}`, `hands n` (hands settled since the step started), `handResult {winner, natural?}`,
-  `betOnFelt {bet, minAmount?}`, `previewed {bet}`, `tapped {target}` (any bet spot, `commission`,
-  `bead-plate`, `big-road`, `shoe-tracker`, `session`), `predicted {correct: true, count?}`,
-  `autoPlayCompleted {minHands?}`, `acknowledged: true` (with `advance: button`), and `all` / `any`.
-* The shoe: `shoe: fresh` (default: 8 decks, burn and cut card as in D8) or `shoe: { remaining: {value: count} }`,
-  a teaching composition that `validateScene` checks against 8 decks. `ui.shoeTracker: true` opens the
-  Shoe tracker (D6). `ui.roads: [bead-plate, big-road]` and `history: [B, P, T, …]` prefill the scoreboards.
-* Auto-play: `autoPlay: { enabled, defaultStrategy: {id, unit, bet?, side?}, handOptions, sessions, compare }`,
-  `ui.speed: fast`. A scene completes on `autoPlayCompleted { minHands }`, where `minHands` counts
-  **requested** hands per session and a session that busts counts as complete (holdumb D32). Every auto-play
-  scene gives enough bankroll that a bust can't block the step (§7.2 shows the worst cases).
-  `compare` entries all run on the **same seed** (the same cards), each with its own full spec (`id`, `unit`,
-  `bet`, `side`, and `label` when two entries share an id). `autoPlayCompleted` fires only when **every** entry
-  has finished.
+* Money is in **cents**: `bankroll`, `bets: { player, banker, tie, player-pair, banker-pair, dragon-7, panda-8,
+  dragon-bonus-player, dragon-bonus-banker }`. `variant: punto-banco | ez | super-6` (default `punto-banco`).
+  `allowedBets` lists the spots that accept chips. `allowedActions` takes values from `set-bet`, `clear-bets`, `deal`, `rebet`.
+  With `rebet` allowed and last hand's bets remembered, the empty-felt Deal button reads "**Rebet & Deal**".
+* **Forced hands go on the step that deals them**: `deals: [{ player: [c1, c2, c3?], banker: [c1, c2, c3?] }]`
+  (`ForcedHand`). The engine deals them in the real order (P1, B1, P2, B2, then P3, then B3), and `validateScene`
+  checks that each hand obeys the tableau: a third card is present exactly when the rule draws one.
+* **Betting steps lock Deal.** They allow only `set-bet` / `clear-bets` and complete on `betOnFelt`. A separate
+  step allows only `deal` and carries the forced hand.
+* **Prediction steps** (third-card teaching, D27): `predict: { kind: player-draws | banker-draws | hand-total |
+  winner, side? }` with `pauseAt: two-cards | player-third | all-cards`, `allowedActions: [deal]` and the step's
+  `deals`. The learner taps **Deal**, the reveal stops at the pause, and the PredictBar asks. The buttons are
+  **Draw · Stand**, a 0–9 keypad for `hand-total` (with `side`), and Player · Banker · Tie for `winner`. On a
+  natural, "Does the Player draw?" is answered **Stand** (rule `natural`). There is no separate natural button.
+  A wrong answer shows the `hint` and the deciding rule row, then the reveal continues. **There is no replay.**
+  * A single forced-hand step completes on `{ predicted: { count: 1 } }`, so the next step's text is true
+    whatever was answered.
+  * Random-hand steps use `{ predicted: { correct: true, count: n } }` with scene-level `onDealsExhausted: random`
+    and step-level `skipNaturals: true`. On a natural no PredictBar shows and the hand doesn't count.
+* **Result steps** are `{ acknowledged: true }` with `advance: button` and `allowedActions: []`. **Read steps** after
+  auto-play also set `allowedActions: []`. `hands: n` counts only hands dealt since the step started.
+* Conditions used: `action {type}`, `hands n`, `handResult {winner, natural?}`, `betOnFelt {bet, minAmount?}`,
+  `previewed {bet}`, `tapped {target}` (bet ids, `commission` (the settlement toast's commission line, D35),
+  `bead-plate`, `big-road`, `shoe-tracker`, `session`), `predicted`, `autoPlayCompleted {minHands?}`,
+  `acknowledged`, `all` / `any`.
+* The shoe: `shoe: fresh` (default: 8 decks, burn, cut card 16 from the end, one more hand after it, D8/D17) or
+  `shoe: { removed: {value: count} }` (`ShoeSetup`: cards already seen, removed = 8-deck count − the
+  composition wanted). A setup may leave as few as 6 unseen cards (D36). `ui.shoeTracker: true` opens the Shoe
+  tracker (D6). `ui.roads: [bead-plate, big-road]` and `history: [B, P, T, …]` prefill the scoreboards.
+* Auto-play: `autoPlay: { enabled, defaultStrategy, handOptions, sessions, compare }` with `StrategySpec
+  { id, unit, target?, sideBets?, sequence?, label?, maxSteps?, maxUnits?, maxBetUnits? }` (D28) and
+  `ui.speed: fast`. Lengths are D21's 72 / 720 hands. A scene completes on `autoPlayCompleted { minHands }`
+  (requested hands per session; a busted session still counts as complete). Every auto-play scene's bankroll makes a
+  bust rare (§7.2). `compare` entries all run on the **same seed** (the same cards), each with its own full
+  spec (`label` when two entries share an id), and `autoPlayCompleted` fires only when **every** entry has finished.
 
-Every forced deal in this file was machine-checked against the tableau (`deals.py`). The totals and winner
+Every forced hand in this file is machine-checked against the tableau (`deals.py`, `checkdoc.py`). The totals and winner
 each step's text describes match the engine's settlement.
 
 ### 1.3 Ids
@@ -361,7 +367,7 @@ allowedBets: [player]
 showEV: false
 steps:
   - id: bet
-    text: "Put **$10 on Player**: tap a $10 chip, then the Player spot."
+    text: "Put **$10 on Player**: pick the $5 chip and tap the Player spot twice."
     allowedActions: [set-bet, clear-bets]
     completeWhen: { betOnFelt: { bet: player, minAmount: 1000 } }
   - id: deal
@@ -438,7 +444,7 @@ bets: { player: 1000 }
 showEV: false
 steps:
   - id: total
-    text: "The deal stops after two cards each. What is the **Player** total?"
+    text: "Tap **Deal**. The deal stops after two cards each: what is the **Player** total?"
     deals:
       - { player: [9c, 6d, 3h], banker: [Kd, Jh, 7s] }
     pauseAt: two-cards
@@ -447,7 +453,7 @@ steps:
     hint: "9 + 6 = 15. Keep only the last digit."
     completeWhen: { predicted: { count: 1 } }
   - id: finish
-    text: "Right, **5**. Banker has 0 (two picture cards). Both hands draw. Player's {{3h}} makes 8 and Banker's {{7s}} makes 7. **Player wins 8 to 7**, and your $10 on Player won."
+    text: "It's **5** (9 + 6 = 15). Banker has 0 (two picture cards). Both hands draw. Player's {{3h}} makes 8 and Banker's {{7s}} makes 7. **Player wins 8 to 7**, and your $10 on Player won."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
@@ -529,16 +535,16 @@ bets: { player: 1000 }
 showEV: false
 steps:
   - id: natural
-    text: "Two cards each. Does anybody draw?"
+    text: "Tap **Deal**. After two cards each: does the **Player** draw?"
     deals:
       - { player: [4s, 5d], banker: [Qh, 8c] }
     pauseAt: two-cards
     predict: { kind: player-draws }
     allowedActions: [deal]
-    hint: "Look for an 8 or a 9 on either side."
+    hint: "Look for an 8 or a 9 on either side: a natural means nobody draws, so the Player stands."
     completeWhen: { predicted: { count: 1 } }
   - id: result
-    text: "Player has a natural 9 and Banker a natural 8, so both stand. **9 beats 8**: Player wins."
+    text: "Player has a natural 9 ({{4s 5d}}) and Banker a natural 8, so **both stand**. 9 beats 8: Player wins."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
@@ -553,7 +559,7 @@ bets: { player: 1000 }
 showEV: false
 steps:
   - id: draws
-    text: "Player has {{2h 3c}} = 5. Does the Player **draw** or **stand**?"
+    text: "Tap **Deal**, add up the Player's two cards, and call it: does the Player **draw** or **stand**?"
     deals:
       - { player: [2h, 3c, 4d], banker: [Td, 7h] }
     pauseAt: two-cards
@@ -562,12 +568,12 @@ steps:
     hint: "The Player draws on 0 to 5."
     completeWhen: { predicted: { count: 1 } }
   - id: draws-result
-    text: "Draws. The {{4d}} makes 9. Banker's 7 stands (a Banker 7 always stands), and **Player wins 9 to 7**."
+    text: "Player had {{2h 3c}} = 5, so it **draws**. The {{4d}} makes 9. Banker's 7 stands (a Banker 7 always stands), and **Player wins 9 to 7**."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: stands
-    text: "New hand: Player has {{Qs 6h}} = 6. Draw or stand?"
+    text: "New hand. Tap **Deal** and call the Player again."
     deals:
       - { player: [Qs, 6h], banker: [3d, 2s, 3c] }
     pauseAt: two-cards
@@ -576,7 +582,7 @@ steps:
     hint: "On 6 or 7 the Player stands."
     completeWhen: { predicted: { count: 1 } }
   - id: stands-result
-    text: "Stands on 6. The Banker had 5 and drew a {{3c}} to make 8. **Banker wins 8 to 6.** Why did the Banker draw? That's the next lesson."
+    text: "Player had {{Qs 6h}} = 6, so it **stands**. The Banker had 5 and drew a {{3c}} to make 8. **Banker wins 8 to 6.** Why did the Banker draw? That's the next lesson."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
@@ -645,7 +651,7 @@ bets: { banker: 1000 }
 showEV: false
 steps:
   - id: banker-draws
-    text: "Player has {{7c Kh}} = 7 and stands. Banker has {{4h Jd}} = 4. Does the Banker draw?"
+    text: "Tap **Deal**. The Player will stand on 7. Look at the Banker's two cards: does the **Banker** draw?"
     deals:
       - { player: [7c, Kh], banker: [4h, Jd, 5c] }
     pauseAt: two-cards
@@ -654,12 +660,12 @@ steps:
     hint: "The Player stood, so the Banker uses the Player's rule: draw on 0 to 5."
     completeWhen: { predicted: { count: 1 } }
   - id: result-1
-    text: "Draws on 4. The {{5c}} makes 9. **Banker wins 9 to 7**. Your Banker bet won $10 less 50¢ commission: **+$9.50**."
+    text: "Banker had {{4h Jd}} = 4, and the Player stood, so the Banker **draws**. The {{5c}} makes 9. **Banker wins 9 to 7**. Your Banker bet won $10 less 50¢ commission: **+$9.50**."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: tie
-    text: "Player has {{3s 3h}} = 6 and stands. Banker has {{6d Ks}} = 6. Does the Banker draw?"
+    text: "Tap **Deal** again. The Player stands on 6. Does the **Banker** draw?"
     deals:
       - { player: [3s, 3h], banker: [6d, Ks] }
     pauseAt: two-cards
@@ -668,7 +674,7 @@ steps:
     hint: "On 6 or 7, the Banker stands when the Player stood."
     completeWhen: { predicted: { count: 1 } }
   - id: result-2
-    text: "Both stand on 6: a **tie**. Your Banker bet **pushes**: it comes back to you, with no win and no loss."
+    text: "Banker had {{6d Ks}} = 6, so it **stands**. Both on 6: a **tie**. Your Banker bet **pushes**: it comes back to you, with no win and no loss."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
@@ -749,7 +755,7 @@ bets: { banker: 1000 }
 showEV: false
 steps:
   - id: b3-p8
-    text: "Player had 3 and drew an **8** (now 1). Banker has {{Jc 3d}} = **3**. Does the Banker draw?"
+    text: "Tap **Deal**. The deal pauses after the Player's third card. Banker has **3** here: does the Banker draw?"
     deals:
       - { player: [Ah, 2c, 8s], banker: [Jc, 3d] }
     pauseAt: player-third
@@ -758,12 +764,12 @@ steps:
     hint: "Banker 3 draws on anything **except an 8**."
     completeWhen: { predicted: { count: 1 } }
   - id: b3-result
-    text: "Stands: 3 against an 8 is the one stand in that row. The Banker's 3 beats the Player's 1."
+    text: "The Player drew an **8**, so Banker 3 **stands**: 3 against an 8 is the one stand in that row. The Banker's 3 beats the Player's 1."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: b4-p2
-    text: "Player had 4 and drew a **2** (now 6). Banker has {{Qs 4s}} = **4**. Draw?"
+    text: "Tap **Deal**. This time the Banker has **4**. Watch the Player's third card, then call it."
     deals:
       - { player: [Kd, 4c, 2h], banker: [Qs, 4s, 3h] }
     pauseAt: player-third
@@ -772,12 +778,12 @@ steps:
     hint: "Banker 4 draws when the Player's third card is **2 to 7**."
     completeWhen: { predicted: { count: 1 } }
   - id: b4-result
-    text: "Draws. The {{3h}} makes 7, and **Banker wins 7 to 6**."
+    text: "The Player drew a **2**, so Banker 4 **draws**. The {{3h}} makes 7, and **Banker wins 7 to 6**."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: b5-p3
-    text: "Player had 5 and drew a **3** (now 8). Banker has {{2d 3s}} = **5**. Draw?"
+    text: "Tap **Deal**. Banker **5** this time. Call it after the Player's third card."
     deals:
       - { player: [5h, Tc, 3d], banker: [2d, 3s] }
     pauseAt: player-third
@@ -786,12 +792,12 @@ steps:
     hint: "Banker 5 draws only on a Player third card of **4 to 7**."
     completeWhen: { predicted: { count: 1 } }
   - id: b5-result
-    text: "Stands, because a 3 is outside 4–7. Player's 8 wins. (Yes, the rule can leave the Banker standing on a loser. It's a fixed rule, not a choice.)"
+    text: "The Player drew a **3**, outside 4–7, so Banker 5 **stands**. Player's 8 wins. (Yes, the rule can leave the Banker standing on a loser. It's a fixed rule, not a choice.)"
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: b6-p7
-    text: "Player had 0 and drew a **7**. Banker has {{4d 2c}} = **6**. Draw?"
+    text: "Tap **Deal**. Banker **6**. Call it after the Player's third card."
     deals:
       - { player: [Ks, Jh, 7c], banker: [4d, 2c, 2s] }
     pauseAt: player-third
@@ -800,12 +806,12 @@ steps:
     hint: "Banker 6 draws only on a Player third card of **6 or 7**."
     completeWhen: { predicted: { count: 1 } }
   - id: b6-result
-    text: "Draws. The {{2s}} makes 8, and **Banker wins 8 to 7**."
+    text: "The Player drew a **7**, so Banker 6 **draws**. The {{2s}} makes 8, and **Banker wins 8 to 7**."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
   - id: b6-p5
-    text: "Last one. Player had 2 and drew a **5** (now 7). Banker has {{3h 3c}} = **6**. Draw?"
+    text: "Last one. Tap **Deal**. Banker **6** again. Call it."
     deals:
       - { player: [Qd, 2s, 5s], banker: [3h, 3c] }
     pauseAt: player-third
@@ -814,7 +820,7 @@ steps:
     hint: "Banker 6 draws only on a 6 or a 7."
     completeWhen: { predicted: { count: 1 } }
   - id: b6-p5-result
-    text: "Stands on 6. **Player wins 7 to 6.** You now know the whole rule."
+    text: "The Player drew a **5**, so Banker 6 **stands**. **Player wins 7 to 6.** You now know the whole rule."
     allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
@@ -886,7 +892,7 @@ showEV: false
 onDealsExhausted: random
 steps:
   - id: player-calls
-    text: "Random hands now. Call the **Player**: draw or stand? Get three right."
+    text: "Random hands now. Tap **Deal** and call the **Player**: Draw or Stand? Get three right. (Hands with a natural are skipped.)"
     predict: { kind: player-draws }
     allowedActions: [deal]
     pauseAt: two-cards
@@ -894,7 +900,7 @@ steps:
     hint: "Player: 0 to 5 draws, 6 and 7 stand."
     completeWhen: { predicted: { correct: true, count: 3 } }
   - id: banker-calls
-    text: "Now the **Banker**. The deal pauses after the Player's turn. Get five right."
+    text: "Now the **Banker**. Tap **Deal**; the deal pauses after the Player's turn. Get five right."
     predict: { kind: banker-draws }
     allowedActions: [deal]
     pauseAt: player-third
@@ -1192,17 +1198,18 @@ showEV: true
 ui: { speed: fast, showSession: true }
 autoPlay:
   enabled: true
-  handOptions: [1000]
+  handOptions: [720]
   sessions: [1]
   compare:
     - { id: flat-banker, unit: 1000 }
     - { id: flat-player, unit: 1000 }
 steps:
   - id: run
-    text: "Auto-play **1,000 hands** twice on the same cards: $10 on Banker every hand, then $10 on Player. Tap **Run**."
-    completeWhen: { autoPlayCompleted: { minHands: 1000 } }
+    text: "Auto-play **720 hands** (10 hours) twice on the same cards: $10 on Banker every hand, then $10 on Player. Tap **Run**."
+    completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "Count the wins: Banker usually wins a few more hands than Player. Expected results are about **−$106** for Banker and **−$124** for Player. With 1,000 hands, luck still moves each result by about ±$300, so your run may look different."
+    text: "Count the wins: Banker usually wins a few more hands than Player. The expected lines end at about **−$76** for Banker and **−$89** for Player. Over 720 hands, luck still moves each result by about ±$250, so your run may look different."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -1284,6 +1291,7 @@ steps:
     completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
     text: "Look at the middle of each band. The Banker evenings centre near **−$76**, and the Tie evenings near **−$1,034**. A few Tie evenings still finish ahead: lucky runs of ties happen, but they're the exception."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -1370,7 +1378,7 @@ steps:
     hint: "Banker: 1.06%, the lowest on this table."
     completeWhen: { betOnFelt: { bet: banker, minAmount: 1000 } }
   - id: play
-    text: "Deal **five hands** with the same bet. Some will win, some will lose, and the price never changes."
+    text: "Deal **five hands** with the same bet (**Rebet & Deal** repeats it). Some will win, some will lose, and the price never changes."
     allowedActions: [deal, rebet]
     allowedBets: [banker]
     completeWhen: { hands: 5 }
@@ -1550,7 +1558,7 @@ showEV: true
 onDealsExhausted: random
 steps:
   - id: calls
-    text: "Three random hands. For each, call whether the **Banker** draws."
+    text: "Tap **Deal** for random hands, and call whether the **Banker** draws. Get three right."
     allowedActions: [deal]
     predict: { kind: banker-draws }
     allowedActions: [deal]
@@ -1660,7 +1668,7 @@ steps:
     allowedBets: [banker]
     completeWhen: { all: [ { betOnFelt: { bet: banker, minAmount: 2500 } }, { previewed: { bet: banker } } ] }
   - id: play
-    text: "Deal **ten hands**. Keep an eye on the session panel: **Expected** creeps down by about 26 cents a hand, while **Actual** jumps around."
+    text: "Deal **ten hands** (**Rebet & Deal** repeats the bet). Keep an eye on the session panel: **Expected** creeps down by about 26 cents a hand, while **Actual** jumps around."
     allowedActions: [deal, rebet]
     allowedBets: [banker]
     completeWhen: { hands: 10 }
@@ -1743,20 +1751,21 @@ independent (the shoe's memory is far too small to matter here, lesson 17).
 id: l15-s1
 version: 1
 title: A hundred evenings
-bankroll: 30000
+bankroll: 50000
 showEV: true
 ui: { speed: fast, showSession: true }
 autoPlay:
   enabled: true
   defaultStrategy: { id: flat-banker, unit: 1000 }
-  handOptions: [216]
+  handOptions: [720]
   sessions: [100]
 steps:
   - id: run
-    text: "Start with **$300** and bet $10 on Banker for **3 hours** (216 hands). Run **100 sessions**."
-    completeWhen: { autoPlayCompleted: { minHands: 216 } }
+    text: "Start with **$500** and bet $10 on Banker for **10 hours** (720 hands). Run **100 sessions**."
+    completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "The band shows the middle 80% of results, and the survival curve shows how many sessions still had chips. About **4 in 100** run out within 3 hours with $300. The centre of the band sits near **−$23**, three hours of the edge."
+    text: "The band shows the middle 80% of results, and the survival curve shows how many sessions still had chips. About **8 in 100** run out within 10 hours with $500 (50 bets). The dashed expected line ends close to **−$76**: ten hours of the edge."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -1951,22 +1960,21 @@ version: 1
 title: The tracker on a fresh shoe
 bankroll: 100000
 showEV: true
+bets: { banker: 1000 }
 ui: { shoeTracker: true, speed: fast }
-autoPlay:
-  enabled: true
-  defaultStrategy: { id: flat-banker, unit: 1000 }
-  handOptions: [80]
-  sessions: [1]
 steps:
   - id: open
     text: "The **Shoe tracker** is on. Tap it to open it: on a fresh shoe it matches the EV sheet."
     allowedActions: []
     completeWhen: { tapped: shoe-tracker }
   - id: run
-    text: "Auto-play **one whole shoe** (about 80 hands) and watch the Banker and Player lines on the tracker."
-    completeWhen: { autoPlayCompleted: { minHands: 80 } }
+    text: "Deal **20 hands** (tap **Rebet & Deal**) and watch the Banker and Player rows on the tracker."
+    allowedActions: [deal, rebet]
+    allowedBets: [banker]
+    completeWhen: { hands: 20 }
   - id: read
     text: "They barely moved: a few hundredths of a percent either way. That's why counting the main bets doesn't pay."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -1979,7 +1987,7 @@ variant: ez
 bankroll: 100000
 showEV: true
 ui: { shoeTracker: true }
-shoe: { remaining: { "0": 17, "1": 4, "2": 5, "3": 5, "4": 5, "5": 5, "6": 5, "7": 5, "8": 0, "9": 1 } }
+shoe: { removed: { "0": 111, "1": 28, "2": 27, "3": 27, "4": 27, "5": 27, "6": 27, "7": 27, "8": 32, "9": 31 } }   # leaves 52: 17 tens, 4 aces, five each of 2–7, no 8s, one 9
 steps:
   - id: look
     text: "Late in an EZ shoe: **52 cards left**, with no 8s and a single 9. Open the tracker."
@@ -2079,7 +2087,7 @@ steps:
     expect: [ { type: set-bet, bet: banker } ]
     completeWhen: { betOnFelt: { bet: banker, minAmount: 1000 } }
   - id: play
-    text: "Deal **12 hands**, about ten minutes of real play. Use **Rebet** to keep it flat."
+    text: "Deal **12 hands**, about ten minutes of real play. Use **Rebet & Deal** to keep it flat."
     allowedActions: [deal, rebet]
     allowedBets: [banker]
     completeWhen: { hands: 12 }
@@ -2169,28 +2177,29 @@ $720. On Player, the costs are higher (flat $8.89, Martingale $31.23; §7.2).
 id: l19-s1
 version: 1
 title: Eight systems, same cards
-bankroll: 300000
+bankroll: 1000000
 showEV: true
 ui: { speed: fast, showSession: true }
 autoPlay:
   enabled: true
-  handOptions: [216]
+  handOptions: [72]
   sessions: [100]
   compare:
     - { id: flat-banker, unit: 1000 }
     - { id: follow-the-shoe, unit: 1000 }
     - { id: paroli, unit: 1000, target: banker }
     - { id: one-three-two-six, unit: 1000, target: banker }
-    - { id: fibonacci, unit: 1000, target: banker }
-    - { id: martingale, unit: 1000, target: banker }
-    - { id: dalembert, unit: 1000, target: banker }
-    - { id: labouchere, unit: 1000, target: banker }
+    - { id: fibonacci, unit: 1000, target: banker }            # resets after a loss on 89 units
+    - { id: martingale, unit: 1000, target: banker, maxSteps: 7 }
+    - { id: dalembert, unit: 1000, target: banker, maxUnits: 20 }
+    - { id: labouchere, unit: 1000, target: banker, sequence: [1, 2, 3, 4], maxBetUnits: 100 }
 steps:
   - id: run
-    text: "Each system plays **100 three-hour sessions** on the **same cards**, from a $3,000 bankroll and a $10 unit. Tap **Run**."
-    completeWhen: { autoPlayCompleted: { minHands: 216 } }
+    text: "Each system plays **100 one-hour sessions** (72 hands) on the **same cards**, from a $10,000 bankroll and a $10 unit. Tap **Run**."
+    completeWhen: { autoPlayCompleted: { minHands: 72 } }
   - id: read
-    text: "Compare **Total wagered** with **Result**. Every system lost about 1.06% of what it bet. Martingale shows many small wins and a few deep holes. Labouchère wagers the most by far."
+    text: "Compare **cost per hour** with the table above: each system's expected line matches it. Every system lost about 1.06% of what it bet. Martingale shows many small wins and a few deep holes. Labouchère wagers the most by far."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -2461,7 +2470,7 @@ showEV: true
 ui: { speed: fast, showSession: true }
 autoPlay:
   enabled: true
-  handOptions: [216]
+  handOptions: [720]
   sessions: [100]
   compare:
     - { id: flat-banker, unit: 1000, label: "$10 Banker" }
@@ -2469,10 +2478,11 @@ autoPlay:
     - { id: flat-banker, unit: 1000, sideBets: { tie: 500 }, label: "+ $5 Tie" }
 steps:
   - id: run
-    text: "Run **100 three-hour evenings** of each plan on the same cards. Tap **Run**."
-    completeWhen: { autoPlayCompleted: { minHands: 216 } }
+    text: "Run **100 sessions of 10 hours** (720 hands) for each plan on the same cards. Tap **Run**."
+    completeWhen: { autoPlayCompleted: { minHands: 720 } }
   - id: read
-    text: "The Dragon Bonus plan has bigger swings and some big nights, and its centre is only about **$29** below plain Banker. The Tie plan centres about **$155** below."
+    text: "The Dragon Bonus plan has bigger swings and some big nights, and its expected line ends only about **$95** below plain Banker (**−$172** against **−$76**). The Tie plan's expected line ends about **$517** below, at **−$593**."
+    allowedActions: []
     completeWhen: { acknowledged: true }
     advance: button
 ```
@@ -2617,7 +2627,7 @@ showEV: true
 onDealsExhausted: random
 steps:
   - id: player
-    text: "Two Player calls: **draw or stand**?"
+    text: "Tap **Deal** and call the Player: **Draw or Stand**? Get two right."
     allowedActions: [deal]
     predict: { kind: player-draws }
     allowedActions: [deal]
@@ -2626,7 +2636,7 @@ steps:
     hint: "0 to 5 draws; 6 and 7 stand."
     completeWhen: { predicted: { correct: true, count: 2 } }
   - id: banker
-    text: "Three Banker calls."
+    text: "Now three right Banker calls. Tap **Deal**."
     allowedActions: [deal]
     predict: { kind: banker-draws }
     allowedActions: [deal]
