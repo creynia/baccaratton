@@ -101,8 +101,11 @@ export function validateAction(state: GameState, action: Action): Validation {
     case 'clear-bets':
     case 'new-shoe':
       return OK;
-    default:
-      return bad('bad-amount', `Unknown action "${String((action as { type: unknown }).type)}"`);
+    default: {
+      // Exhaustive: a new Action type fails to compile here; a malformed one at runtime throws.
+      const unknown: never = action;
+      throw new Error(`Unknown action "${String((unknown as { type: unknown }).type)}"`);
+    }
   }
 }
 

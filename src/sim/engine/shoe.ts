@@ -70,7 +70,10 @@ function expose(exposed: number[], card: Card): void {
  * their shuffled relative order and are all exposed; the burn is drawn from them: the first
  * removed card is the face-up card (if its value is more than the other removed cards can cover,
  * the first removed card that fits is used instead) and the next `value` removed cards are its
- * face-down burns. `startAtCard` then deals forward (exposed). Throws when fewer than 6 unseen
+ * face-down burns. This "first removed card that fits" fallback keeps small removals valid on every
+ * seed. `startAtCard` then deals forward (exposed). A setup that ends past the cut card makes the
+ * first hand dealt the last one of the shoe (D36: scenes never deal on such study shoes).
+ * Throws when fewer than 6 physical cards remain for a hand, or fewer than 6 unseen
  * cards would remain or the removed set cannot hold the burn.
  */
 export function newShoe(
@@ -123,6 +126,10 @@ export function newShoe(
   const seen = exposed.reduce((a, b) => a + b, 0);
   if (n - seen < MIN_UNSEEN)
     throw new Error(`ShoeSetup leaves ${n - seen} unseen cards (at least ${MIN_UNSEEN})`);
+  if (n - pos < MAX_HAND_CARDS)
+    throw new Error(
+      `ShoeSetup leaves ${n - pos} cards in the shoe (a hand needs up to ${MAX_HAND_CARDS})`,
+    );
   const cutIndex = n - rules.cutCardFromEnd;
   return [
     {
