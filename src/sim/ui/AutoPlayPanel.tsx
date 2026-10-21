@@ -2,7 +2,8 @@
 // run the `simulate` job through the EvClient (time-sliced, same thread); show the charts and a
 // summary that labels what is exact and what is simulated (section 2.7).
 import { useEffect, useId, useMemo, useRef, useState } from 'preact/hooks';
-import { formatMoney } from '../engine/money';
+import { formatMoney as engineMoney } from '../engine/money';
+
 import type { EvClient, Progress } from '../jobs/protocol';
 import { HAND_OPTIONS, MAX_HANDS, rulesFor, systemCost } from '../strategy/metrics';
 import type { SystemCost } from '../strategy/metrics';
@@ -18,6 +19,10 @@ import { BankrollChart, seriesLabel, Swatch } from './BankrollChart';
 import { OutcomeHistogram } from './OutcomeHistogram';
 import { SurvivalChart } from './SurvivalChart';
 import type { SimSettings } from './types';
+
+/** Money with the minus sign (−), never a hyphen. */
+const formatMoney = (cents: number, opts?: { sign?: boolean }): string =>
+  engineMoney(cents, opts).replace(/^-/, '\u2212');
 
 const LENS_LABEL: Record<StrategyLens, string> = {
   'lowest-edge': 'Lowest edge',
@@ -372,9 +377,10 @@ export function AutoPlayPanel({
         <p style={{ margin: 0, fontSize: '13px' }} data-testid="auto-exact">
           {cost.kind === 'exact' && cost.costPerHourCents !== null && cost.avgBetCents !== null ? (
             <>
-              Exact: average bet {formatMoney(Math.round(cost.avgBetCents))} per hand, cost{' '}
+              Exact over a {hands.toLocaleString('en-US')}-hand session: average bet{' '}
+              {formatMoney(Math.round(cost.avgBetCents))} per hand, cost{' '}
               {formatMoney(Math.round(cost.costPerHourCents))} per hour ({settings.handsPerHour}{' '}
-              hands, edge {pct(cost.edge)}).
+              hands an hour, edge {pct(cost.edge)}).
             </>
           ) : (
             <>
@@ -432,6 +438,7 @@ function Results({
   const many = res.series.some((s) => s.p10 !== undefined);
   const main = res.series[0]!;
   const sessions = main.finals.length;
+  const noteId = useId();
   return (
     <div data-testid="auto-play-result" style={{ display: 'grid', gap: '10px' }}>
       <BankrollChart
@@ -441,41 +448,46 @@ function Results({
         handsPerHour={settings.handsPerHour}
       />
       {many ? <SurvivalChart series={res.series} hands={hands} /> : null}
-      <div style={{ overflowX: 'auto' }}>
-        <table
-          data-testid="auto-summary"
-          style={{
-            borderCollapse: 'collapse',
-            fontSize: '13px',
-            fontVariantNumeric: 'tabular-nums',
-            minWidth: '100%',
-          }}
+      <div data-testid="auto-summary" style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
+        <p
+          id={noteId}
+          style={{ margin: 0, textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}
         >
-          <caption style={{ textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}>
-            {sessions > 1 ? `${sessions} sessions` : '1 session'} of {hands.toLocaleString('en-US')}{' '}
-            hands, same cards for every system. Cost/h (edge × money bet per hour) and "Expected"
-            are exact given the bets placed; the rest is ≈ simulated.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" style={{ textAlign: 'left' }}>
-                System
-              </th>
-              <th scope="col">Mean bet</th>
-              <th scope="col">Cost/h</th>
-              <th scope="col">Expected</th>
-              <th scope="col">Actual (≈)</th>
-              {many ? <th scope="col">Busted (≈)</th> : null}
-              {many ? <th scope="col">Ahead (≈)</th> : null}
-              <th scope="col">Cap resets</th>
-            </tr>
-          </thead>
-          <tbody>
-            {res.series.map((s, k) => (
-              <Row key={k} s={s} k={k} bankroll={bankroll} many={many} />
-            ))}
-          </tbody>
-        </table>
+          {sessions > 1 ? `${sessions} sessions` : '1 session'} of {hands.toLocaleString('en-US')}{' '}
+          hands, same cards for every system. Cost/h (edge × money bet per hour) and "Expected" are
+          exact given the bets placed; the rest is ≈ simulated.
+        </p>
+        <div style={{ overflowX: 'auto' }}>
+          <table
+            aria-describedby={noteId}
+            style={{
+              borderCollapse: 'collapse',
+              fontSize: '13px',
+              fontVariantNumeric: 'tabular-nums',
+              minWidth: '100%',
+            }}
+          >
+            <thead>
+              <tr>
+                <th scope="col" style={{ textAlign: 'left' }}>
+                  System
+                </th>
+                <th scope="col">Mean bet</th>
+                <th scope="col">Cost/h</th>
+                <th scope="col">Expected</th>
+                <th scope="col">Actual (≈)</th>
+                {many ? <th scope="col">Busted (≈)</th> : null}
+                {many ? <th scope="col">Ahead (≈)</th> : null}
+                <th scope="col">Cap resets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {res.series.map((s, k) => (
+                <Row key={k} s={s} k={k} bankroll={bankroll} many={many} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <p style={{ margin: 0, fontSize: '13px' }} data-testid="auto-sentence">
         {sentence(main, settings.handsPerHour)}
@@ -503,12 +515,12 @@ function Row({
   bankroll: number;
   many: boolean;
 }) {
-  const cell = { padding: '4px 6px', textAlign: 'right' } as const;
+  const cell = { padding: '4px 6px', textAlign: 'right', whiteSpace: 'nowrap' } as const;
   const expected = s.expected[s.expected.length - 1]! - bankroll;
   const actual = s.meanFinal - bankroll;
   return (
     <tr>
-      <th scope="row" style={{ ...cell, textAlign: 'left', fontWeight: 400 }}>
+      <th scope="row" style={{ ...cell, textAlign: 'left', fontWeight: 400, whiteSpace: 'normal' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <Swatch k={k} />
           {seriesLabel(s.strategy)}

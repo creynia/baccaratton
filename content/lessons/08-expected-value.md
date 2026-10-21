@@ -24,7 +24,7 @@ The house edge doesn't mean you lose 12 cents every hand. You win $10 or lose $1
 over a few hands you can be well up or well down. What it means is that the average drifts toward
 −12 cents a hand, and over thousands of hands the drift is all that's left.
 
-**The [[EV sheet]].** Tap and hold any bet spot (or tap the **EV** button by it) before you bet. The sheet shows:
+**The [[EV sheet]].** Tap and hold any bet spot, or tap the **EV** button under the table, before you bet. The sheet shows:
 
 - the bet's **EV in dollars** for the chips you're about to place, and its **house edge**;
 - its **rating**: Good bet, Fair, Costly or Sucker bet, always written out, never shown by colour alone;

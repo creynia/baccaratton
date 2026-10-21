@@ -19,7 +19,13 @@ export function Play({ query }: { query: URLSearchParams }) {
         settings={simSettings(store.settings)}
         evClient={getEvClient()}
         query={query}
-        {...(preset ? {} : { persistKey: 'baccaratton:sandbox' })}
+        bankroll={store.settings.defaultBankrollCents}
+        {...(preset
+          ? {}
+          : {
+              snapshot: store.sandbox,
+              onSnapshot: (s: unknown) => store.setSandbox(s),
+            })}
       />
       <p class="muted">
         <a href="#/rules" class="inline-link">

@@ -1,46 +1,33 @@
-// Scene runner (simulator.md section 5.1). `validateScene` is a shape-only stub in WP0; the
-// runner functions are TODO(integration).
-import type { Action, Cents, HandRecord, Slip, Validation } from '../engine/types';
-import type { SceneConfig, SceneInput, SceneRuntime, SceneStep } from './types';
-
+// Scene runner (simulator.md section 5): pure runner + strict validation + the headless driver
+// the Simulator container and the every-scene-completes test share.
 export type * from './types';
-export { validateScene, CONDITION_KINDS } from './validate';
+export { validateScene, CONDITION_KINDS, forcedHandRecord } from './validate';
 export type { SceneValidation } from './validate';
-
-const todo = (name: string): never => {
-  throw new Error(`TODO(integration): ${name}`);
-};
-
-export function initScene(_scene: SceneConfig): SceneRuntime {
-  return todo('initScene');
-}
-export function currentStep(_scene: SceneConfig, _rt: SceneRuntime): SceneStep | undefined {
-  return todo('currentStep');
-}
-/** Rejects with `not-allowed-by-scene` and the step's hint. */
-export function gateAction(_scene: SceneConfig, _rt: SceneRuntime, _action: Action): Validation {
-  return todo('gateAction');
-}
-/** What `observe` needs from the table besides the input (provisional; integration owns it). */
-export interface SceneContext {
-  /** Bankroll conditions test equity (rack + felt), never the rack alone. */
-  equity: Cents;
-  bets: Slip;
-  /** Hands settled in the session so far (`state.stats.hands`). */
-  hands: number;
-}
-
-export function observe(
-  _scene: SceneConfig,
-  _rt: SceneRuntime,
-  _input: SceneInput,
-  _ctx: SceneContext,
-): SceneRuntime {
-  return todo('observe');
-}
-export function answerKey(
-  _step: SceneStep,
-  _hand: HandRecord,
-): { answer: string; ruleRow: string } {
-  return todo('answerKey');
-}
+export {
+  initScene,
+  currentStep,
+  activeGate,
+  effectiveGate,
+  gateAction,
+  observe,
+  isSatisfied,
+  answerKey,
+  matchAction,
+  leaves,
+  hasAcknowledged,
+  needsHand,
+  ALL_ACTIONS,
+  DEFAULT_REJECT,
+  PREDICT_OPTIONS,
+  PREDICT_QUESTION,
+} from './runner';
+export type { SceneContext, Gate, AnswerKey } from './runner';
+export { SimDriver, parseShoeParam, sessionSummary } from './driver';
+export type {
+  DriverView,
+  DriverEvent,
+  DriverOptions,
+  Reveal,
+  PredictFeedback,
+  Snapshot,
+} from './driver';

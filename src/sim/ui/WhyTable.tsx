@@ -55,9 +55,9 @@ function CountCell({ r }: { r: WhyRow }) {
         class="sim-why-approx"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        aria-label={`${approx} cases (${pct(r.probability, 4)}); show the exact count`}
+        aria-label={`${approx} cases; show the exact count`}
       >
-        {approx} ({pct(r.probability, 4)})
+        {approx}
       </button>
       <span class={`sim-why-full${open ? ' is-open' : ''}`}>{breakable(r.count)}</span>
     </span>

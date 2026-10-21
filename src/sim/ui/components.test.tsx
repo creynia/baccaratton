@@ -65,7 +65,7 @@ describe('EvSheet', () => {
     expect(why.querySelector('caption')!.textContent).toContain('4,998,398,275,503,360');
     expect(why.querySelectorAll('wbr').length).toBeGreaterThan(5);
     const approx = why.querySelector('.sim-why-approx')!;
-    expect(approx.textContent).toBe('≈ 2.29 × 10¹⁵ (45.8597%)');
+    expect(approx.textContent).toBe('≈ 2.29 × 10¹⁵');
     expect(approx.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(approx);
     expect(approx.getAttribute('aria-expanded')).toBe('true');

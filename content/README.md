@@ -26,15 +26,6 @@ These `lessonId` / `seeAlso` links are left out until the lesson exists (request
 | glossary.json | EZ Baccarat, Super 6 | `table-variants` |
 | glossary.json | Bankroll, Session, Variance, Standard deviation | `variance-and-bankroll` |
 | glossary.json | Bead Plate, Big Road, Derived roads, Gambler's fallacy | `roads-and-streaks` |
-| glossary.json | Shoe, Burn, Cut card, Shoe tracker, Card counting, Effects of removal | `card-counting` |
-| glossary.json | Betting system, Flat betting, Unit | `betting-systems` |
-| glossary.json | Side bet, Pair, Dragon Bonus | `pairs-and-dragon-bonus` |
-| glossary.json | Dragon 7, Panda 8 | `ez-side-bets` |
-| glossary.json | Squeeze, Mini-baccarat, Chemin de Fer | `at-the-casino` |
-| bets.json | `player-pair`, `banker-pair`, `dragon-bonus-player`, `dragon-bonus-banker` | `pairs-and-dragon-bonus` |
-| bets.json | `dragon-7`, `panda-8` | `ez-side-bets` |
 | systems.json | `flat-banker`, `flat-player` | `banker-vs-player` |
 | systems.json | `flat-tie` | `the-tie-bet` |
-| systems.json | `martingale`, `paroli`, `one-three-two-six`, `fibonacci`, `dalembert`, `labouchere`, `follow-the-shoe` | `betting-systems` |
-| systems.json | `side-bet-sprinkler` | `strategy-fun-per-dollar` |
 | chapters.json | `perfect-lowest-edge`, `perfect-practical`, `perfect-fun`, `real-casino` | append lesson ids 11–24 (and 9, 10 to `ev-basics`) |

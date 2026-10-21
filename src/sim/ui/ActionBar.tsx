@@ -58,7 +58,7 @@ export function ActionBar({
   const sub = rebetDeal
     ? `Slip ${money(lastTotal)}`
     : empty
-      ? 'No bet: watch a hand'
+      ? 'No bet: just watch'
       : `Slip ${money(slipTotal)}${evCents != null ? ` · EV ${moneyC(evCents)}` : ''}`;
   return (
     <div class={`sim-actions sim-actions-${layout}`} role="group" aria-label="Actions">

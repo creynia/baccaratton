@@ -1,0 +1,146 @@
+/* Simulator container (integration): step panel, predict bar, feedback, tools. Tokens from
+   src/app/styles/tokens.css; light and dark come from there. */
+.sim {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+}
+.sim > * {
+  min-width: 0;
+}
+.sim-step {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  color: var(--text);
+}
+.sim-step.is-done {
+  border-color: var(--tier-good);
+}
+.sim-step-count {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sim-step-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+.sim-step.is-compact .sim-step-text {
+  font-size: 0.9rem;
+}
+.sim-step-hint {
+  margin: 0;
+  padding: 6px 10px;
+  border-left: 4px solid var(--tier-costly);
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.sim-step-math summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+.sim-step-next {
+  justify-self: start;
+  min-width: 120px;
+}
+.sim-inline-cards {
+  white-space: nowrap;
+}
+.sim-inline-card {
+  display: inline-block;
+  padding: 0 3px;
+  margin: 0 1px;
+  border: 1px solid var(--card-edge);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--suit-s);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.sim-inline-card.suit-h,
+.sim-inline-card.suit-d {
+  color: var(--suit-h);
+}
+.sim-predict {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+.sim-predict-q {
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+.sim-predict-opts {
+  display: flex;
+  gap: 8px;
+}
+.sim-predict-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 56px;
+  font-size: 1.05rem;
+}
+.sim-predict.is-keypad .sim-predict-opts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.sim-predict.is-keypad .sim-predict-btn {
+  min-height: 48px;
+  padding: 4px;
+}
+.sim-feedback {
+  display: grid;
+  gap: 4px;
+}
+.sim-feedback p {
+  margin: 0;
+}
+.sim-feedback-chart {
+  justify-self: start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.sim-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sim-tool {
+  flex: 1 1 auto;
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+.sim-nobet {
+  margin: 0;
+}
+/* Landscape: the table fills the viewport under the app header (Deal and the felt both fit). */
+.sim-landscape {
+  --sim-table-h: max(300px, calc(100dvh - 88px));
+}
+/* The Sucker confirm and alternative cards scroll clear of the sticky chips + actions + tab bar. */
+.sim-alt {
+  scroll-margin: 16px 0 240px;
+}
+.sim-landscape .sim-alt {
+  scroll-margin: 8px;
+}
+.sim-step-tip {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

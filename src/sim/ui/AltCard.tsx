@@ -39,11 +39,16 @@ export function AltCard({
   autoFocus,
 }: AltCardProps) {
   const first = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (autoFocus) first.current?.focus();
+    if (!autoFocus) return;
+    // Bring the card clear of the sticky chips and actions (scroll-margin), then focus it.
+    root.current?.scrollIntoView?.({ block: 'nearest' });
+    first.current?.focus({ preventScroll: true });
   }, [autoFocus]);
   return (
     <div
+      ref={root}
       class={`sim-alt sim-alt-${mode}`}
       role={mode === 'confirm' ? 'alertdialog' : 'note'}
       aria-label={mode === 'confirm' ? `Confirm ${BET_LABEL[bet]}` : 'A cheaper bet'}

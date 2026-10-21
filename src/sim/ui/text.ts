@@ -83,6 +83,13 @@ export function pct(v: Num, digits = 2): string {
   const zero = Number(s) === 0;
   return `${x < 0 && !zero ? MINUS : ''}${s}%`;
 }
+/** An EV or a change, signed: "+32.27%", "−1.24%", and "0.00%" when it rounds to zero. */
+export function pctSigned(v: Num, digits = 2): string {
+  const x = toNum(v) * 100;
+  const s = Math.abs(x).toFixed(digits);
+  if (Number(s) === 0) return `${s}%`;
+  return `${x < 0 ? MINUS : '+'}${s}%`;
+}
 /** Plain number with a real minus ("−1", "+0.95", "30"). */
 export function signedNum(v: Num, digits = 2): string {
   const x = toNum(v);

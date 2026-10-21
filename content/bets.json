@@ -16,38 +16,44 @@
   "tie": {
     "name": "Tie",
     "summary": "Bet that both hands end on the same total. Pays 8 to 1, and loses when either hand wins.",
-    "howItWorks": "You bet before the deal. If both hands finish on the **same total**, the Tie bet wins 8 to 1: a $5 Tie bet wins $40, and your $5 comes back too.\n\nIf either hand wins, the Tie bet loses. Player and Banker bets on the same hand simply push.\n\nSome tables pay **9 to 1** on a Tie (the `tiePays` setting). It is still much dearer than Player or Banker.",
-    "tip": "8 to 1 sounds generous, but a tie comes up less often than once in nine hands. Check the EV sheet before you bet it.",
+    "howItWorks": "You bet before the deal. If both hands finish on the **same total**, the Tie bet wins 8 to 1: a $5 Tie bet wins $40, and your $5 comes back too.\n\nIf either hand wins, the Tie bet loses. Player and Banker bets on the same hand simply push.\n\nSome tables pay **9 to 1** on a Tie (**Tie pays** in Settings). It is still much dearer than Player or Banker.",
+    "tip": "8 to 1 sounds generous, but a tie comes up only about once in 10.5 hands. Check the EV sheet before you bet it.",
     "lessonId": "settling-bets"
   },
   "player-pair": {
     "name": "Player Pair",
     "summary": "A side bet that the Player's first two cards are the same rank. Pays 11 to 1.",
-    "howItWorks": "Wins when the Player's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet."
+    "howItWorks": "Wins when the Player's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet.",
+    "lessonId": "pairs-and-dragon-bonus"
   },
   "banker-pair": {
     "name": "Banker Pair",
     "summary": "A side bet that the Banker's first two cards are the same rank. Pays 11 to 1.",
-    "howItWorks": "Wins when the Banker's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet."
+    "howItWorks": "Wins when the Banker's **first two cards** have the same rank: Q-Q yes, Q-K no, and suits don't matter. Pays 11 to 1. Anything else loses, whoever wins the hand.\n\nYou can place it with or without a main bet.",
+    "lessonId": "pairs-and-dragon-bonus"
   },
   "dragon-bonus-player": {
     "name": "Dragon Bonus (Player)",
     "summary": "A side bet that pays more the more the Player wins by.",
-    "howItWorks": "Pays when the **Player** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural."
+    "howItWorks": "Pays when the **Player** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural.",
+    "lessonId": "pairs-and-dragon-bonus"
   },
   "dragon-bonus-banker": {
     "name": "Dragon Bonus (Banker)",
     "summary": "A side bet that pays more the more the Banker wins by.",
-    "howItWorks": "Pays when the **Banker** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural.\n\nThe paytable is the same as the Player version, but the Banker's big wins are rarer, so this side costs much more."
+    "howItWorks": "Pays when the **Banker** wins:\n\n- **with a natural**: 1 to 1;\n- **without a natural**, by 9 points: 30 to 1; by 8: 10 to 1; by 7: 6 to 1; by 6: 4 to 1; by 5: 2 to 1; by 4: 1 to 1.\n\nA **natural tie** pushes. Anything else loses, including a win by 1 to 3 points without a natural.\n\nThe paytable is the same as the Player version, but the Banker's big wins are rarer, so this side costs much more.",
+    "lessonId": "pairs-and-dragon-bonus"
   },
   "dragon-7": {
     "name": "Dragon 7",
     "summary": "EZ Baccarat only: the Banker wins with a three-card 7. Pays 40 to 1.",
-    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Banker wins with a total of 7 made with three cards**. Pays 40 to 1. Anything else loses.\n\nThat same hand is the one where an EZ Banker bet **pushes** instead of winning: it is how EZ tables earn their money without a commission."
+    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Banker wins with a total of 7 made with three cards**. Pays 40 to 1. Anything else loses.\n\nThat same hand is the one where an EZ Banker bet **pushes** instead of winning: it is how EZ tables earn their money without a commission.",
+    "lessonId": "ez-side-bets"
   },
   "panda-8": {
     "name": "Panda 8",
     "summary": "EZ Baccarat only: the Player wins with a three-card 8. Pays 25 to 1.",
-    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Player wins with a total of 8 made with three cards**. Pays 25 to 1. Anything else loses."
+    "howItWorks": "Offered only at **EZ Baccarat** tables. Wins when the **Player wins with a total of 8 made with three cards**. Pays 25 to 1. Anything else loses.",
+    "lessonId": "ez-side-bets"
   }
 }
