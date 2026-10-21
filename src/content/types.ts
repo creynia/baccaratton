@@ -6,14 +6,14 @@ import type { StrategyId, TableauCellId } from '../sim/strategy/types';
 export type LessonId = string;
 export type ChapterId = string;
 
-/** Bet edge tiers (decisions.md D19): free <= 0 < good <= 2% < fair <= 5% < costly < 9% <= sucker. */
+/** Bet edge tiers and badge text (decisions.md D19, D30): free <= 0 < good <= 2% < fair <= 5% < costly < 9% <= sucker. */
 export type Tier = BetTier;
 export const TIERS: readonly Tier[] = ['free', 'good', 'fair', 'costly', 'sucker'];
 export const TIER_LABEL: Record<Tier, string> = {
-  free: 'Free bet',
+  free: 'No house edge',
   good: 'Good bet',
   fair: 'Fair',
-  costly: 'Costly bet',
+  costly: 'Costly',
   sucker: 'Sucker bet',
 };
 
