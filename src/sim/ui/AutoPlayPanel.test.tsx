@@ -253,7 +253,7 @@ describe('AutoPlayPanel: scene compare, limits and targets', () => {
     await waitFor(() => expect(screen.getByTestId('auto-play-result')).toBeTruthy());
     expect(seen[0]!.strategy).toEqual(l22[0]);
     expect(seen[0]!.compare).toEqual(l22.slice(1));
-    const legend = screen.getAllByTestId('legend')[0]!.textContent!;
+    const legend = screen.getAllByTestId('legend')[0]!.textContent;
     for (const s of l22) expect(legend).toContain(s.label);
     expect(screen.getAllByLabelText('Who won the hands')).toHaveLength(1);
     evClient.dispose();
