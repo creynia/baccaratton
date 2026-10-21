@@ -22,7 +22,10 @@ describe('math / strategy / scene stubs', () => {
     [/TODO\(integration\)/, () => scene.initScene({} as never)],
     [/TODO\(integration\)/, () => scene.currentStep({} as never, {} as never)],
     [/TODO\(integration\)/, () => scene.gateAction({} as never, {} as never, {} as never)],
-    [/TODO\(integration\)/, () => scene.observe({} as never, {} as never, {} as never)],
+    [
+      /TODO\(integration\)/,
+      () => scene.observe({} as never, {} as never, {} as never, {} as never),
+    ],
     [/TODO\(integration\)/, () => scene.answerKey({} as never, {} as never)],
   ];
   it.each(stubs.map((s, i) => [i, ...s] as const))(

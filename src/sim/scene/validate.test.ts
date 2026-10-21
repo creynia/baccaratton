@@ -16,6 +16,10 @@ describe('validateScene (shape only in WP0)', () => {
   it('accepts a scene with no steps (a free table)', () => {
     expect(validateScene({ id: 'free', version: 1, variant: 'ez' }).ok).toBe(true);
   });
+  it('accepts history as road tokens (parseRoadString) or full entries', () => {
+    const entry = { winner: 'tie', playerPair: false, bankerPair: false, natural: true, total: 8 };
+    expect(validateScene({ ...ok, history: ['B', 'Pp5', 'Tn8', entry] }).ok).toBe(true);
+  });
   it.each([
     ['not a mapping', 'x'],
     ['no id', { version: 1 }],
@@ -23,6 +27,9 @@ describe('validateScene (shape only in WP0)', () => {
     ['unknown variant', { id: 'a', version: 1, variant: 'classic' }],
     ['unknown bet id', { id: 'a', version: 1, bets: { 'dragon-8': 500 } }],
     ['steps not a list', { id: 'a', version: 1, steps: {} }],
+    ['history not a list', { id: 'a', version: 1, history: 'BBP' }],
+    ['bad history token', { id: 'a', version: 1, history: ['B', 'X'] }],
+    ['two tokens in one history code', { id: 'a', version: 1, history: ['BP'] }],
     [
       'step without id',
       { id: 'a', version: 1, steps: [{ text: 't', completeWhen: { hands: 1 } }] },

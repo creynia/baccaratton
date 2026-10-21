@@ -18,7 +18,7 @@ Totals are the sum of the card values, last digit only: 7 + 8 = 15, so the total
 
 ```tableau
 view: banker
-highlight: [B5-P9, B6-Pnone]
+highlight: [b5/p9, b6/s]
 ```
 
 ```roads
@@ -40,7 +40,7 @@ steps:
 
 ```quiz
 - q: Does the Banker draw?
-  hand: { player: 4h Ac 9d, banker: Kd 5s }
+  hand: { player: [4h, Ac, 9d], banker: [Kd, 5s] }
   options: [Draw, Stand]
   answer: 1
   explain: "Banker 5 draws only when the Player's third card is 4 to 7."

@@ -21,12 +21,12 @@ describe('placeholder components', () => {
     const { container } = render(
       <div>
         <EvSheet preview={null} />
-        <Tableau view="both" highlight={['B5-P9']} />
+        <Tableau view="full" highlight={['b5/p9']} />
         <Scoreboard entries={[]} view={['bead', 'big']} />
       </div>,
     );
     expect(container.querySelector('.ev-sheet')).not.toBeNull();
-    expect(container.querySelector('.tableau')?.getAttribute('data-view')).toBe('both');
+    expect(container.querySelector('.tableau')?.getAttribute('data-view')).toBe('full');
     expect(container.querySelector('.scoreboard')).not.toBeNull();
   });
   it('the default settings follow D5, D6 and D13', () => {

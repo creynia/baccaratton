@@ -1,6 +1,6 @@
 // Scene runner (simulator.md section 5.1). `validateScene` is a shape-only stub in WP0; the
 // runner functions are TODO(integration).
-import type { Action, HandRecord, Validation } from '../engine/types';
+import type { Action, Cents, HandRecord, Slip, Validation } from '../engine/types';
 import type { SceneConfig, SceneInput, SceneRuntime, SceneStep } from './types';
 
 export type * from './types';
@@ -21,7 +21,21 @@ export function currentStep(_scene: SceneConfig, _rt: SceneRuntime): SceneStep |
 export function gateAction(_scene: SceneConfig, _rt: SceneRuntime, _action: Action): Validation {
   return todo('gateAction');
 }
-export function observe(_scene: SceneConfig, _rt: SceneRuntime, _input: SceneInput): SceneRuntime {
+/** What `observe` needs from the table besides the input (provisional; integration owns it). */
+export interface SceneContext {
+  /** Bankroll conditions test equity (rack + felt), never the rack alone. */
+  equity: Cents;
+  bets: Slip;
+  /** Hands settled in the session so far (`state.stats.hands`). */
+  hands: number;
+}
+
+export function observe(
+  _scene: SceneConfig,
+  _rt: SceneRuntime,
+  _input: SceneInput,
+  _ctx: SceneContext,
+): SceneRuntime {
   return todo('observe');
 }
 export function answerKey(

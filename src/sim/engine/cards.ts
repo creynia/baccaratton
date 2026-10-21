@@ -44,37 +44,22 @@ export function cardValue(card: Card): CardValue {
   return (rank >= 9 ? 0 : rank + 1) as CardValue;
 }
 
-/** 'As' -> 0; throws on anything that is not a rank char followed by a suit char. */
-export function parseCard(code: CardCode): Card {
-  if (code.length !== 2) throw new Error(`Bad card code "${code}"`);
+function parseOne(code: string): Card {
   const r = RANK_CHARS.indexOf(code.charAt(0));
   const s = SUIT_CHARS.indexOf(code.charAt(1));
-  if (r < 0 || s < 0) throw new Error(`Bad card code "${code}"`);
+  if (code.length !== 2 || r < 0 || s < 0) throw new Error(`Bad card code "${code}"`);
   return r * 4 + s;
 }
 
-export interface ParseCardsOptions {
-  /**
-   * Eight decks hold up to eight copies of a card, so forced shoes (`?shoe=`) may repeat a code.
-   * Default false: lesson text and quiz hands name distinct cards.
-   */
-  allowDuplicates?: boolean;
-}
-
 /**
- * Parses 'Kh 7d', 'Kh7d' or 'Kh,7d' into cards. Whitespace and commas are separators and
- * optional. Throws on a malformed code or (unless allowed) a duplicate card. Shared by content,
- * URLs and tests.
+ * Parses 'Kh 7d', 'Kh7d' or 'Kh,7d' into cards (the one card parser: content, URLs, tests).
+ * Whitespace and commas are optional separators. Throws on a malformed code. Repeats are allowed
+ * (eight decks hold eight copies of each card); content checks its own groups for duplicates.
  */
-export function parseCards(text: string, opts: ParseCardsOptions = {}): Card[] {
-  const compact = text.replace(/[\s,]+/g, '');
-  if (compact.length % 2 !== 0) throw new Error(`Bad card list "${text}"`);
+export function parseCards(codes: string): Card[] {
+  const compact = codes.replace(/[\s,]+/g, '');
+  if (compact.length % 2 !== 0) throw new Error(`Bad card list "${codes}"`);
   const cards: Card[] = [];
-  for (let i = 0; i < compact.length; i += 2) {
-    const card = parseCard(compact.slice(i, i + 2));
-    if (!opts.allowDuplicates && cards.includes(card))
-      throw new Error(`Duplicate card "${compact.slice(i, i + 2)}"`);
-    cards.push(card);
-  }
+  for (let i = 0; i < compact.length; i += 2) cards.push(parseOne(compact.slice(i, i + 2)));
   return cards;
 }

@@ -1,7 +1,7 @@
-import type { BetId, VariantId } from '../sim/engine/types';
+import type { BetId, Card, VariantId } from '../sim/engine/types';
 import type { BetTier } from '../sim/math/types';
 import type { SceneConfig } from '../sim/scene/types';
-import type { StrategyId } from '../sim/strategy/types';
+import type { StrategyId, TableauCellId } from '../sim/strategy/types';
 
 export type LessonId = string;
 export type ChapterId = string;
@@ -17,10 +17,10 @@ export const TIER_LABEL: Record<Tier, string> = {
   sucker: 'Sucker bet',
 };
 
-/** A quiz drawing: both hands as card codes ('4h 2c 9d'); a third card only where the rule draws. */
+/** A quiz drawing (YAML `{ player: [4h, 2c, 9d], banker: [Kd, 5s] }`, D34); a third card only where the rule draws. */
 export interface QuizHand {
-  player: string;
-  banker: string;
+  player: Card[];
+  banker: Card[];
 }
 export interface Quiz {
   /** `<lessonId>-q<n>` (1-based) unless the author gave one */
@@ -33,16 +33,16 @@ export interface Quiz {
   hand?: QuizHand;
 }
 
-export type TableauView = 'player' | 'banker' | 'both';
+export type TableauView = 'player' | 'banker' | 'full';
 export interface TableauBlockData {
   view: TableauView;
-  /** `B<0-7>-P<0-9|none>` (Banker table) or `P<0-9>` (Player rule) */
-  highlight?: string[];
+  /** Simulator `TableauCellId`s (D34): `b4/p7`, `b6/s` (Player stood), `p5` (Player total) */
+  highlight?: TableauCellId[];
 }
 
 export type RoadView = 'bead' | 'big';
 export interface RoadsBlockData {
-  /** `BBPBTPPPB`, optional `p` / `b` pair marks (see parseRoadResults) */
+  /** Road tokens like `BBPBTPPpPb` or `B Bbp P5 T Pn9` (engine parseRoadString, D34) */
   results: string;
   view: RoadView[];
   caption?: string;

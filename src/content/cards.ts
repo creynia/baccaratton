@@ -2,7 +2,7 @@
 // `{{Kh 7d}}` -> a group of cards; `{{Kh 7d =}}` adds a visible total badge; `{{Kh 7d =7}}`
 // asserts the baccarat total (the build fails if it is wrong). Validation uses the engine's
 // parseCards and handTotal (one definition).
-import { cardName, handTotal, parseCards, rankOf, suitOf } from '../sim/engine';
+import { cardCode, cardName, handTotal, parseCards, rankOf, suitOf } from '../sim/engine';
 import type { Card, CardValue } from '../sim/engine';
 
 export type SuitLetter = 's' | 'h' | 'd' | 'c';
@@ -38,6 +38,15 @@ export interface CardGroup {
   badge: boolean;
 }
 
+/** Content names real cards from one deck: a repeated card in a group is a typo. */
+export function assertDistinct(cards: readonly Card[]): void {
+  const seen = new Set<Card>();
+  for (const c of cards) {
+    if (seen.has(c)) throw new Error(`Duplicate card "${cardCode(c)}"`);
+    seen.add(c);
+  }
+}
+
 /** Parses one group: card codes, then optionally `=` or `=<total>`. Throws a readable error. */
 export function parseGroup(text: string): CardGroup {
   const m = /^([^=]*?)\s*(=\s*(\d?))?\s*$/.exec(text);
@@ -46,6 +55,7 @@ export function parseGroup(text: string): CardGroup {
   let cards: Card[];
   try {
     cards = parseCards(codes);
+    assertDistinct(cards);
   } catch (e) {
     throw new Error(`bad card group {{${text}}}: ${e instanceof Error ? e.message : String(e)}`, {
       cause: e,

@@ -14,6 +14,7 @@ import type {
 
 export type * from './types';
 export { STRATEGY_IDS, STRATEGY_LENSES, DRILL_MODES } from './ids';
+export { DRILL_CATEGORY_IDS, DRILL_MODE_CATEGORIES } from './types';
 
 const todo = (name: string): never => {
   throw new Error(`TODO(strategy): ${name}`);
@@ -25,13 +26,14 @@ export function getStrategy(_id: StrategyId): Strategy {
 /** The `simulate` job: auto-play, many sessions and compare, one seed. */
 export const simulateJob: Job<SimulateRequest, SimulateResult> = () => todo('simulateJob');
 
+/** D29: `filter.category` must belong to `filter.mode` unless the mode is 'mixed'. */
 export function nextSpot(_rng: RngState, _filter: DrillFilter): { spot: DrillSpot; rng: RngState } {
   return todo('nextSpot');
 }
 export function gradeSpot(_spot: DrillSpot, _chosen: string): DrillGrade {
   return todo('gradeSpot');
 }
-/** 'b:3h2c6d.Kd5s' (mode letter, player cards, banker cards). Round-trips with spotFromCode. */
+/** 'banker-5:3h2c6d.Kd5s' (category, player cards, banker cards). Round-trips with spotFromCode. */
 export function spotCode(_spot: DrillSpot): string {
   return todo('spotCode');
 }

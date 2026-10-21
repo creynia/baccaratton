@@ -7,7 +7,8 @@ export type RoadId = 'bead-plate' | 'big-road';
 /** Things a learner can tap that scenes can wait for (emitted even when set-bet is gated). */
 export type TapTarget = BetId | 'commission' | 'bead-plate' | 'big-road' | 'shoe-tracker' | 'ev-sheet' | 'session';
 export type PredictKind = 'player-draws' | 'banker-draws' | 'hand-total' | 'winner';
-export type HistoryCode = 'B' | 'P' | 'T' | RoadEntry;  // 'B' = banker win, no pairs, total 7
+/** A parseRoadString token ('B', 'Pp5', 'Tn8' …, §3.1) or a full entry. */
+export type HistoryCode = string | RoadEntry;
 
 export interface SceneUi {
   orientation?: 'auto' | 'portrait' | 'landscape';
@@ -69,6 +70,8 @@ export interface SceneStep {
   /** Staged reveal: stop the deal animation here (with predict, wait for the answer). */
   pauseAt?: PausePoint;
   predict?: { kind: PredictKind; side?: 'player' | 'banker' }; // side for hand-total
+  /** D26: on a natural hand no PredictBar shows and the hand doesn't count toward `predicted`. */
+  skipNaturals?: boolean;
   completeWhen: Condition;
   advance?: 'auto' | 'button';        // default 'auto'
   showEV?: boolean;
@@ -85,7 +88,7 @@ export type Condition =
   | { all: Condition[] } | { any: Condition[] }
   | { action: ActionMatcher; count?: number }               // accepted since step start
   | { event: GameEvent['type']; count?: number }
-  | { hands: number }                                       // hands settled since step start
+  | { hands: number }                                       // D27: hands dealt since this step started
   | { handResult: { winner?: Winner; natural?: boolean; minNet?: Cents } }
   | { betOnFelt: { bet: BetId; minAmount?: Cents } }
   | { bankrollAtLeast: Cents } | { bankrollAtMost: Cents }  // equity

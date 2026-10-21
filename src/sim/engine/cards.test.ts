@@ -5,7 +5,6 @@ import {
   cardName,
   cardValue,
   makeCard,
-  parseCard,
   parseCards,
   rankOf,
   suitOf,
@@ -22,30 +21,29 @@ describe('parseCards', () => {
   it('round-trips all 52 codes and keeps the rank * 4 + suit layout', () => {
     expect(FULL_DECK).toHaveLength(52);
     for (const c of FULL_DECK) {
-      expect(parseCard(cardCode(c))).toBe(c);
+      expect(parseCards(cardCode(c))).toEqual([c]);
       expect(makeCard(rankOf(c), suitOf(c))).toBe(c);
     }
-    expect(parseCard('As')).toBe(0);
-    expect(parseCard('Kc')).toBe(51);
+    expect(parseCards('As')).toEqual([0]);
+    expect(parseCards('Kc')).toEqual([51]);
   });
   it('encodes rank and suit in the order of RANK_CHARS and SUIT_CHARS', () => {
-    const c = parseCard('Td');
+    const [c] = parseCards('Td') as [number];
     expect(rankOf(c)).toBe(9);
     expect(suitOf(c)).toBe(2);
-    expect(cardName(parseCard('As'))).toBe('Ace of spades');
-    expect(cardName(parseCard('Kh'))).toBe('King of hearts');
-    expect(cardName(parseCard('Td'))).toBe('Ten of diamonds');
+    expect(cardName(parseCards('As')[0]!)).toBe('Ace of spades');
+    expect(cardName(parseCards('Kh')[0]!)).toBe('King of hearts');
+    expect(cardName(parseCards('Td')[0]!)).toBe('Ten of diamonds');
   });
-  it('rejects bad codes, odd lengths and duplicates; accepts an empty list', () => {
+  it('rejects bad codes and odd lengths; accepts an empty list', () => {
     expect(() => parseCards('Xs')).toThrow(/Bad card code/);
     expect(() => parseCards('1s')).toThrow(/Bad card code/);
     expect(() => parseCards('Ah1')).toThrow(/Bad card list/);
     expect(() => parseCards('AH')).toThrow(/Bad card code/);
-    expect(() => parseCards('Ah Ah')).toThrow(/Duplicate/);
     expect(parseCards('')).toEqual([]);
   });
-  it('allows repeated codes for forced shoes (eight decks) when asked', () => {
-    expect(parseCards('Kh Kh', { allowDuplicates: true })).toHaveLength(2);
+  it('allows repeated codes (eight decks hold eight copies of each card)', () => {
+    expect(parseCards('Kh Kh')).toEqual([makeCard(12, 1), makeCard(12, 1)]);
   });
 });
 

@@ -10,9 +10,9 @@ export const DEFAULT_RULES: TableRules = {
   burn: 'first-card-value',
   betUnit: 100,
   mainMin: 500,
-  mainMax: 100_000,
+  mainMax: 500_000,
   sideMin: 100,
-  sideMax: 10_000,
+  sideMax: 50_000,
 };
 
 export const VARIANT_RULES: Readonly<Record<VariantId, TableRules>> = {

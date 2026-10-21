@@ -1,5 +1,6 @@
 // Minimal `validateScene` (WP0): shape only. The integration WP replaces it with the strict
 // no-dead-ends validation of simulator.md section 5.4 (same signature).
+import { parseRoadString } from '../engine/roads';
 import { BET_IDS, VARIANT_IDS } from '../engine/types';
 import type { SceneConfig } from './types';
 
@@ -62,6 +63,21 @@ export function validateScene(json: unknown): SceneValidation {
   if (isObj(json.bets))
     for (const bet of Object.keys(json.bets))
       if (!(BET_IDS as readonly string[]).includes(bet)) errors.push(`unknown bet id "${bet}"`);
+  if (json.history !== undefined) {
+    if (!Array.isArray(json.history)) errors.push('history must be a list');
+    else
+      json.history.forEach((h: unknown, i) => {
+        if (isObj(h)) return; // a full RoadEntry
+        try {
+          if (typeof h !== 'string' || parseRoadString(h).length !== 1)
+            throw new Error('expected one road token');
+        } catch (e) {
+          errors.push(
+            `history[${i}]: ${JSON.stringify(h)} is not a road token like B, Pp5 or Tn8 (${e instanceof Error ? e.message : String(e)})`,
+          );
+        }
+      });
+  }
   if (json.steps !== undefined) {
     if (!Array.isArray(json.steps)) errors.push('steps must be a list');
     else {

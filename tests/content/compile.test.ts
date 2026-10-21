@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { compileLesson, renderMarkdown } from '../../src/content/compile';
 import { cardsHtml, splitInline } from '../../src/content/cards';
 import type { Block } from '../../src/content/types';
+import { parseCards } from '../../src/sim/engine';
 
 const fm = (body: string, extra = '') =>
   `---\nid: t\ntitle: T\nchapter: c\nsummary: S\nminutes: 2\n${extra}---\n${body}\n`;
@@ -89,22 +90,25 @@ describe('glossary links', () => {
 
 describe('tableau blocks', () => {
   it('accepts views and existing cells', () => {
-    const [b] = blocksOf('```tableau\nview: both\nhighlight: [B5-P9, B6-Pnone, P5]\n```');
+    const [b] = blocksOf('```tableau\nview: full\nhighlight: [b5/p9, b6/s, b0/p0, p5]\n```');
     expect(b).toMatchObject({
       kind: 'tableau',
-      tableau: { view: 'both', highlight: ['B5-P9', 'B6-Pnone', 'P5'] },
+      tableau: { view: 'full', highlight: ['b5/p9', 'b6/s', 'b0/p0', 'p5'] },
     });
+    expect(blocksOf('```tableau\nview: player\n```')).toHaveLength(1);
     expect(blocksOf('```tableau\nview: banker\n```')[0]).toMatchObject({
       tableau: { view: 'banker' },
     });
   });
   it.each([
     ['unknown view', 'view: columns'],
-    ['no view', 'highlight: [B5-P9]'],
-    ['Banker 8 does not exist', 'view: banker\nhighlight: [B8-P1]'],
-    ['bad Player card', 'view: banker\nhighlight: [B5-P10]'],
+    ['the old view name', 'view: both'],
+    ['no view', 'highlight: [b5/p9]'],
+    ['Banker 8 does not exist', 'view: banker\nhighlight: [b8/p1]'],
+    ['bad Player card', 'view: banker\nhighlight: [b5/p10]'],
     ['bad format', 'view: banker\nhighlight: [banker5]'],
-    ['highlight not a list', 'view: banker\nhighlight: B5-P9'],
+    ['the old cell syntax', 'view: banker\nhighlight: [B5-P9]'],
+    ['highlight not a list', 'view: banker\nhighlight: b5/p9'],
   ])('rejects: %s', (_n, yaml) => {
     fails('```tableau\n' + yaml + '\n```', /tableau/);
   });
@@ -117,6 +121,7 @@ describe('roads blocks', () => {
       kind: 'roads',
       roads: { results: 'BBPBTPPpPb', view: ['big'], caption: 'Nothing to see.' },
     });
+    expect(blocksOf('```roads\nresults: B Bbp P5 T Pn9\n```')).toHaveLength(1);
     expect(blocksOf('```roads\nresults: BP\n```')[0]).toMatchObject({
       roads: { view: ['bead', 'big'] },
     });
@@ -124,6 +129,7 @@ describe('roads blocks', () => {
   it.each([
     ['no results', 'view: [big]'],
     ['bad letter', 'results: BXP'],
+    ['pair marks out of order', 'results: Bpb'],
     ['empty results', 'results: ","'],
     ['bad view', 'results: BP\nview: [derived]'],
     ['empty view', 'results: BP\nview: []'],
@@ -153,13 +159,14 @@ describe('quiz blocks', () => {
     fails(quiz('- id: x\n  q: Q?\n  options: [A, B]\n  answer: 0\n  explain: x\n- id: x\n  q: Q?\n  options: [A, B]\n  answer: 0\n  explain: x'), /duplicate quiz id/);
   });
 
-  describe('hand: { player, banker } follows the drawing rules', () => {
+  describe('hand: { player: [..], banker: [..] } follows the drawing rules', () => {
+    const list = (codes: string) => `[${codes.split(' ').join(', ')}]`;
     const hand = (player: string, banker: string) =>
-      quiz(`- q: Q?\n  hand: { player: ${player}, banker: ${banker} }\n  options: [A, B]\n  answer: 0\n  explain: x`);
+      quiz(`- q: Q?\n  hand: { player: ${list(player)}, banker: ${list(banker)} }\n  options: [A, B]\n  answer: 0\n  explain: x`);
     it('accepts consistent hands', () => {
       // Player 5 draws a 9 (total 4); Banker 5 stands on a 9.
       expect(blocksOf(hand('4h Ac 9d', 'Kd 5s'))[0]).toMatchObject({
-        quiz: { hand: { player: '4h Ac 9d', banker: 'Kd 5s' } },
+        quiz: { hand: { player: parseCards('4h Ac 9d'), banker: parseCards('Kd 5s') } },
       });
       // Both stand: Player 6, Banker 7.
       expect(blocksOf(hand('4h 2c', '3d 4s'))).toHaveLength(1);
@@ -180,6 +187,10 @@ describe('quiz blocks', () => {
       fails(hand('4h Ac 9d 2s', 'Kd 5s'), /2 or 3 cards/);
       fails(hand('4h Zc', 'Kd 5s'), /Bad card code/);
       fails(hand('4h Ac 9d', '4h 5s'), /Duplicate/);
+      fails(hand('4hAc 9d', 'Kd 5s'), /Bad card code/);
+    });
+    it('needs YAML lists (D34), not strings', () => {
+      fails(quiz('- q: Q?\n  hand: { player: 4h Ac 9d, banker: Kd 5s }\n  options: [A, B]\n  answer: 0\n  explain: x'), /list of card codes/);
     });
     it('rejects the old hole/board shape', () => {
       fails(quiz('- q: Q?\n  hand: { hole: Ah 5c }\n  options: [A, B]\n  answer: 0\n  explain: x'), /player/);

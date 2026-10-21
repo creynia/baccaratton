@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BET_IDS_BY_VARIANT, RULE_PRESET_IDS, betsOffered } from './ids';
+import { betsOffered } from './bets';
+import { BET_IDS_BY_VARIANT, BET_OFFERED_IN, RULE_PRESET_IDS } from './ids';
 import { DEFAULT_RULES, VARIANT_RULES } from './rules';
 import { BET_IDS, VARIANT_IDS } from './types';
 
@@ -22,19 +23,28 @@ describe('id lists (decisions.md D13)', () => {
   });
   it('dragon-7 and panda-8 are offered in ez only; every other bet everywhere', () => {
     for (const v of VARIANT_IDS) {
-      const offered = betsOffered(v);
-      expect(BET_IDS_BY_VARIANT[v]).toBe(offered);
+      const offered = betsOffered(VARIANT_RULES[v]);
+      expect(offered).toEqual(BET_IDS_BY_VARIANT[v]);
+      expect(offered).toEqual(BET_IDS.filter((b) => BET_OFFERED_IN[b].includes(v)));
       for (const id of BET_IDS) {
         const ezOnly = id === 'dragon-7' || id === 'panda-8';
         expect(offered.includes(id)).toBe(ezOnly ? v === 'ez' : true);
       }
     }
-    expect(betsOffered('ez')).toHaveLength(9);
-    expect(betsOffered('punto-banco')).toHaveLength(7);
+    expect(betsOffered(VARIANT_RULES.ez)).toHaveLength(9);
+    expect(betsOffered(VARIANT_RULES['punto-banco'])).toHaveLength(7);
+    expect(betsOffered(VARIANT_RULES['super-6'])).toHaveLength(7);
+    expect(betsOffered({ ...DEFAULT_RULES, tiePays: 9 })).toEqual(betsOffered(DEFAULT_RULES));
+  });
+  it('returns a fresh array and rejects an unknown variant', () => {
+    const a = betsOffered(DEFAULT_RULES);
+    a.pop();
+    expect(betsOffered(DEFAULT_RULES)).toHaveLength(7);
+    expect(() => betsOffered({ ...DEFAULT_RULES, variant: 'mini' as never })).toThrow(/variant/);
   });
   it('keeps the offered bets in display order', () => {
     for (const v of VARIANT_IDS) {
-      const idx = betsOffered(v).map((b) => BET_IDS.indexOf(b));
+      const idx = betsOffered(VARIANT_RULES[v]).map((b) => BET_IDS.indexOf(b));
       expect(idx).toEqual([...idx].sort((a, b) => a - b));
     }
   });
@@ -50,9 +60,9 @@ describe('rules data (decisions.md D2, D8, D16)', () => {
       cutCardFromEnd: 16,
       afterCutCard: 'one-more-hand',
       mainMin: 500,
-      mainMax: 100_000,
+      mainMax: 500_000,
       sideMin: 100,
-      sideMax: 10_000,
+      sideMax: 50_000,
     });
   });
   it('variant rules differ from the default only in the variant', () => {

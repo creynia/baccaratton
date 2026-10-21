@@ -7,11 +7,11 @@ import {
   cardValue,
   handTotal,
   parseCards,
-  parseRoadResults,
+  parseRoadString,
   playerDraws,
 } from '../sim/engine';
 import { validateScene } from '../sim/scene';
-import { cardsHtml, checkInline } from './cards';
+import { assertDistinct, cardsHtml, checkInline } from './cards';
 import type {
   Block,
   Lesson,
@@ -132,43 +132,48 @@ function str(v: unknown, what: string): string {
 const isObj = (x: unknown): x is Record<string, unknown> =>
   typeof x === 'object' && x !== null && !Array.isArray(x);
 
-/** Card codes of one side: 2 or 3 cards. */
-function parseSide(raw: unknown, side: string, what: string) {
-  const text = str(raw, `${what}: hand.${side}`);
-  const cards = parseCards(text);
+/** Card codes of one side as a YAML list (D34): 2 or 3 cards. */
+function parseSide(raw: unknown, side: string) {
+  if (!Array.isArray(raw) || !raw.every((x) => typeof x === 'string'))
+    throw new Error(`${side} must be a list of card codes, e.g. [4h, 2c, 9d]`);
+  const cards = raw.map((code: string) => {
+    const parsed = parseCards(code);
+    if (parsed.length !== 1) throw new Error(`Bad card code "${code}"`);
+    return parsed[0]!;
+  });
   if (cards.length < 2 || cards.length > 3)
     throw new Error(`${side} must have 2 or 3 cards, got ${cards.length}`);
-  return { text, cards };
+  return cards;
 }
 
 /**
- * A quiz drawing `{ player, banker }`: valid, disjoint cards, 2-3 per side, and a third card
- * exactly where the drawing rules (the engine's playerDraws / bankerDraws) say so.
+ * A quiz drawing `{ player: [..], banker: [..] }`: valid, disjoint cards, 2-3 per side, and a
+ * third card exactly where the drawing rules (the engine's playerDraws / bankerDraws) say so.
  */
 function parseHand(raw: unknown, what: string): QuizHand {
-  if (!isObj(raw)) throw new Error(`${what}: hand must be a mapping { player, banker }`);
+  if (!isObj(raw)) throw new Error(`${what}: hand must be a mapping { player: [..], banker: [..] }`);
   try {
-    const p = parseSide(raw.player, 'player', what);
-    const b = parseSide(raw.banker, 'banker', what);
-    parseCards(`${p.text} ${b.text}`); // also rejects a card on both sides
-    const p2 = handTotal(p.cards.slice(0, 2));
-    const b2 = handTotal(b.cards.slice(0, 2));
+    const p = parseSide(raw.player, 'player');
+    const b = parseSide(raw.banker, 'banker');
+    assertDistinct([...p, ...b]); // also rejects a card on both sides
+    const p2 = handTotal(p.slice(0, 2));
+    const b2 = handTotal(b.slice(0, 2));
     const pd = playerDraws(p2, b2);
-    if (pd.draws !== (p.cards.length === 3))
+    if (pd.draws !== (p.length === 3))
       throw new Error(
         pd.draws
           ? `the Player (total ${p2}) draws a third card`
           : `the Player (total ${p2}) stands, so there is no third card`,
       );
-    const third = p.cards.length === 3 ? cardValue(p.cards[2]!) : null;
+    const third = p.length === 3 ? cardValue(p[2]!) : null;
     const bd = bankerDraws(b2, p2, third);
-    if (bd.draws !== (b.cards.length === 3))
+    if (bd.draws !== (b.length === 3))
       throw new Error(
         bd.draws
           ? `the Banker (total ${b2}) draws a third card`
           : `the Banker (total ${b2}) stands, so there is no third card`,
       );
-    return { player: p.text, banker: b.text };
+    return { player: p, banker: b };
   } catch (e) {
     throw new Error(`${what}: hand ${e instanceof Error ? e.message : String(e)}`, { cause: e });
   }
@@ -207,17 +212,17 @@ export function parseQuizzes(yamlText: string, lessonId: string, startIndex: num
   });
 }
 
-const TABLEAU_VIEWS: readonly TableauView[] = ['player', 'banker', 'both'];
-const BANKER_CELL = /^B([0-7])-P(none|[0-9])$/;
-const PLAYER_CELL = /^P([0-9])$/;
+const TABLEAU_VIEWS: readonly TableauView[] = ['player', 'banker', 'full'];
+const BANKER_CELL = /^b([0-9])\/(s|p[0-9])$/;
+const PLAYER_CELL = /^p([0-9])$/;
 
-/** True for a cell that exists: `B5-P4`, `B6-Pnone` (Player stood) or `P5` (Player total). */
+/**
+ * True for a simulator `TableauCellId` (D34) that exists in the engine's TABLEAU: `b5/p4`
+ * (Banker 5, Player third card 4), `b6/s` (Banker 6, Player stood) or `p5` (Player total 5).
+ */
 export function isTableauCell(cell: string): boolean {
   const b = BANKER_CELL.exec(cell);
-  if (b) {
-    const row = TABLEAU[Number(b[1])];
-    return row !== undefined && row.length === 11;
-  }
+  if (b) return TABLEAU[Number(b[1])] !== undefined;
   return PLAYER_CELL.test(cell);
 }
 
@@ -231,11 +236,11 @@ export function parseTableau(yamlText: string): TableauBlockData {
   if (raw.highlight !== undefined) {
     const h = raw.highlight;
     if (!Array.isArray(h) || !h.every((x) => typeof x === 'string'))
-      throw new Error('tableau: highlight must be a list, e.g. [B5-P9, P5]');
+      throw new Error('tableau: highlight must be a list, e.g. [b5/p9, b6/s, p5]');
     const bad = h.filter((c) => !isTableauCell(c));
     if (bad.length)
       throw new Error(
-        `tableau: unknown cells in highlight: ${bad.join(', ')} (use B<0-7>-P<0-9|none> or P<0-9>)`,
+        `tableau: unknown cells in highlight: ${bad.join(', ')} (use b<0-7>/p<0-9>, b<0-7>/s or p<0-9>)`,
       );
     out.highlight = h;
   }
@@ -249,7 +254,7 @@ export function parseRoads(yamlText: string): RoadsBlockData {
   if (!isObj(raw)) throw new Error('roads block must be a YAML mapping { results, view?, caption? }');
   const results = str(raw.results, 'roads: results');
   try {
-    if (parseRoadResults(results).length === 0) throw new Error('no results');
+    if (parseRoadString(results).length === 0) throw new Error('no results');
   } catch (e) {
     throw new Error(`roads: ${e instanceof Error ? e.message : String(e)}`, { cause: e });
   }

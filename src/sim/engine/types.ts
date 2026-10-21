@@ -34,8 +34,8 @@ export interface TableRules {
   afterCutCard: 'one-more-hand';   // D8: finish the hand, deal one more, then reshuffle
   burn: 'first-card-value';        // face-up card, then that many face down (T/J/Q/K = 10)
   betUnit: Cents;                  // 100: every bet is whole dollars
-  mainMin: Cents; mainMax: Cents;  // player, banker: 500 .. 100_000
-  sideMin: Cents; sideMax: Cents;  // tie and side bets: 100 .. 10_000
+  mainMin: Cents; mainMax: Cents;  // player, banker: 500 .. 500_000 (D16: $5–$5,000)
+  sideMin: Cents; sideMax: Cents;  // tie and side bets: 100 .. 50_000 (D16: $1–$500)
 }
 
 // ---------- bets ----------
@@ -131,7 +131,8 @@ export interface ForcedHand {
   player: readonly CardCode[];       // 2 or 3 cards
   banker: readonly CardCode[];       // 2 or 3 cards
 }
-/** Rich or poor shoes for lessons: cards removed as if already dealt (they count as seen). */
+/** Rich or poor shoes for lessons: cards removed as if already dealt (they count as seen).
+ * D36: may leave as few as 6 unseen cards; with `removed`, the burn (face-up and face-down) is drawn from the removed set. */
 export interface ShoeSetup {
   seed?: number;
   /** Value class → how many cards to remove ('0' = tens and faces). Ranks within a class round-robin, suits round-robin. */
