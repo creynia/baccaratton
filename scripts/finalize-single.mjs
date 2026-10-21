@@ -17,12 +17,14 @@ if (!existsSync(`${dir}/baccaratton.html`)) {
 const html = readFileSync(`${dir}/baccaratton.html`, 'utf8');
 const bad = [];
 // Literal attributes in the HTML shell only (inline script/style bodies are skipped).
-const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
+const noScripts = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (m) =>
+  m.slice(0, m.indexOf('>') + 1),
+);
+// Style blocks are collected after script bodies are gone, so `<style>` text inside JS is ignored.
+const styles = [...noScripts.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
   .map((m) => m[1])
   .join('\n');
-const shell = html
-  .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (m) => m.slice(0, m.indexOf('>') + 1))
-  .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
+const shell = noScripts.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
 // Inline CSS: no @import and no url() other than data: or a #fragment (fonts, images).
 if (/@import\b/i.test(styles)) bad.push('CSS @import');
 for (const m of styles.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/gi)) {
@@ -32,7 +34,7 @@ for (const m of styles.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/
 if (/<base\b/i.test(shell)) bad.push('<base> element');
 if (/\ssrcset\s*=/i.test(shell)) bad.push('srcset attribute');
 for (const m of shell.matchAll(
-  /<([a-z0-9]+)\b[^>]*?\s(src|href|poster|data|action)\s*=\s*("([^"]*)"|'([^']*)')/gi,
+  /<([a-z0-9]+)\b[^>]*?[\s:](src|href|poster|data|action)\s*=\s*("([^"]*)"|'([^']*)')/gi,
 )) {
   const tag = m[1].toLowerCase();
   const val = (m[4] ?? m[5] ?? '').trim();

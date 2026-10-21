@@ -27,7 +27,7 @@ function finalize(html: string): { ok: boolean; out: string } {
 describe('finalize-single', () => {
   it('accepts a self-contained page', () => {
     const r = finalize(
-      '<html><head><link rel="icon" href="data:image/svg+xml,x"><script type="module">const a="https://x.y/z.js"</script></head><body><a href="#top">t</a><a href="https://example.com/">e</a><style>i{background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'/%3E")} b{mask:url(#m)}</style><div data-x="./a"></div></body></html>',
+      '<html><head><link rel="icon" href="data:image/svg+xml,x"><script type="module">const a="https://x.y/z.js"</script></head><body><a href="#top">t</a><a href="https://example.com/">e</a><style>i{background:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'/%3E")} b{mask:url(#m)}</style><div data-x="./a"></div><svg><use xlink:href="#chip"></use><image xlink:href="data:image/png;base64,AA"></image></svg><script>const css = "<style>@import \'x.css\';</style>";</script></body></html>',
     );
     expect(r.ok).toBe(true);
   });
@@ -45,6 +45,7 @@ describe('finalize-single', () => {
     '<video poster="./p.jpg"></video>',
     '<object data="./a.svg"></object>',
     '<a href="./other.html">x</a>',
+    '<svg><use xlink:href="./sprite.svg#chip"></use></svg>',
   ])('rejects %s', (frag) => {
     expect(finalize(`<html><head>${frag}</head><body></body></html>`).ok).toBe(false);
   });

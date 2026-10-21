@@ -6,7 +6,10 @@
 // - <UpdateToast />          "Update available — Reload" (./UpdateToast).
 // - updatesSupported()       false in the offline file, dev and file://: Settings can hide or
 //                            disable "Check for updates" and say "Download a new copy instead".
-// - checkForUpdates()        Settings → "Check for updates"; resolves to an UpdateCheck.
+// - checkForUpdates()        Settings → "Check for updates"; resolves to an UpdateCheck:
+//                            'update-available' (toast shown too), 'up-to-date', 'unsupported'
+//                            (see updatesSupported()), or 'failed' (offline, sw.js fetch error,
+//                            the new worker failed to install, or no result within 30 s).
 // - onUpdateAvailable(fn)    for a custom prompt; fn(apply) where apply() reloads into the update.
 // - __BUILD_SHA__            the build code shown in About (also on window.__baccaratton).
 
@@ -39,6 +42,7 @@ export function updatesSupported(): boolean {
   return location.protocol === 'https:' || location.protocol === 'http:';
 }
 
+/** Result of checkForUpdates(); see the header comment. */
 export type UpdateCheck = 'unsupported' | 'update-available' | 'up-to-date' | 'failed';
 
 /**
@@ -46,6 +50,8 @@ export type UpdateCheck = 'unsupported' | 'update-available' | 'up-to-date' | 'f
  * outcome ('unsupported' in dev, the single-file build, file:// and browsers without SW).
  * When an update is found the onUpdateAvailable listeners fire (toast), as for the automatic check.
  */
+const CHECK_TIMEOUT_MS = 30_000;
+
 export async function checkForUpdates(): Promise<UpdateCheck> {
   if (!updatesSupported()) return 'unsupported';
   try {
@@ -53,17 +59,27 @@ export async function checkForUpdates(): Promise<UpdateCheck> {
     registration ??= (await navigator.serviceWorker.getRegistration()) ?? null;
     if (!registration) return 'unsupported';
     await registration.update();
-    const found = registration.waiting ?? registration.installing;
+    // A newer installing worker beats an older waiting one.
+    const found = registration.installing ?? registration.waiting;
     if (!found || !navigator.serviceWorker.controller) return 'up-to-date';
-    if (found.state === 'installed') notify(found);
-    else
-      await new Promise<void>((done) => {
-        found.addEventListener('statechange', () => {
-          if (found.state === 'installed') notify(found);
-          if (found.state === 'installed' || found.state === 'redundant') done();
-        });
-      });
-    return waiting ? 'update-available' : 'up-to-date';
+    if (found.state === 'installed') {
+      notify(found);
+      return 'update-available';
+    }
+    const settled = await new Promise<'installed' | 'redundant' | 'timeout'>((done) => {
+      const timer = setTimeout(() => done('timeout'), CHECK_TIMEOUT_MS);
+      const onChange = () => {
+        if (found.state !== 'installed' && found.state !== 'redundant') return;
+        clearTimeout(timer);
+        found.removeEventListener('statechange', onChange);
+        done(found.state);
+      };
+      found.addEventListener('statechange', onChange);
+      onChange();
+    });
+    if (settled !== 'installed') return 'failed';
+    notify(found);
+    return 'update-available';
   } catch {
     return 'failed';
   }

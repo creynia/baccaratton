@@ -60,5 +60,5 @@ Deferred, self-contained ideas are collected in [`docs/chips.md`](docs/chips.md)
 
 - A GitHub Pages deploy can time out in "updating_pages", and the next one then fails with "deployment in progress". This is a GitHub-side flake: re-run the failed job from the Actions tab.
 - `latest-build` is a rolling prerelease: every push to `main` force-moves the tag and re-uploads `baccaratton.html` (`release.yml`); re-running it is safe. Pushing a `v*` tag makes a versioned release.
-- The service worker is versioned by a hash of every built file, so every deploy that changes a file triggers "Update available". It never activates on its own and is never registered by the offline file or under `file://`.
+- The service worker is versioned by a hash of every built file, so every deploy that changes a file triggers "Update available". An update never activates on its own and is never registered by the offline file or under `file://`.
 - The offline file must stay under 600 kB (target 450 kB); `npm run build:single` fails above that and on any external reference.

@@ -9,18 +9,18 @@ A phone-first web app that teaches **Baccarat** (Punto Banco) from zero to perfe
 ### The web app
 
 1. Open **<https://creynia.github.io/baccaratton/>** in Chrome. Every merge to `main` redeploys it from GitHub Actions.
-2. Chrome menu (**⋮**) → **Add to Home screen** (or **Install app**) → **Install**. It opens full screen like an app (burgundy icon with a gold-trimmed "9" card) and works offline after the first load.
+2. Chrome menu (**⋮**) → **Add to Home screen** (or **Install app**) → **Install**. It opens full screen like an app (burgundy icon with a "9" card) and works offline after the first load.
 
 ### The offline file
 
-1. In the GitHub app open **baccaratton** → **Releases** → **Latest build** and tap **`baccaratton.html`** (direct link: <https://github.com/creynia/baccaratton/releases/download/latest-build/baccaratton.html>; the app's More tab also has **Download offline copy**).
+1. In the GitHub app open **baccaratton** → **Releases** → **Latest build** and tap **`baccaratton.html`** (direct link: <https://github.com/creynia/baccaratton/releases/download/latest-build/baccaratton.html>; the app's More tab will also have **Download offline copy** (coming)).
 2. Chrome **⋮** → **Downloads** → tap `baccaratton.html`. If asked, open it with **Chrome**, not "HTML Viewer" (that one doesn't run scripts). The file makes no network requests.
 3. Progress in this copy is separate from the website's. Use **Settings → Export** and **Import** to move it. The offline file does not update itself: download it again for a newer build.
 
 ### Updating
 
 - The installed app shows **"Update available — Reload"** when a new version is ready. Tap **Reload**.
-- No toast? Open **Settings → Check for updates**, and compare the build code in **About** with the latest commit on `main`.
+- No toast? Open **Settings → Check for updates** (coming), and compare the build code in **About** (coming) with the latest commit on `main`.
 - Still stale: close the app from Recents and reopen it. As a last resort, Chrome **⋮ → Settings → Site settings → All sites → creynia.github.io → Delete & reset** (export your progress first).
 - Deploys: **Actions** tab → **Deploy to GitHub Pages** → **Run workflow** if one needs a nudge. A deploy that failed with "deployment in progress" just needs **Re-run failed jobs**. For a fork: **Settings → Pages → Source: GitHub Actions** (use **⋮ → Desktop site** if Settings is hidden).
 
