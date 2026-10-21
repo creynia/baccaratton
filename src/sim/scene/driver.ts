@@ -150,9 +150,10 @@ function historyEntries(codes: readonly HistoryCode[] | undefined): RoadEntry[] 
 
 /**
  * `?shoe=` (architecture.md section 2.1): cards in the engine's dealing order (P1 B1 P2 B2, P3?,
- * B3?), comma or space separated. Split into forced hands by the tableau; throws on a short tail.
+ * B3?), comma or space separated. Split into forced hands by the tableau. A missing third card at
+ * the end (a Drill spot's "Play it out") comes from `fill`; without it a short tail throws.
  */
-export function parseShoeParam(s: string): ForcedHand[] {
+export function parseShoeParam(s: string, fill?: () => number): ForcedHand[] {
   const cards = parseCards(s);
   const out: ForcedHand[] = [];
   let i = 0;
@@ -164,12 +165,14 @@ export function parseShoeParam(s: string): ForcedHand[] {
     const p2 = handTotal(p);
     const b2 = handTotal(b);
     if (playerDraws(p2, b2).draws) {
-      if (i >= cards.length) throw new Error('?shoe= ends before the Player third card');
-      p.push(cards[i++]!);
+      if (i < cards.length) p.push(cards[i++]!);
+      else if (fill) p.push(fill());
+      else throw new Error('?shoe= ends before the Player third card');
     }
     if (bankerDraws(b2, p2, p.length === 3 ? cardValue(p[2]!) : null).draws) {
-      if (i >= cards.length) throw new Error('?shoe= ends before the Banker third card');
-      b.push(cards[i++]!);
+      if (i < cards.length) b.push(cards[i++]!);
+      else if (fill) b.push(fill());
+      else throw new Error('?shoe= ends before the Banker third card');
     }
     out.push({ player: p.map(cardCode), banker: b.map(cardCode) });
   }

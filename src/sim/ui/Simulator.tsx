@@ -404,6 +404,7 @@ export function Simulator(props: SimulatorProps) {
       sheet={showEV && !practiceHidden ? preview.sheet : null}
       fourColor={settings.fourColorDeck}
       timeline={motion.playing ? tl : null}
+      playing={motion.playing}
       skipped={motion.skipped}
       onSkip={motion.skip}
       winner={revealing ? null : (last?.hand.winner ?? null)}
