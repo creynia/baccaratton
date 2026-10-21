@@ -216,8 +216,18 @@ export function Tableau({ view, highlight = [], onCell, caption }: TableauProps)
   useEffect(() => {
     // The tappable chart (Rules screen) scrolls its highlighted cell into view.
     if (!onCell || !first) return;
-    const el = root.current?.querySelector<HTMLElement>(`[data-cell="${first}"]`);
-    el?.scrollIntoView?.({ block: 'center', inline: 'center' });
+    // After the frame: the router restores the scroll position after a route change.
+    let raf = 0;
+    const t = setTimeout(() => {
+      raf = requestAnimationFrame(() => {
+        const el = root.current?.querySelector<HTMLElement>(`[data-cell="${first}"]`);
+        el?.scrollIntoView?.({ block: 'center', inline: 'center' });
+      });
+    }, 0);
+    return () => {
+      clearTimeout(t);
+      cancelAnimationFrame(raf);
+    };
   }, [first, onCell]);
   return (
     <figure

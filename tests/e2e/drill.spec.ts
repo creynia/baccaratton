@@ -73,7 +73,8 @@ test('a wrong Banker call shows the rule and "See the chart" highlights its cell
   await expect(page.getByTestId('streak')).toHaveText('0');
   await result.getByRole('link', { name: 'See the chart' }).click();
   await expect(page).toHaveURL(/#\/rules\?highlight=b\d\/(p\d|s)/);
-  await expect(page.locator('.is-hl, [aria-current]').first()).toBeVisible();
+  const cell = decodeURIComponent(new URL(page.url()).hash.split('highlight=')[1] ?? '');
+  await expect(page.locator(`[data-cell="${cell}"]`).first()).toBeInViewport();
 });
 
 test('"Play it out" deals the spot\'s cards on the table', async ({ page }) => {
