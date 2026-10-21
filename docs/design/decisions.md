@@ -131,3 +131,31 @@ control. Content agents apply this when writing those lessons.
 Re-review of e9805a1: every item B1–B4, S1–S15 and the nits is fixed; the numbers that changed were
 re-derived (lesson 9 ±$250, lesson 15 8.33% ruined / −$76.17, lesson 22 −$172 / −$593, Labouchère
 ≈15% vs ≈0.02–0.03% bust, simulated). APPROVED.
+
+## 4. Decisions made during implementation
+
+### D39 Lesson 19 average bets
+Fibonacci's average bet is **$24.56** (2.45646 units) and D'Alembert's **$45.73** (4.57348 units) at
+a $10 unit. curriculum.md §7.2's 4-decimal unit figures were rounded twice; per-hour costs are
+unchanged. Lessons and tests use the exact values.
+
+### D40 Lesson 12 and scene fixes
+The 4% commission table costs **$4.32/h** at $10 × 72 (exact $4.31502). The duplicate
+`allowedActions` keys in l13-s1 and l24-s1 (invalid YAML) were removed.
+
+### D41 Engine behaviour (amends simulator.md §1.6, §3.1)
+- A `ShoeSetup` takes the face-up burn card from the first removed card whose value the remaining
+  removed cards can cover (deterministic). A setup leaving fewer than 6 physical cards throws.
+- `parseRoadString` also accepts comma-separated and run-together tokens; a bare `n` means a natural 9.
+- `createGame({shoe})` shuffles immediately (shoe 1, no shuffle events), so the tracker shows the setup
+  before the first deal.
+
+### D42 "Use this" amount (amends D31)
+The better-alternative moves `max(slip amount, rules.mainMin)` to the cheapest main bet, and the
+per-hour saving is computed for that amount (a $1 Tie becomes a $5 Banker, saving $6.53/h). When the
+larger main bet would cost more per hour than the side bet, no alternative is offered.
+
+### D43 Strategy table limits (amends D28)
+One shared rule caps every system at the table maximum: a next bet above it resets the system to step 1,
+except D'Alembert, which clamps at `floor(mainMax / unit)`. The unit is limited to
+`[min, floor(max / first-bet units)]` (Labouchère: $1,000). The exact cost and auto-play use the same rule.
