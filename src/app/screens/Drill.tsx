@@ -193,12 +193,12 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
   const keypad = spot?.category === 'hand-total';
   const copy = grade ? gradeCopy(grade) : null;
   const showRule = grade !== null && grade.rule !== null && grade.cell !== '';
-  const statCats = q.mode === 'mixed' ? cats.filter((c) => d.byCategory[c]?.answered) : cats;
+  const statCats =
+    q.mode === 'banker' ? [] : cats.filter((c) => q.mode !== 'mixed' || d.byCategory[c]?.answered);
 
   return (
     <div class="page">
       <h1>Drill</h1>
-      <p class="muted">Call the hand like a dealer: who draws, who wins, what's paid.</p>
       <nav class="segmented" aria-label="Drill mode">
         {(['mixed', 'player', 'banker', 'winner', 'payout'] as const).map((m) => (
           <Link
@@ -211,27 +211,6 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
           </Link>
         ))}
       </nav>
-      {q.mode !== 'mixed' && cats.length > 1 && (
-        <nav class="chips" aria-label="Category">
-          <Link
-            to={drillHref({ mode: q.mode })}
-            class="chip"
-            aria-current={!q.category ? 'page' : undefined}
-          >
-            All
-          </Link>
-          {cats.map((c) => (
-            <Link
-              key={c}
-              to={drillHref({ mode: q.mode, category: c })}
-              class="chip"
-              aria-current={q.category === c ? 'page' : undefined}
-            >
-              {CATEGORY_LABEL[c]}
-            </Link>
-          ))}
-        </nav>
-      )}
       {q.focus === 'misses' && <p class="lead">Reviewing your recent misses.</p>}
       {Array.isArray(q.focus) && (
         <p class="lead">
@@ -239,20 +218,6 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
           <Link to={drillHref({ mode: q.mode })}>All spots</Link>
         </p>
       )}
-
-      <section class="card drill-stats" aria-label="Your drill stats" data-testid="drill-stats">
-        <span>
-          Streak <strong data-testid="streak">{store.drillStreak}</strong>
-        </span>
-        <span>
-          Best <strong data-testid="best-streak">{d.bestStreak}</strong>
-        </span>
-        {statCats.map((c) => (
-          <span key={c} data-cat={c}>
-            {CATEGORY_LABEL[c]} <strong>{pctOf(d.byCategory[c])}</strong>
-          </span>
-        ))}
-      </section>
 
       {unavailable && (
         <section class="card" data-testid="drill-unavailable" role="status">
@@ -353,6 +318,40 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
         </section>
       )}
 
+      {q.mode !== 'mixed' && cats.length > 1 && (
+        <nav class="chips" aria-label="Category">
+          <Link
+            to={drillHref({ mode: q.mode })}
+            class="chip"
+            aria-current={!q.category ? 'page' : undefined}
+          >
+            All
+          </Link>
+          {cats.map((c) => (
+            <Link
+              key={c}
+              to={drillHref({ mode: q.mode, category: c })}
+              class="chip"
+              aria-current={q.category === c ? 'page' : undefined}
+            >
+              {CATEGORY_LABEL[c]}
+            </Link>
+          ))}
+        </nav>
+      )}
+      <section class="card drill-stats" aria-label="Your drill stats" data-testid="drill-stats">
+        <span>
+          Streak <strong data-testid="streak">{store.drillStreak}</strong>
+        </span>
+        <span>
+          Best <strong data-testid="best-streak">{d.bestStreak}</strong>
+        </span>
+        {statCats.map((c) => (
+          <span key={c} data-cat={c}>
+            {CATEGORY_LABEL[c]} <strong>{pctOf(d.byCategory[c])}</strong>
+          </span>
+        ))}
+      </section>
       {q.mode === 'banker' && (
         <section class="card" aria-labelledby="drill-rows" data-testid="banker-rows">
           <h2 id="drill-rows">Your accuracy by Banker row</h2>
