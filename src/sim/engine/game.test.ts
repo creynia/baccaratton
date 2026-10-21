@@ -293,6 +293,7 @@ describe('validation codes (section 1.7)', () => {
     expect(code(q, { type: 'deal' })).toBe('bad-forced-hand');
     expect(code(q, { type: 'clear-bets' })).toBeNull();
     expect(code(q, { type: 'new-shoe' })).toBeNull();
+    expect(() => validateAction(q, { type: 'fold' } as never)).toThrow(/Unknown action "fold"/);
   });
   it('validateForcedHand: codes, counts, copies and the tableau', () => {
     const v = (p: string, b: string, decks = 8) =>

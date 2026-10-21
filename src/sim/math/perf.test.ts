@@ -53,5 +53,8 @@ describe('performance', () => {
       `[perf] 1,000 depleted recomputes: ${total.toFixed(0)} ms (best batch × 10: ${ms.toFixed(0)} ms)`,
     );
     expect(ms).toBeLessThan(3000);
+    // The median batch too, with 2x headroom for the other test files running in parallel.
+    const median = [...batches].sort((a, b) => a - b)[5]! * 10;
+    expect(median).toBeLessThan(6000);
   }, 60_000);
 });

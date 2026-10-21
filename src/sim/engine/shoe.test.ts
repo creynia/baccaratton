@@ -137,6 +137,20 @@ describe('ShoeSetup (D36)', () => {
   });
 });
 
+describe('physical cards left (review)', () => {
+  it('startAtCard 411 throws; a setup leaving 6 physical cards deals one last hand', () => {
+    expect(() => newShoe(seedRng(1), DEFAULT_RULES, 1, { startAtCard: 411 })).toThrow(
+      /5 cards in the shoe/,
+    );
+    const g = createGame({ seed: 4, shoe: { startAtCard: 410 } });
+    expect(g.shoe.order.length - g.shoe.pos).toBe(6);
+    expect(g.shoe.cutCardOut).toBe(true);
+    const r = dealOk(g);
+    expect(r.events[0]!.type).toBe('hand-started');
+    expect(r.events.at(-1)!.type).toBe('shoe-finished');
+  });
+});
+
 describe('cut card, one more hand, reshuffle (D17)', () => {
   it('the cut card fires once, exactly one extra hand follows, then shoe-finished and a reshuffle', () => {
     for (let seed = 1; seed <= 20; seed++) {
@@ -277,5 +291,35 @@ describe('forced hands (D17)', () => {
     const r = dealOk(g);
     expect(r.events[0]).toMatchObject({ type: 'shoe-shuffled', shoeNo: shoeNo + 1 });
     expect(r.state.lastResult!.hand.player.cards.map(cardCode)).toEqual(['As', '3h']);
+  });
+  it('a forced-card reshuffle before any hand of the shoe keeps the prefilled roads', () => {
+    const rules = resolveRules({ decks: 1 });
+    const history = [
+      {
+        winner: 'banker' as const,
+        playerPair: false,
+        bankerPair: false,
+        natural: false,
+        total: 7 as const,
+      },
+    ];
+    // Find a seed whose first-shoe burn exposes the Ace of spades, so the forced As needs a reshuffle.
+    for (let seed = 1; seed < 5000; seed++) {
+      const [shoe] = newShoe(seedRng(seed), rules, 1);
+      if (shoe.order.slice(0, shoe.pos).indexOf(0) < 0) continue;
+      const g = createGame({
+        seed,
+        rules,
+        history,
+        forced: [{ player: ['As', '3h'], banker: ['9d', 'Kc'] }],
+      });
+      const r = dealOk(g);
+      expect(r.events.filter((e) => e.type === 'shoe-shuffled')).toHaveLength(r.state.shoe.shoeNo);
+      expect(r.state.shoe.shoeNo).toBeGreaterThanOrEqual(2);
+      expect(r.state.history).toHaveLength(2);
+      expect(r.state.history[0]!.prefilled).toBe(true);
+      return;
+    }
+    throw new Error('no seed burns the As');
   });
 });

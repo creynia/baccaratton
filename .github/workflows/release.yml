@@ -9,9 +9,11 @@ on:
 permissions:
   contents: write
 
+# Never cancel mid-upload (a cancelled `--clobber` can leave the release without its asset);
+# GitHub keeps only the newest pending run per group, so the latest main still wins.
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
+  cancel-in-progress: false
 
 jobs:
   release:

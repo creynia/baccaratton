@@ -9,7 +9,7 @@ export {
   MIN_CARDS,
 } from './distribution';
 export { betEvs, payoutNet } from './evs';
-export { fullShoeEvs, perHourCents, PINNED, PINNED_PER_RESOLVED } from './edges';
+export { fullShoeEvs, perHourCents } from './edges';
 export { previewSlip, cheapestMain } from './preview';
 export { shoeTracker } from './tracker';
 export { betTier, GOOD_MAX, FAIR_MAX, SUCKER_MIN } from './tiers';
