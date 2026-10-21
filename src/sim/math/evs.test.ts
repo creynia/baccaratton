@@ -76,6 +76,15 @@ describe('pinned full-shoe values (simulator.md 2.5)', () => {
     expect(fullShoeEvs(rulesOf('super-6')).map((e) => e.bet)).not.toContain('dragon-7');
   });
 
+  it('the memo is deep-frozen', () => {
+    const e = fullShoeEvs(rulesOf('punto-banco'))[0]!;
+    expect(Object.isFrozen(fullShoeEvs(rulesOf('punto-banco')))).toBe(true);
+    expect(Object.isFrozen(e)).toBe(true);
+    expect(Object.isFrozen(e.ev)).toBe(true);
+    expect(Object.isFrozen(e.why.rows)).toBe(true);
+    expect(Object.isFrozen(e.why.rows[0])).toBe(true);
+  });
+
   it('memoises per rules and recomputes for other decks', () => {
     const r = rulesOf('punto-banco');
     expect(fullShoeEvs(r)).toBe(fullShoeEvs({ ...r }));
