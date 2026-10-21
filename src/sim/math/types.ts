@@ -76,7 +76,7 @@ export interface Alternative {
   /** The costliest-per-$ bet on the slip that has a cheaper main bet available. */
   from: BetId;
   to: BetId;                          // the lowest-edge offered main bet (banker in punto-banco/ez, player in super-6)
-  amount: Cents;                      // same amount moved
+  amount: Cents;                      // max(slip amount, rules.mainMin) (D42)
   fromEvCents: Fraction; toEvCents: Fraction;
   savingPerHourCents: Fraction;
 }
