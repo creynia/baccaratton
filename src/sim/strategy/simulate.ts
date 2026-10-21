@@ -6,7 +6,7 @@ import { applyAction, createGame, equity, visibleView } from '../engine/game';
 import type { BetId, GameState, HandResult, Slip, Winner } from '../engine/types';
 import { betFigures, rulesFor, slipEvCents } from './metrics';
 import { formatMoney } from '../engine/money';
-import { getStrategy, initMemory, mainBet, tableCap, tableMaxUnits } from './presets';
+import { getStrategy, initMemory, tableCap, tableMaxUnits, unitLimits } from './presets';
 import type {
   SessionSeries,
   SimulateRequest,
@@ -148,9 +148,7 @@ export function validateRequest(req: SimulateRequest): void {
   const rules = rulesFor(req.variant, req.tiePays);
   for (const s of [req.strategy, ...(req.compare ?? [])]) {
     if (!int(s.unit) || s.unit <= 0) throw new RangeError(`simulate: bad unit for ${s.id}`);
-    const tie = mainBet(null, s) === 'tie';
-    const min = tie ? rules.sideMin : rules.mainMin;
-    const max = tie ? rules.sideMax : rules.mainMax;
+    const { min, max } = unitLimits(s, rules);
     if (s.unit < min || s.unit > max)
       throw new RangeError(
         `simulate: the ${s.id} unit must be ${formatMoney(min)} to ${formatMoney(max)} (table limits)`,

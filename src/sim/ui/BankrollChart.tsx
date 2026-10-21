@@ -286,7 +286,7 @@ export function BankrollChart({
         {many
           ? 'Shaded band: the middle 80% of sessions (p10 to p90); solid line: the median. '
           : ''}
-        Dotted line: expected (house edge × money bet). Grey dashed line: the starting bankroll.
+        Thin line: expected (house edge × money bet). Grey dashed line: the starting bankroll.
       </figcaption>
     </figure>
   );

@@ -6,7 +6,7 @@ import { formatMoney } from '../engine/money';
 import type { EvClient, Progress } from '../jobs/protocol';
 import { HAND_OPTIONS, MAX_HANDS, rulesFor, systemCost } from '../strategy/metrics';
 import type { SystemCost } from '../strategy/metrics';
-import { mainBet, PICKER_GROUPS, STRATEGY_NAMES } from '../strategy/presets';
+import { PICKER_GROUPS, STRATEGY_NAMES, unitLimits } from '../strategy/presets';
 import type {
   SessionSeries,
   SimulateResult,
@@ -53,12 +53,13 @@ export interface AutoPlayPanelProps {
   onWatch?: (spec: StrategySpec) => void;
 }
 
-/** The unit clamped to the table limits of the system's main bet (Tie uses the side limits). */
-export function clampUnit(id: StrategyId, cents: number, s: SimSettings): number {
-  const rules = rulesFor(s.variant, s.tiePays);
-  const tie = mainBet(null, { id, unit: 1 }) === 'tie';
-  const min = tie ? rules.sideMin : rules.mainMin;
-  const max = tie ? rules.sideMax : rules.mainMax;
+/** The unit clamped to the system's table limits (its first bet must fit under the maximum). */
+export function clampUnit(
+  spec: Pick<StrategySpec, 'id' | 'sequence'>,
+  cents: number,
+  s: SimSettings,
+): number {
+  const { min, max } = unitLimits(spec, rulesFor(s.variant, s.tiePays));
   const whole = Math.round(cents / 100) * 100;
   return Math.min(max, Math.max(min, Number.isFinite(whole) ? whole : min));
 }
@@ -114,7 +115,11 @@ export function AutoPlayPanel({
   useEffect(() => () => ctl.current?.abort(), []);
 
   const asked = Math.round(unitDollars) * 100;
-  const unit = clampUnit(id, asked, settings);
+  const unit = clampUnit(
+    { id, sequence: defaultStrategy?.id === id ? defaultStrategy.sequence : undefined },
+    asked,
+    settings,
+  );
   const selectId = useId();
   const bankroll = Math.max(0, Math.round(bankrollDollars) * 100);
   const picker: StrategySpec = {
@@ -133,7 +138,7 @@ export function AutoPlayPanel({
         .filter((p) => p !== id)
         .map((p) => ({
           id: p,
-          unit: clampUnit(p, asked, settings),
+          unit: clampUnit({ id: p }, asked, settings),
           ...(PROGRESSIONS.has(p) ? { target } : {}),
         }));
   const specKey = JSON.stringify(spec);
