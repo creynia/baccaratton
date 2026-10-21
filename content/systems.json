@@ -2,17 +2,20 @@
   "flat-banker": {
     "title": "Flat Banker",
     "summary": "One unit on Banker, every hand. The lowest-edge way to play.",
-    "rules": ["Bet **1 unit on Banker** every hand, win or lose.", "Ties push and change nothing."]
+    "rules": ["Bet **1 unit on Banker** every hand, win or lose.", "Ties push and change nothing."],
+    "lessonId": "banker-vs-player"
   },
   "flat-player": {
     "title": "Flat Player",
     "summary": "One unit on Player, every hand.",
-    "rules": ["Bet **1 unit on Player** every hand, win or lose.", "Ties push and change nothing."]
+    "rules": ["Bet **1 unit on Player** every hand, win or lose.", "Ties push and change nothing."],
+    "lessonId": "banker-vs-player"
   },
   "flat-tie": {
     "title": "Flat Tie",
     "summary": "One unit on Tie, every hand. Shown for comparison: by far the dearest of the three.",
-    "rules": ["Bet **1 unit on Tie** every hand, win or lose."]
+    "rules": ["Bet **1 unit on Tie** every hand, win or lose."],
+    "lessonId": "the-tie-bet"
   },
   "martingale": {
     "title": "Martingale",

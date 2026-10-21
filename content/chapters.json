@@ -20,19 +20,19 @@
     "id": "ev-basics",
     "title": "EV basics",
     "summary": "How bets are paid, what each one costs, and why Banker is the best of the three.",
-    "lessons": ["settling-bets", "expected-value"]
+    "lessons": ["settling-bets", "expected-value", "banker-vs-player", "the-tie-bet"]
   },
   {
     "id": "perfect-lowest-edge",
     "title": "Perfect strategy I: lowest edge",
     "summary": "The cheapest bet at the cheapest table: 1.06% or less.",
-    "lessons": []
+    "lessons": ["strategy-lowest-edge", "table-variants", "checkpoint-strategy"]
   },
   {
     "id": "perfect-practical",
     "title": "Perfect strategy II: practical",
     "summary": "Bankroll, sessions, scoreboards and counting, and what really matters.",
-    "lessons": []
+    "lessons": ["edge-and-hourly-cost", "variance-and-bankroll", "roads-and-streaks"]
   },
   {
     "id": "perfect-fun",
