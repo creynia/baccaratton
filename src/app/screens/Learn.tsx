@@ -26,16 +26,18 @@ export function Learn() {
             <header>
               <h2 id={`ch-${ch.id}`}>{ch.title}</h2>
               <span class="muted nowrap">
-                {done}/{ls.length} complete
+                {ls.length ? `${done}/${ls.length} complete` : 'Coming soon'}
               </span>
             </header>
             {ch.summary && <p class="muted">{ch.summary}</p>}
-            <progress
-              class="bar"
-              max={ls.length || 1}
-              value={done}
-              aria-label={`${ch.title} progress`}
-            />
+            {ls.length > 0 && (
+              <progress
+                class="bar"
+                max={ls.length}
+                value={done}
+                aria-label={`${ch.title} progress`}
+              />
+            )}
             <ol class="lesson-list">
               {ls.map((l) => {
                 const st = store.status(l.id);

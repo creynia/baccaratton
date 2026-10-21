@@ -252,6 +252,9 @@ main:has(> .page-wide) {
 .hero h1 {
   margin: 0;
 }
+.ring {
+  flex: none;
+}
 .ring-bg {
   fill: none;
   stroke: var(--surface-2);
@@ -566,7 +569,12 @@ textarea {
 }
 .form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
+}
+.form select {
+  width: 100%;
+  max-width: 100%;
 }
 .form label {
   display: grid;
@@ -947,4 +955,11 @@ textarea {
 }
 .rules-card {
   margin-bottom: 1rem;
+}
+
+.bet-list h2 a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
 }

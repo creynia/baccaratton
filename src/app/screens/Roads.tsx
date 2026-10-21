@@ -15,6 +15,8 @@ function dealMore(state: GameState, n: number): GameState | null {
   return safe(() => {
     let s = state;
     for (let i = 0; i < n; i++) {
+      // Stop at the end of the shoe; the next deal (a new shoe) starts a fresh scoreboard.
+      if (i > 0 && s.shoe.finished) break;
       const r = applyAction(s, { type: 'deal' });
       if (!r.ok) break;
       s = r.state;
@@ -48,13 +50,20 @@ export function Roads() {
       <Scoreboard entries={entries} caption="This shoe so far" />
       <p class="row">
         {game ? (
-          <button
-            type="button"
-            class="btn"
-            onClick={() => setGame((g) => (g ? (dealMore(g, 10) ?? g) : g))}
-          >
-            Deal 10 more
-          </button>
+          <>
+            {game.shoe.finished && (
+              <span role="status" data-testid="shoe-finished">
+                The cut card came out: this shoe is finished.{' '}
+              </span>
+            )}
+            <button
+              type="button"
+              class="btn"
+              onClick={() => setGame((g) => (g ? (dealMore(g, 10) ?? g) : g))}
+            >
+              {game.shoe.finished ? 'Shuffle a new shoe' : 'Deal 10 more'}
+            </button>
+          </>
         ) : (
           <span class="muted" data-testid="roads-demo">
             A sample shoe. Live dealing arrives with the table engine.

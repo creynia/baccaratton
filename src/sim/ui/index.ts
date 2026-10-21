@@ -11,10 +11,6 @@ export { Scoreboard, roadsText } from './Scoreboard';
 export type { ScoreboardProps, RoadView } from './Scoreboard';
 export { DEFAULT_SIM_SETTINGS } from './types';
 export type { SimSettings, SessionSummary } from './types';
-export { AutoPlayPanel, type AutoPlayPanelProps, type AutoPlayEvent } from './AutoPlayPanel';
-export { BankrollChart, type BankrollChartProps } from './BankrollChart';
-export { SurvivalChart, type SurvivalChartProps } from './SurvivalChart';
-export { OutcomeHistogram, type OutcomeHistogramProps } from './OutcomeHistogram';
 
 // table-ui components (presentational; Simulator owns the state)
 export { Felt, spotEvOf } from './Felt';
@@ -52,3 +48,9 @@ export type { Speed, Timeline, TimelineStep, Segment } from './animation';
 export { feltLayout } from './layouts';
 export type { FeltLayout, Orientation, Rect, Pt } from './layouts';
 export * as uiText from './text';
+
+// strategy charts and auto-play panel
+export { AutoPlayPanel, type AutoPlayPanelProps, type AutoPlayEvent } from './AutoPlayPanel';
+export { BankrollChart, type BankrollChartProps } from './BankrollChart';
+export { SurvivalChart, type SurvivalChartProps } from './SurvivalChart';
+export { OutcomeHistogram, type OutcomeHistogramProps } from './OutcomeHistogram';

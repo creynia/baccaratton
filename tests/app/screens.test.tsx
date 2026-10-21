@@ -183,6 +183,23 @@ describe('Settings', () => {
   });
 });
 
+describe('read-only mode (data from a newer app)', () => {
+  const newerStore = () => {
+    const m = new MemoryStorage();
+    m.setItem('baccaratton:v1', '{"version":9}');
+    return new Store(m);
+  };
+  it('explains it in the banner and turns off import and reset', () => {
+    const { container, getByTestId, getByText } = mount('#/settings', newerStore());
+    expect(text(container.querySelector('.banner')!)).toContain(
+      'saved by a newer version of the app. Reload to update; changes here are not saved.',
+    );
+    expect(getByTestId('read-only')).toBeTruthy();
+    expect((getByText('Import') as HTMLButtonElement).disabled).toBe(true);
+    expect((getByText('Reset progress') as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
 describe('About', () => {
   it('shows version and build, and reports the update check', async () => {
     location.hash = '#/about';
@@ -300,6 +317,7 @@ describe('Drill', () => {
     expect(JSON.parse(deps.calls[0]!)).toMatchObject({ mode: 'banker', category: 'banker-5' });
     expect(text(getByTestId('drill-spot'))).toContain('Does the Banker draw?');
     fireEvent.click(getByText('Stand'));
+    expect(document.activeElement?.textContent).toBe('Next');
     const result = getByTestId('drill-result');
     expect(result.dataset.correct).toBe('false');
     expect(text(result)).toContain('Not quite. Draw. Banker 5 draws on 4 to 7.');

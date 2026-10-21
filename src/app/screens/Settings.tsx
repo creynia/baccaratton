@@ -219,10 +219,17 @@ export function Settings() {
 
       <section class="card form" aria-labelledby="set-progress">
         <h2 id="set-progress">Your progress</h2>
-        {!store.persistent && (
-          <p role="alert" class="warn">
-            Progress will not be saved in this copy. Use Export to keep it.
+        {store.readOnly ? (
+          <p role="alert" class="warn" data-testid="read-only">
+            This progress was saved by a newer version of the app. Reload to update; import and
+            reset are off here because nothing would be saved.
           </p>
+        ) : (
+          !store.persistent && (
+            <p role="alert" class="warn">
+              Progress will not be saved in this copy. Use Export to keep it.
+            </p>
+          )
         )}
         <div class="row">
           <button
@@ -238,7 +245,7 @@ export function Settings() {
           <button
             type="button"
             class="btn btn-ghost"
-            disabled={code.trim() === '' || confirmImport}
+            disabled={store.readOnly || code.trim() === '' || confirmImport}
             onClick={() => {
               if (decodeImport(code)) {
                 setMsg('');
@@ -264,7 +271,14 @@ export function Settings() {
               type="button"
               class="btn btn-danger"
               onClick={() => {
-                setMsg(store.importCode(code) ? 'Progress imported.' : 'That code is not valid.');
+                const ok = store.importCode(code);
+                setMsg(
+                  !ok
+                    ? 'That code is not valid.'
+                    : store.persistent
+                      ? 'Progress imported.'
+                      : 'Imported for this visit only: it cannot be saved in this copy.',
+                );
                 setConfirmImport(false);
               }}
             >
@@ -295,7 +309,12 @@ export function Settings() {
             </button>
           </div>
         ) : (
-          <button type="button" class="btn btn-danger" onClick={() => setConfirmReset(true)}>
+          <button
+            type="button"
+            class="btn btn-danger"
+            disabled={store.readOnly}
+            onClick={() => setConfirmReset(true)}
+          >
             Reset progress
           </button>
         )}

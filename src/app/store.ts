@@ -25,13 +25,13 @@ export class Store {
   /** consecutive correct Drill answers this visit (not persisted; the best is) */
   private streak = 0;
   private unavailable = false; // localStorage missing: memory only
-  private readOnly = false; // stored data is from a newer app: never overwrite it
+  private isReadOnly = false; // stored data is from a newer app: never overwrite it
   private saveFailed = false; // a write was refused (quota)
   private storage: StorageLike;
 
   /** false when progress cannot be saved; the app shows a banner. Observable via subscribe(). */
   get persistent(): boolean {
-    return !this.unavailable && !this.readOnly && !this.saveFailed;
+    return !this.unavailable && !this.isReadOnly && !this.saveFailed;
   }
 
   constructor(
@@ -47,7 +47,12 @@ export class Store {
     }
     const loaded = loadDetailed(this.storage);
     this.data = loaded.data;
-    this.readOnly = loaded.readOnly;
+    this.isReadOnly = loaded.readOnly;
+  }
+
+  /** The stored progress came from a newer version of the app: nothing here is saved. */
+  get readOnly(): boolean {
+    return this.isReadOnly;
   }
 
   get snapshot(): PersistedV1 {
@@ -89,7 +94,7 @@ export class Store {
   flush() {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
-    if (this.readOnly || this.unavailable) return;
+    if (this.isReadOnly || this.unavailable) return;
     const ok = save(this.storage, this.data);
     if (ok === this.saveFailed) {
       this.saveFailed = !ok;
