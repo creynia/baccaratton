@@ -16,6 +16,8 @@ import {
   VARIANT_RULES,
   bankerDraws,
   cardValue,
+  playHand,
+  settleHand,
   handTotal,
   parseCards,
   parseRoadString,
@@ -975,5 +977,36 @@ describe('cross-checks with the real packages (run once they land)', () => {
     const evCents = X.banker.ev.mul(1000);
     const h = math.perHourCents({ num: evCents.n, den: evCents.d }, HPH);
     expect((Number(h.num) / Number(h.den) / 100).toFixed(2)).toBe('-7.62');
+  });
+
+  const engineReady = ready(() => settleHand);
+  it.runIf(engineReady)('the engine settles the forced hands and the $40 quiz as the text says', () => {
+    const handOf = (player: readonly string[], banker: readonly string[]) => {
+      const p = parseCards(player.join(' '));
+      const b = parseCards(banker.join(' '));
+      const order = [p[0]!, b[0]!, p[1]!, b[1]!, ...p.slice(2), ...b.slice(2)];
+      let k = 0;
+      const h = playHand(() => order[k++]!);
+      expect(k).toBe(order.length);
+      return { ...h, n: 1, shoeNo: 1, handInShoe: 1, forced: true };
+    };
+    const profit = (v: VariantId, h: ReturnType<typeof handOf>, amount: number) =>
+      settleHand(h, { banker: amount }, VARIANT_RULES[v]).settlements[0]!.profit;
+    const ez = scenes('table-variants')[0]!.steps![1]!.deals![0]!;
+    const s6 = scenes('table-variants')[1]!.steps![1]!.deals![0]!;
+    expect(profit('ez', handOf(ez.player, ez.banker), 1000)).toBe(0); // "your $10 comes back"
+    expect(profit('super-6', handOf(s6.player, s6.banker), 1000)).toBe(500); // "+$5"
+    expect(profit('punto-banco', handOf(s6.player, s6.banker), 4000)).toBe(3800); // l13 quiz: $38
+  });
+  it.runIf(mathReady)('strategy.systemCost gives the expected lines the auto-play scenes quote', () => {
+    const cost = (spec: StrategySpec, hands: number) =>
+      (strategy.systemCost(spec, 'punto-banco', 8).costPerHourCents! * hands) / HPH / 100;
+    for (const { scene } of allScenes()) {
+      const specs = [...(scene.autoPlay?.compare ?? []), ...(scene.autoPlay?.defaultStrategy ? [scene.autoPlay.defaultStrategy] : [])];
+      for (const spec of specs) {
+        const want = { 'flat-banker': X.banker.edge, 'flat-player': X.player.edge, 'flat-tie': X.tie8.edge }[spec.id as 'flat-banker'];
+        expect(cost(spec, 720)).toBeCloseTo(hourly(want, 10, 720), 2);
+      }
+    }
   });
 });
