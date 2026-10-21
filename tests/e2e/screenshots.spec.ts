@@ -8,6 +8,7 @@ test.skip(!process.env.SCREENSHOTS, 'set SCREENSHOTS=1 to refresh docs/screensho
 
 const landscape = (page: Page) =>
   (page.viewportSize()?.width ?? 0) > (page.viewportSize()?.height ?? 0);
+test.use({ deviceScaleFactor: 2 });
 const THEMES = ['light', 'dark'] as const;
 
 async function prepare(page: Page, theme: (typeof THEMES)[number]) {
