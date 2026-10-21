@@ -123,3 +123,11 @@ prettier-ignored) and `src/sim/ui/types.ts` with `SimSettings` (D13 fields; app 
 it). WP0 implements `TABLEAU`, `betsOffered` and `parseRoadString` for real, with variant ids. Batons
 add `src/sim/ui/types.ts`, `src/sim/engine/job.ts`, `.prettierignore` and architecture §6's [B]
 dotfiles. Simulator §1.1 `parseCard(s)` → `parseCards`.
+
+### D38 Auto-play run steps (re-review nit)
+Auto-play `run` steps (l09, l10, l15, l19, l22) set `allowedActions: []`; auto-play has its own Run
+control. Content agents apply this when writing those lessons.
+
+Re-review of e9805a1: every item B1–B4, S1–S15 and the nits is fixed; the numbers that changed were
+re-derived (lesson 9 ±$250, lesson 15 8.33% ruined / −$76.17, lesson 22 −$172 / −$593, Labouchère
+≈15% vs ≈0.02–0.03% bust, simulated). APPROVED.
