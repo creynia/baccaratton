@@ -4,9 +4,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'preact/hooks';
 import { formatMoney as engineMoney } from '../engine/money';
 
-/** Money with the minus sign (−), never a hyphen. */
-const formatMoney = (cents: number, opts?: { sign?: boolean }): string =>
-  engineMoney(cents, opts).replace(/^-/, '\u2212');
 import type { EvClient, Progress } from '../jobs/protocol';
 import { HAND_OPTIONS, MAX_HANDS, rulesFor, systemCost } from '../strategy/metrics';
 import type { SystemCost } from '../strategy/metrics';
@@ -22,6 +19,10 @@ import { BankrollChart, seriesLabel, Swatch } from './BankrollChart';
 import { OutcomeHistogram } from './OutcomeHistogram';
 import { SurvivalChart } from './SurvivalChart';
 import type { SimSettings } from './types';
+
+/** Money with the minus sign (−), never a hyphen. */
+const formatMoney = (cents: number, opts?: { sign?: boolean }): string =>
+  engineMoney(cents, opts).replace(/^-/, '\u2212');
 
 const LENS_LABEL: Record<StrategyLens, string> = {
   'lowest-edge': 'Lowest edge',

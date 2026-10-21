@@ -505,6 +505,11 @@ export class SimDriver {
     this.feed({ kind: 'previewed', bet, whyOpened });
     this.notify();
   }
+  /** Several rows at once (opening the whole EV sheet): one notify, one re-render. */
+  previewedAll(bets: readonly BetId[]): void {
+    for (const bet of bets) this.feed({ kind: 'previewed', bet, whyOpened: false });
+    this.notify();
+  }
   acknowledge(): void {
     this.feed({ kind: 'acknowledged' });
     this.notify();

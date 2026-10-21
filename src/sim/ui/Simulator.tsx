@@ -244,7 +244,8 @@ export function Simulator(props: SimulatorProps) {
   const [why, setWhy] = useState<BetId | null>(scene?.whyOpen ?? null);
   const trackerPreview = useMemo(
     () =>
-      trackerOn && sheetOpen && sheetPreview
+      // Ready before the sheet opens (the tracker recomputes after each hand anyway, D6).
+      trackerOn && sheetPreview
         ? previewSlip({
             rules,
             slip: state.bets,
@@ -252,7 +253,7 @@ export function Simulator(props: SimulatorProps) {
             unseenRanks: visibleView(shown).unseenRanks,
           })
         : null,
-    [trackerOn, sheetOpen, sheetPreview, rules, state.bets, hph, shown],
+    [trackerOn, sheetPreview, rules, state.bets, hph, shown],
   );
 
   // ---------- notices ----------
@@ -308,6 +309,7 @@ export function Simulator(props: SimulatorProps) {
         if (!amount) continue;
         const r = driver.act({ type: 'set-bet', bet: bet as BetId, amount });
         if (!r.ok) {
+          driver.dismissRejection(); // one toast: the Watch one says why
           pushToast(`Watch stopped: ${r.message}`, 'bad');
           setWatch(null);
           return;
@@ -367,8 +369,8 @@ export function Simulator(props: SimulatorProps) {
     setSheetOpen(true);
     tap('ev-sheet');
     if (focus) driver.previewed(focus);
-    // The sheet lists every offered bet with its EV: opening it previews each row.
-    else for (const b of preview.sheet) if (b.offered) driver.previewed(b.bet);
+    // The sheet lists every offered bet with its EV: opening it previews each row (one update).
+    else driver.previewedAll(preview.sheet.filter((b) => b.offered).map((b) => b.bet));
   };
   /** "Use this" (D31, D42): the alternative's amount (at least the main-bet minimum). */
   const useAlternative = (alt: Pick<Alternative, 'from' | 'to' | 'amount'>) => {
@@ -773,19 +775,13 @@ export function Simulator(props: SimulatorProps) {
             </>
           )
         }
-        notices={
-          landscape ? (
-            <>
-              {step}
-              {betNotices}
-            </>
-          ) : null
-        }
+        notices={landscape ? betNotices : null}
         chips={chipRack}
         actions={actions}
         rail={
           landscape ? (
             <>
+              {step}
               {resultNotices}
               {!sheetOpen && showEV && !practiceHidden ? (
                 <EvList

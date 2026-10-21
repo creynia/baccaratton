@@ -4,7 +4,9 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-test.describe.configure({ mode: 'serial' });
+// Serial, and up to two retries: timings on a shared CI runner are noisy; a real regression fails
+// every attempt.
+test.describe.configure({ mode: 'serial', retries: 2 });
 
 test.beforeEach(async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
@@ -41,7 +43,7 @@ test('EV preview: a chip on a spot updates every badge and the slip EV (< 30 ms)
   await page.goto('/#/play?seed=1&speed=instant');
   await page.locator('[data-hit="banker"]').waitFor();
   const times: number[] = [];
-  for (let i = 0; i < 7; i++)
+  for (let i = 0; i < 11; i++)
     times.push(await clickToMutation(page, `[data-hit="${i % 2 ? 'player' : 'banker'}"]`));
   console.log('EV preview ms (4x throttle):', fmt(times));
   expect(median(times)).toBeLessThan(30);
@@ -55,7 +57,7 @@ test('Shoe tracker on: the EV sheet with the exact current-shoe line (< 30 ms)',
   for (let i = 0; i < 5; i++) await page.locator('[data-action="deal"]').click();
   await page.locator('[data-hit="banker"]').click();
   const times: number[] = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 11; i++) {
     times.push(await clickToMutation(page, '[data-action="ev"]')); // open
     await expect(page.getByTestId('tracker-line-banker')).toBeVisible();
     await page.locator('[data-action="close-ev"]').click();
@@ -68,7 +70,7 @@ test('Deal → settle at instant speed (< 40 ms with the full render)', async ({
   await page.goto('/#/play?seed=1&speed=instant');
   await page.locator('[data-hit="banker"]').click();
   const times: number[] = [];
-  for (let i = 0; i < 7; i++) times.push(await clickToMutation(page, '[data-action="deal"]'));
+  for (let i = 0; i < 11; i++) times.push(await clickToMutation(page, '[data-action="deal"]'));
   console.log('deal ms (4x throttle):', fmt(times));
   expect(median(times)).toBeLessThan(40);
 });

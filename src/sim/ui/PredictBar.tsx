@@ -52,7 +52,11 @@ export function PredictFeedbackCard({ feedback }: { feedback: PredictFeedback | 
     >
       <p class="sim-feedback-head">
         <strong>{f.correct ? '✓ Right' : '✗ Not quite'}</strong>
-        {f.correct ? `: ${f.answer}.` : `: the answer is ${f.answer} (you said ${f.chosen}).`}
+        {f.correct
+          ? `: ${f.answer}.`
+          : f.kind === 'hand-total'
+            ? `: you said ${f.chosen}.` // the rule row below works out the total once
+            : `: the answer is ${f.answer} (you said ${f.chosen}).`}
       </p>
       {!f.correct ? (
         <>

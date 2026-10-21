@@ -2,6 +2,7 @@
 import { betDef, isOffered } from './bets';
 import { cardValue, parseCards } from './cards';
 import { bankerDraws, handTotal, playerDraws } from './tableau';
+import { formatMoney } from './money';
 import { BET_IDS } from './types';
 import type {
   Action,
@@ -17,7 +18,8 @@ import type {
 
 const OK: Validation = { ok: true };
 const bad = (code: ValidationCode, message: string): Validation => ({ ok: false, code, message });
-const dollars = (c: Cents): string => `$${(c / 100).toLocaleString('en-US')}`;
+/** "$5", "$210.50", "$5,000" (cents shown when there are any). */
+const dollars = (c: Cents): string => formatMoney(c);
 
 export function slipTotal(slip: Slip): Cents {
   let t = 0;
