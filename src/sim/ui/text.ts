@@ -10,6 +10,7 @@ import type {
   Winner,
 } from '../engine/types';
 import { betDef } from '../engine/bets';
+import { betTier } from '../math/tiers';
 import type { Alternative, BetEv, BetTier, Fraction } from '../math/types';
 
 /** U+2212, so a negative amount never wraps at a hyphen (and reads as a real minus). */
@@ -172,19 +173,9 @@ export const TRACKER_FREE_LABEL = 'Edge to you';
 export const tierLabel = (t: BetTier, tracker = false): string =>
   tracker && t === 'free' ? TRACKER_FREE_LABEL : TIER_LABEL[t];
 
-/**
- * The tier of an edge (D19): free ≤ 0 < good ≤ 2% < fair ≤ 5% < costly < 9% ≤ sucker. Math owns
- * the real `betTier`; this exact copy lets the felt badge a tracker value without a round trip.
- */
+/** The tier of an edge (D19): math's betTier, the one source of the boundaries. */
 export function tierOfEdge(edge: Fraction): BetTier {
-  const e = edge;
-  const le = (n: bigint, d: bigint) => e.num * d <= n * e.den;
-  const lt = (n: bigint, d: bigint) => e.num * d < n * e.den;
-  if (le(0n, 1n)) return 'free';
-  if (le(2n, 100n)) return 'good';
-  if (le(5n, 100n)) return 'fair';
-  if (lt(9n, 100n)) return 'costly';
-  return 'sucker';
+  return betTier(edge);
 }
 
 // ---------- the sheet ----------

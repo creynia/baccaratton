@@ -28,9 +28,6 @@ export function WhyTable({ why, edgePerResolved, ev, id }: WhyTableProps) {
             <th scope="col" class="num">
               Net per $1
             </th>
-            <th scope="col" class="num">
-              Adds
-            </th>
           </tr>
         </thead>
         <tbody>
@@ -44,7 +41,6 @@ export function WhyTable({ why, edgePerResolved, ev, id }: WhyTableProps) {
               </th>
               <td class="num">{pct(r.probability, 4)}</td>
               <td class="num">{signedNum(r.net, 2)}</td>
-              <td class="num">{pct(r.contribution, 4)}</td>
             </tr>
           ))}
         </tbody>
@@ -60,7 +56,7 @@ export function WhyTable({ why, edgePerResolved, ev, id }: WhyTableProps) {
         </p>
       ) : null}
       {why.note ? <p class="sim-why-note">{why.note}</p> : null}
-      {edgePerResolved ? (
+      {edgePerResolved && !why.note?.includes(pct(edgePerResolved)) ? (
         <p class="sim-why-note" data-testid="why-resolved">
           Counting only decided hands (ties left out): {pct(edgePerResolved)}.
         </p>
