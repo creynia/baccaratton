@@ -6,8 +6,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compileLesson, type CompiledLesson } from '../../src/content/compile';
-import { BET_IDS, STRATEGY_IDS, expectedUnitsBet, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
-import type { BetId, SceneConfig, SceneStep } from '../../src/sim';
+import { BET_IDS, STRATEGY_IDS, betEvs, expectedUnitsBet, fullShoeEvs, outcomeDistribution, simulateJob, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
+import type { BetEv, BetId, SceneConfig, SceneStep } from '../../src/sim';
 
 const DIR = join(process.cwd(), 'content/lessons');
 const LESSONS: readonly [number, string, string][] = [
@@ -871,5 +871,114 @@ describe("lesson 19: the strategy registry's exact DP gives the lesson's figures
     expect(Math.abs(units - avg)).toBeLessThan(5e-5);
     expect(units).toBeCloseTo(avgBet(SPEC_PIN[id]!), 9);
     expect(cents((spec.unit / 100) * 72 * units * -num(EV.banker))).toBe(cost);
+  });
+});
+
+// ---------------------------------------------------------------- math: the app's own EVs
+
+describe("lessons 17–24: the math module's exact EVs equal the oracle the prose is pinned to", () => {
+  const toQ = (f: { num: bigint; den: bigint }): Q => q(f.num, f.den);
+  const evOf = (evs: readonly BetEv[], bet: BetId) => toQ(evs.find((e) => e.bet === bet)!.ev);
+  const ranks = (comp: Comp): number[] => {
+    const r = new Array<number>(13).fill(0);
+    for (let v = 1; v <= 9; v++) r[v - 1] = comp[v]!;
+    for (let k = 0; k < comp[0]!; k++) r[9 + (k % 4)]!++;
+    return r;
+  };
+  it('full shoe, every variant (lessons 18, 20, 21, 22, 24)', () => {
+    const pb = fullShoeEvs(resolveRules({ variant: 'punto-banco' }));
+    const ez = fullShoeEvs(resolveRules({ variant: 'ez' }));
+    const s6 = fullShoeEvs(resolveRules({ variant: 'super-6' }));
+    const t9 = fullShoeEvs(resolveRules({ variant: 'punto-banco', tiePays: 9 }));
+    const pairs: [Q, Q][] = [
+      [evOf(pb, 'banker'), EV.banker],
+      [evOf(pb, 'player'), EV.player],
+      [evOf(pb, 'tie'), EV.tie8],
+      [evOf(t9, 'tie'), EV.tie9],
+      [evOf(ez, 'banker'), EV.ezBanker],
+      [evOf(s6, 'banker'), EV.super6Banker],
+      [evOf(ez, 'dragon-7'), EV.dragon7],
+      [evOf(ez, 'panda-8'), EV.panda8],
+      [evOf(pb, 'dragon-bonus-player'), EV.dbPlayer],
+      [evOf(pb, 'dragon-bonus-banker'), EV.dbBanker],
+      [evOf(pb, 'player-pair'), pairEv(P8.pPair)],
+      [evOf(pb, 'banker-pair'), pairEv(P8.pPair)],
+    ];
+    for (const [a, b] of pairs) expect(a).toEqual(b);
+  });
+  it('lesson 17: the shoe compositions and one-card removals', () => {
+    const ezRules = resolveRules({ variant: 'ez' });
+    const pbRules = resolveRules({ variant: 'punto-banco' });
+    const d7shoe = [17, 4, 5, 5, 5, 5, 5, 5, 0, 1];
+    const ezEvs = betEvs(outcomeDistribution(ranks(d7shoe)), ezRules);
+    expect(evOf(ezEvs, 'dragon-7')).toEqual(ev(dist(d7shoe), PAYS.dragon7));
+    const noFours = [16, 4, 4, 4, 0, 4, 8, 4, 4, 4];
+    expect(evOf(betEvs(outcomeDistribution(ranks(noFours)), pbRules), 'banker')).toEqual(
+      ev(dist(noFours), PAYS.banker),
+    );
+    for (const v of [3, 4, 5, 6]) {
+      const comp = FULL8.map((n, i) => (i === v ? n - 1 : n));
+      const evs = betEvs(outcomeDistribution(ranks(comp)), pbRules);
+      expect(evOf(evs, 'banker')).toEqual(ev(dist(comp), PAYS.banker));
+      expect(evOf(evs, 'player')).toEqual(ev(dist(comp), PAYS.player));
+    }
+  });
+});
+
+// ---------------------------------------------------------------- strategy: what auto-play reports
+
+describe('lessons 19 and 22: auto-play (simulate) reports the lesson costs on the scenes’ own specs', { timeout: 120_000 }, () => {
+  const drain = <R,>(g: Generator<unknown, R, void>): R => {
+    for (;;) {
+      const s = g.next();
+      if (s.done) return s.value;
+    }
+  };
+  const run = (sid: string, sessions: number) => {
+    const s = scene(sid);
+    const ap = s.autoPlay!;
+    const [first, ...rest] = ap.compare!;
+    return drain(
+      simulateJob({
+        strategy: first!,
+        compare: rest,
+        variant: s.variant ?? 'punto-banco',
+        tiePays: 8,
+        hands: ap.handOptions![0]!,
+        sessions,
+        seed: 19,
+        bankroll: s.bankroll!,
+        handsPerHour: 72,
+      }),
+    ).series;
+  };
+
+  it('l19-s1: the mean bet and the expected line match §7.2 (exact rows) and the ≈ rows', () => {
+    const series = run('l19-s1', 400);
+    const want: Record<string, [number, number]> = {
+      'flat-banker': [SYSTEM_PINS.flat![0], SYSTEM_PINS.flat![1]],
+      paroli: SYSTEM_PINS.paroli!,
+      'one-three-two-six': SYSTEM_PINS['one-three-two-six']!,
+      fibonacci: SYSTEM_PINS.fibonacci!,
+      martingale: SYSTEM_PINS.martingale!,
+      dalembert: SYSTEM_PINS.dalembert!,
+      'follow-the-shoe': [1, 8.25],
+      labouchere: [12.46, 94.93],
+    };
+    for (const s of series) {
+      const [units, cost] = want[s.strategy.id]!;
+      const tol = s.strategy.id === 'labouchere' ? 0.12 : 0.05;
+      expect(s.meanBetPerHand / 1000, s.strategy.id).toBeGreaterThan(units * (1 - tol));
+      expect(s.meanBetPerHand / 1000, s.strategy.id).toBeLessThan(units * (1 + tol));
+      const exp = (s.expected[0]! - s.expected[72]!) / 100; // the line starts at the bankroll
+      expect(exp, s.strategy.id).toBeGreaterThan(cost * (1 - tol));
+      expect(exp, s.strategy.id).toBeLessThan(cost * (1 + tol));
+      expect(s.bustRate, s.strategy.id).toBeLessThan(0.01);
+    }
+  });
+
+  it('l22-s1: the expected lines end at −$76, −$172 and −$593 after 720 hands', () => {
+    const series = run('l22-s1', 20);
+    expect(series.map((s) => Math.round((s.expected[0]! - s.expected[720]!) / 100))).toEqual([76, 172, 593]);
   });
 });
