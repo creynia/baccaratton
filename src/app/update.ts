@@ -1,6 +1,6 @@
 import type { UpdateCheck } from '../pwa/register';
 
-export { checkForUpdates } from '../pwa/register';
+export { checkForUpdates, updatesSupported } from '../pwa/register';
 export type { UpdateCheck };
 
 export const UPDATE_MESSAGE: Record<UpdateCheck, string> = {

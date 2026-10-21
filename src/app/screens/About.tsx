@@ -1,13 +1,9 @@
-import { useState } from 'preact/hooks';
 import { Link } from '../components/Link';
 import { OfflineLink } from '../components/OfflineLink';
-import { UPDATE_MESSAGE, checkForUpdates } from '../update';
+import { CheckUpdates } from '../components/CheckUpdates';
 import type { UpdateCheck } from '../update';
 
 export function About(props: { check?: () => Promise<UpdateCheck> }) {
-  const check = props.check ?? checkForUpdates;
-  const [msg, setMsg] = useState('');
-  const [busy, setBusy] = useState(false);
   return (
     <div class="page">
       <Link to="/more" class="back">
@@ -28,28 +24,9 @@ export function About(props: { check?: () => Promise<UpdateCheck> }) {
           <dd>{__SINGLE_FILE__ ? 'Offline single file' : 'Web app'}</dd>
         </div>
       </dl>
-      <p class="row">
-        <button
-          type="button"
-          class="btn"
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            setMsg('Checking…');
-            void check()
-              .catch((): UpdateCheck => 'failed')
-              .then((r) => {
-                setMsg(UPDATE_MESSAGE[r]);
-                setBusy(false);
-              });
-          }}
-        >
-          Check for updates
-        </button>
+      <CheckUpdates {...(props.check ? { check: props.check } : {})} />
+      <p>
         <OfflineLink />
-      </p>
-      <p role="status" class="muted">
-        {msg}
       </p>
       <p>
         baccaratton teaches Punto Banco baccarat: the rules, the odds of every bet and what each one

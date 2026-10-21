@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { VARIANT_IDS } from '../../sim';
 import type { BetId, TiePays, VariantId } from '../../sim';
 import { VARIANT_NAME, fullShoe } from '../bets';
+import { CheckUpdates } from '../components/CheckUpdates';
 import { Link } from '../components/Link';
 import { useStore } from '../context';
 import { pct } from '../format';
@@ -299,9 +300,14 @@ export function Settings() {
           </button>
         )}
       </section>
-      <p>
-        <Link to="/about">About, version and check for updates</Link>
-      </p>
+      <section class="card form" aria-labelledby="set-updates">
+        <h2 id="set-updates">Updates</h2>
+        <CheckUpdates />
+        <p class="muted">
+          Build <span data-testid="settings-build">{__BUILD_SHA__}</span>.{' '}
+          <Link to="/about">About this app</Link>
+        </p>
+      </section>
     </div>
   );
 }
