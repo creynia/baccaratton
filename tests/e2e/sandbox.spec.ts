@@ -1,7 +1,7 @@
 // The Play sandbox (simulator.md section 7.5 items 1-5, 9): EV before Deal, the Sucker second tap
 // and "Use this", EZ, roads and the shoe, the tracker, persistence, keyboard betting, Deal in view.
 import { expect, test } from '@playwright/test';
-import { bankroll, inViewport, settled, sim } from './helpers';
+import { bankroll, inViewport, noHorizontalScroll, settled, sim } from './helpers';
 
 // Player K 2 3 = 5, Banker 4 3 = 7 stands: Banker wins 7 to 5.
 const BANKER_WINS = 'Kh,4s,2d,3h,3c';
@@ -152,4 +152,14 @@ test('auto-play: Martingale vs flat Banker on the same cards, with exact and sim
   await expect(ap).toContainText(/simulated/i);
   await expect(ap).toContainText(/exact/i);
   await expect(res.locator('svg').first()).toBeVisible();
+});
+
+test('a long shoe never widens the page (the roads scroll inside their strip)', async ({
+  page,
+}) => {
+  await page.goto('/#/play?seed=21&speed=instant');
+  const t = sim(page);
+  for (let i = 0; i < 45; i++) await t.locator('[data-action="deal"]').click();
+  await expect(t).toHaveAttribute('data-hands', '45');
+  expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0);
 });

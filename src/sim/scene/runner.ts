@@ -346,7 +346,7 @@ export function answerKey(step: SceneStep, hand: HandRecord): AnswerKey {
           ? `(Player ${p2}, Banker ${b2}.)`
           : p3 === null
             ? `(Banker ${b2}, the Player stood.)`
-            : `(Banker ${b2}, the Player's third card was a ${p3}.)`;
+            : `(Banker ${b2}, the Player's third card was ${p3 === 8 ? 'an' : 'a'} ${p3}.)`;
       return {
         answer: r.draws ? 'Draw' : 'Stand',
         ruleRow: `${RULE_ROW[r.rule]} ${why}`,

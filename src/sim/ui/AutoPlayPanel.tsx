@@ -432,6 +432,7 @@ function Results({
   const many = res.series.some((s) => s.p10 !== undefined);
   const main = res.series[0]!;
   const sessions = main.finals.length;
+  const noteId = useId();
   return (
     <div data-testid="auto-play-result" style={{ display: 'grid', gap: '10px' }}>
       <BankrollChart
@@ -441,41 +442,46 @@ function Results({
         handsPerHour={settings.handsPerHour}
       />
       {many ? <SurvivalChart series={res.series} hands={hands} /> : null}
-      <div style={{ overflowX: 'auto' }}>
-        <table
-          data-testid="auto-summary"
-          style={{
-            borderCollapse: 'collapse',
-            fontSize: '13px',
-            fontVariantNumeric: 'tabular-nums',
-            minWidth: '100%',
-          }}
+      <div data-testid="auto-summary" style={{ display: 'grid', gap: '4px', minWidth: 0 }}>
+        <p
+          id={noteId}
+          style={{ margin: 0, textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}
         >
-          <caption style={{ textAlign: 'left', fontSize: '12px', color: 'var(--muted)' }}>
-            {sessions > 1 ? `${sessions} sessions` : '1 session'} of {hands.toLocaleString('en-US')}{' '}
-            hands, same cards for every system. Cost/h (edge × money bet per hour) and "Expected"
-            are exact given the bets placed; the rest is ≈ simulated.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col" style={{ textAlign: 'left' }}>
-                System
-              </th>
-              <th scope="col">Mean bet</th>
-              <th scope="col">Cost/h</th>
-              <th scope="col">Expected</th>
-              <th scope="col">Actual (≈)</th>
-              {many ? <th scope="col">Busted (≈)</th> : null}
-              {many ? <th scope="col">Ahead (≈)</th> : null}
-              <th scope="col">Cap resets</th>
-            </tr>
-          </thead>
-          <tbody>
-            {res.series.map((s, k) => (
-              <Row key={k} s={s} k={k} bankroll={bankroll} many={many} />
-            ))}
-          </tbody>
-        </table>
+          {sessions > 1 ? `${sessions} sessions` : '1 session'} of {hands.toLocaleString('en-US')}{' '}
+          hands, same cards for every system. Cost/h (edge × money bet per hour) and "Expected" are
+          exact given the bets placed; the rest is ≈ simulated.
+        </p>
+        <div style={{ overflowX: 'auto' }}>
+          <table
+            aria-describedby={noteId}
+            style={{
+              borderCollapse: 'collapse',
+              fontSize: '13px',
+              fontVariantNumeric: 'tabular-nums',
+              minWidth: '100%',
+            }}
+          >
+            <thead>
+              <tr>
+                <th scope="col" style={{ textAlign: 'left' }}>
+                  System
+                </th>
+                <th scope="col">Mean bet</th>
+                <th scope="col">Cost/h</th>
+                <th scope="col">Expected</th>
+                <th scope="col">Actual (≈)</th>
+                {many ? <th scope="col">Busted (≈)</th> : null}
+                {many ? <th scope="col">Ahead (≈)</th> : null}
+                <th scope="col">Cap resets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {res.series.map((s, k) => (
+                <Row key={k} s={s} k={k} bankroll={bankroll} many={many} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <p style={{ margin: 0, fontSize: '13px' }} data-testid="auto-sentence">
         {sentence(main, settings.handsPerHour)}

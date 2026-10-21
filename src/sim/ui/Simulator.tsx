@@ -469,7 +469,11 @@ export function Simulator(props: SimulatorProps) {
       ) : null}
       {resultShown && last && last.settlements.length === 0 && handN !== null ? (
         <p class="sim-toast sim-nobet" role="status">
-          {winnerText}, {last.hand.player.total} to {last.hand.banker.total}. No money on this hand.
+          {winnerText},{' '}
+          {last.hand.winner === 'player'
+            ? `${last.hand.player.total} to ${last.hand.banker.total}`
+            : `${last.hand.banker.total} to ${last.hand.player.total}`}
+          . No money on this hand.
         </p>
       ) : null}
       {rejection ? (
@@ -736,6 +740,7 @@ export function Simulator(props: SimulatorProps) {
         notices={
           landscape ? (
             <>
+              {step}
               {betNotices}
               {resultNotices}
             </>
@@ -748,9 +753,6 @@ export function Simulator(props: SimulatorProps) {
         rail={
           landscape ? (
             <>
-              {step}
-              {tools}
-              {trackerPanel}
               {!sheetOpen && showEV && !practiceHidden ? (
                 <EvList
                   sheet={preview.sheet}
@@ -763,8 +765,8 @@ export function Simulator(props: SimulatorProps) {
         }
         sheet={sheet}
       />
-      {!landscape ? tools : null}
-      {!landscape ? trackerPanel : null}
+      {tools}
+      {trackerPanel}
       {session}
       {auto}
     </div>
