@@ -229,14 +229,14 @@ function build(
   let pairCount = 0n;
   for (const r of unseenRanks) pairCount += BigInt(r) * BigInt(r - 1);
   const pairOutOf = BigInt(n) * BigInt(n - 1);
-  return {
+  return Object.freeze({
     cardsLeft: n,
     total,
-    cells,
+    cells: Object.freeze(cells),
     pPair: frac(pairCount, pairOutOf),
     pairCount,
     pairOutOf,
-  };
+  });
 }
 
 /** The bigint path end to end (tests and the 2^53 cross-check; never used at runtime). */

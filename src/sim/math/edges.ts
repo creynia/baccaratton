@@ -8,12 +8,21 @@ import type { BetEv, Fraction } from './types';
 
 const memo = new Map<string, BetEv[]>();
 
+function deepFreeze<T>(x: T): T {
+  if (x && typeof x === 'object' && !Object.isFrozen(x)) {
+    for (const v of Object.values(x)) deepFreeze(v);
+    Object.freeze(x);
+  }
+  return x;
+}
+
 /** Memoised; equals the pinned values of simulator.md section 2.5 in tests. */
 export function fullShoeEvs(rules: TableRules): BetEv[] {
   const key = rulesKey(rules);
   let hit = memo.get(key);
   if (!hit) {
-    hit = betEvs(outcomeDistribution(fullShoeRanks(rules.decks)), rules);
+    // Deep-frozen: the memo is shared by every caller.
+    hit = deepFreeze(betEvs(outcomeDistribution(fullShoeRanks(rules.decks)), rules));
     memo.set(key, hit);
   }
   return hit;

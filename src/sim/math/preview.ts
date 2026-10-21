@@ -9,7 +9,10 @@ import { betEvs } from './evs';
 import { add, cmp, frac, mul, sub, ZERO } from './fraction';
 import type { Alternative, BetEv, PreviewRequest, SlipLine, SlipPreview } from './types';
 
-/** Main bets "Use this" may move money to (D31). Tie is main but never the cheapest. */
+/**
+ * Bets "Use this" may move money to (D31): the cheapest of Player and Banker. Tie is a main-row bet
+ * but is excluded on purpose: D31 means the even-money bets, whatever the edges are.
+ */
 const MAIN_TARGETS: readonly BetId[] = ['banker', 'player'];
 
 /** The lowest-edge offered main bet; exact ties of the edge go to Banker. */
@@ -30,6 +33,10 @@ export function sheetFor(
 ): { sheet: BetEv[]; source: SlipPreview['source']; cardsLeft: number } {
   if (!unseenRanks) {
     return { sheet: fullShoeEvs(rules), source: 'full-shoe', cardsLeft: rules.decks * 52 };
+  }
+  const n = unseenRanks.reduce((a, b) => a + b, 0);
+  if (n > rules.decks * 52) {
+    throw new RangeError(`${n} unseen cards, but ${rules.decks} decks hold ${rules.decks * 52}`);
   }
   const dist = outcomeDistribution(unseenRanks);
   return { sheet: betEvs(dist, rules), source: 'current-shoe', cardsLeft: dist.cardsLeft };
@@ -69,7 +76,7 @@ export function previewSlip(req: PreviewRequest): SlipPreview {
     totalWagered,
     totalEvCents,
     perHourCents: perHourCents(totalEvCents, handsPerHour),
-    alternative: alternativeFor(sheet, lines, handsPerHour),
+    alternative: alternativeFor(sheet, lines, handsPerHour, rules.mainMin),
     needsConfirm: lines.filter((l) => l.tier === 'sucker').map((l) => l.bet),
     exact: true,
   };
@@ -84,6 +91,7 @@ export function alternativeFor(
   sheet: readonly BetEv[],
   lines: readonly SlipLine[],
   handsPerHour: number,
+  mainMin = 0,
 ): Alternative | null {
   const best = cheapestMain(sheet);
   let pick: Alternative | null = null;
@@ -92,14 +100,18 @@ export function alternativeFor(
     if (l.bet === best.bet) continue;
     const e = sheet.find((s) => s.bet === l.bet)!;
     if (cmp(e.edge, best.edge) <= 0) continue;
-    const toEvCents = mul(best.ev, frac(BigInt(l.amount)));
+    // D42: the main bet needs at least its table minimum, so a $1 Tie becomes a $5 Banker. The
+    // saving compares what the slip line costs with what the moved (possibly larger) bet costs.
+    const amount = Math.max(l.amount, mainMin);
+    const toEvCents = mul(best.ev, frac(BigInt(amount)));
     const saving = perHourCents(sub(toEvCents, l.evCents), handsPerHour);
+    if (saving.num <= 0n) continue; // a bigger main bet would cost more than the side bet
     const c = pick ? cmp(saving, pick.savingPerHourCents) : 1;
     if (c > 0 || (c === 0 && cmp(e.edge, pickEdge) > 0)) {
       pick = {
         from: l.bet,
         to: best.bet,
-        amount: l.amount,
+        amount,
         fromEvCents: l.evCents,
         toEvCents,
         savingPerHourCents: saving,

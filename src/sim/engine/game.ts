@@ -181,7 +181,8 @@ function deal(state0: GameState, rebet: boolean): { state: GameState; events: Ga
     let placed = placeForced(state.shoe, cards);
     for (let tries = 0; placed === null; tries++) {
       if (tries > 50) throw new Error('deal: cannot place the forced hand');
-      state = shuffleInto(state, undefined, false);
+      // Nothing was dealt from this shoe yet: keep the (prefilled) roads.
+      state = shuffleInto(state, undefined, state.shoe.handsThisShoe === 0);
       events.push(...shuffleEvents(state.shoe, state.rules.decks));
       placed = placeForced(state.shoe, cards);
     }
