@@ -21,7 +21,7 @@ import {
   parseRoadString,
   playerDraws,
 } from '../../src/sim/engine';
-import type { BetId, CardValue, VariantId } from '../../src/sim/engine';
+import type { BetId, VariantId } from '../../src/sim/engine';
 import * as math from '../../src/sim/math';
 import { validateScene } from '../../src/sim/scene';
 import type { Condition, SceneConfig, SceneStep } from '../../src/sim/scene';
@@ -160,7 +160,7 @@ function engineAgrees(player: readonly string[], banker: readonly string[]): boo
   const p2 = handTotal(p.slice(0, 2));
   const b2 = handTotal(b.slice(0, 2));
   const pd = playerDraws(p2, b2).draws;
-  const bd = bankerDraws(b2, p2, pd ? (cardValue(p[2]!) as CardValue) : null).draws;
+  const bd = bankerDraws(b2, p2, pd ? cardValue(p[2]!) : null).draws;
   return pd === (p.length === 3) && bd === (b.length === 3);
 }
 
@@ -284,7 +284,6 @@ const P = (d: Dist, f: (c: Cell) => boolean) => new Q(d.cells.filter(f).reduce((
 const bw = (c: Cell) => c.bt > c.pt;
 const pw = (c: Cell) => c.pt > c.bt;
 const tie = (c: Cell) => c.pt === c.bt;
-const unit = (k: number) => Q.of(k);
 const L = ONE.neg();
 
 const banker = (d: Dist, commission: Q) => bet(d, (c) => (bw(c) ? ONE.sub(commission) : pw(c) ? L : new Q(0)));
@@ -347,7 +346,9 @@ const money = (x: number) => `$${x.toFixed(2)}`;
 const dollars = (x: number) => `$${Math.round(x).toLocaleString('en-US')}`;
 const HPH = 72;
 const hourly = (edge: Q, betDollars: number, hands = HPH) => edge.v * betDollars * hands;
-const expectQuoted = (id: LId, s: string) => expect(prose(id), `${id} quotes "${s}"`).toContain(s);
+const squash = (t: string) => t.replace(/\s+/g, ' ');
+const expectQuoted = (id: LId, s: string) =>
+  expect(squash(prose(id)).includes(squash(s)), `${id} should quote: ${JSON.stringify(s)}`).toBe(true);
 
 /** D19 tiers on the edge per bet placed. */
 const tierOf = (edge: number) =>
@@ -573,8 +574,6 @@ describe('lessons 9-16: quizzes', () => {
     for (const l of LESSONS)
       for (const q of quizzes(l.id))
         if (q.hand) {
-          const codes = (cs: readonly number[]) => cs.map((c) => parseCards.length && c);
-          void codes;
           const pv = q.hand.player.map((c) => cardValue(c));
           const bv = q.hand.banker.map((c) => cardValue(c));
           expect(() => playValues(pv, bv), q.id).not.toThrow();
@@ -694,7 +693,7 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
     expectQuoted(id, `near **−${dollars(hourly(X.banker.edge, 10, 720))}**, and the Tie evenings near **−${dollars(hourly(X.tie8.edge, 10, 720))}**`);
     const q = quizzes(id);
     expect(q[0]!.explanation).toContain(`${pct(X.pT, 2)}% of hands, about 1 in ${(1 / X.pT.v).toFixed(1)}`);
-    expect(q[1]!.explanation).toBe(`1 ÷ ${X.pT.v.toFixed(4)} − 1 ≈ ${(1 / X.pT.v.toFixed(4).length && 1 / Number(X.pT.v.toFixed(4)) - 1).toFixed(2)}.`);
+    expect(q[1]!.explanation).toBe(`1 ÷ ${X.pT.v.toFixed(4)} − 1 ≈ ${(1 / X.pT.v - 1).toFixed(2)}.`);
     expect(q[2]!.choices[q[2]!.answer]).toBe(`${pct(X.tie9.edge, 2)}%`);
     expect(q[3]!.explanation).toBe(`72 × $10 × ${pct(X.tie8.edge, 2)}% ≈ ${money(hourly(X.tie8.edge, 10))}.`);
     expect(q[3]!.choices).toContain(`About ${money(hourly(X.banker.edge, 10))}`);
@@ -837,7 +836,7 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
       ['Pair', pairSd],
       ['Dragon 7', dragon7(D8).sd],
     ];
-    expectQuoted(id, sds.map(([n, v]) => `${n} ${v.toFixed(2)}`).join(', ').replace('Player 0.95,\nDragon', 'Player 0.95, Dragon'));
+    expectQuoted(id, sds.map(([n, v]) => `${n} ${v.toFixed(2)}`).join(', '));
     expectQuoted(id, `≈ ${X.banker.sd.toFixed(4)}. Player: ${X.player.sd.toFixed(4)}. Tie 8:1: ${X.tie8.sd.toFixed(4)}.`);
     expectQuoted(id, `that's ${(X.banker.sd * Math.sqrt(72)).toFixed(2)} bets, or ${money(X.banker.sd * Math.sqrt(72) * 10)} at $10`);
     expect(pairSd.toFixed(4)).toBe('3.1549'); // D30
@@ -854,10 +853,10 @@ describe('pinned numbers (simulator.md §2.5, curriculum §11) recomputed', () =
         for (let s = 0; s < size; s++) {
           const m = cur[s]!;
           if (!m) continue;
-          nxt[s + 19] += m * pw2;
-          nxt[s] += m * pt;
+          nxt[s + 19]! += m * pw2;
+          nxt[s]! += m * pt;
           if (s - 20 < 20) busted += m * pl;
-          else nxt[s - 20] += m * pl;
+          else nxt[s - 20]! += m * pl;
         }
         cur = nxt;
       }

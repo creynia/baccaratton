@@ -22,7 +22,7 @@ Every option, cheapest first (8 decks unless noted):
 
 | Table | Banker edge | Player edge | Banker, $10 for an hour |
 |---|---|---|---|
-| 4% commission (rare) | 0.60% | 1.24% | $4.31 |
+| 4% commission (rare) | 0.60% | 1.24% | $4.32 |
 | EZ Baccarat | **1.02%** | 1.24% | $7.33 |
 | 6 decks, 5% commission | 1.06% (1.0558%) | 1.24% (1.2374%) | $7.60 |
 | **8 decks, 5% commission (default)** | **1.06%** (1.0579%) | 1.24% (1.2351%) | **$7.62** |

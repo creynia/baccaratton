@@ -104,12 +104,14 @@
   {
     "term": "Per resolved bet",
     "definition": "A second way to quote the house edge that ignores the hands where the bet pushed (\"ties excluded\"). It reads higher than the per-hand figure, which is the one this app shows first.",
-    "see": ["house-edge"]
+    "see": ["house-edge"],
+    "seeAlso": "edge-and-hourly-cost"
   },
   {
     "term": "Element of risk",
     "definition": "Expected loss divided by everything wagered in a hand. In baccarat it always equals the [[house edge]], because nothing can be added to a bet once the cards are out.",
-    "see": ["house-edge"]
+    "see": ["house-edge"],
+    "seeAlso": "edge-and-hourly-cost"
   },
   {
     "term": "EV sheet",
@@ -162,12 +164,14 @@
   {
     "term": "EZ Baccarat",
     "definition": "A table variant with no [[commission]]: Banker wins pay 1 to 1, except a Banker win with a three-card 7, which pushes. It offers the Dragon 7 and Panda 8 side bets.",
-    "see": ["dragon-7", "panda-8", "super-6"]
+    "see": ["dragon-7", "panda-8", "super-6"],
+    "seeAlso": "table-variants"
   },
   {
     "term": "Super 6",
     "definition": "A table variant with no [[commission]]: Banker wins pay 1 to 1, except a Banker win with a total of 6, which pays only 1 to 2 (half). Also called Punto 2000.",
-    "see": ["ez-baccarat"]
+    "see": ["ez-baccarat"],
+    "seeAlso": "table-variants"
   },
   {
     "term": "Dragon 7",
@@ -182,22 +186,26 @@
   {
     "term": "Bead Plate",
     "definition": "A scoreboard with one bead per hand, in order: B (Banker), P (Player) or T (Tie). Red is Banker and blue is Player, but the letter is always there.",
-    "see": ["big-road", "gambler-s-fallacy"]
+    "see": ["big-road", "gambler-s-fallacy"],
+    "seeAlso": "roads-and-streaks"
   },
   {
     "term": "Big Road",
     "definition": "A scoreboard that groups the results into streaks: each column is a run of the same winner, and a new column starts when the other side wins. Ties are marked on the last bead. A long column is a \"dragon\".",
-    "see": ["bead-plate", "derived-roads", "gambler-s-fallacy"]
+    "see": ["bead-plate", "derived-roads", "gambler-s-fallacy"],
+    "seeAlso": "roads-and-streaks"
   },
   {
     "term": "Derived roads",
     "definition": "Big Eye Boy, Small Road and Cockroach Pig: patterns of patterns drawn from the [[Big Road]]. They carry no more information than the Big Road, and the app only explains them.",
-    "see": ["big-road"]
+    "see": ["big-road"],
+    "seeAlso": "roads-and-streaks"
   },
   {
     "term": "Gambler's fallacy",
     "definition": "The belief that past results change the next one: that Player is \"due\" after a run of Bankers, or that Banker is \"hot\". The cards don't remember who won.",
-    "see": ["big-road"]
+    "see": ["big-road"],
+    "seeAlso": "roads-and-streaks"
   },
   {
     "term": "Shoe tracker",
@@ -232,22 +240,26 @@
   {
     "term": "Bankroll",
     "definition": "The money you set aside to gamble with. In the app it is the stack the simulator plays from.",
-    "see": ["session", "variance"]
+    "see": ["session", "variance"],
+    "seeAlso": "variance-and-bankroll"
   },
   {
     "term": "Session",
     "definition": "One sitting at the table, from buy-in to walking away. The app's session panel tracks hands, amount bet, result and the expected cost so far.",
-    "see": ["bankroll"]
+    "see": ["bankroll"],
+    "seeAlso": "variance-and-bankroll"
   },
   {
     "term": "Variance",
     "definition": "How far results swing around the average. Over a few hands luck dominates; over thousands the [[house edge]] does. Measured by the standard deviation.",
-    "see": ["standard-deviation", "bankroll"]
+    "see": ["standard-deviation", "bankroll"],
+    "seeAlso": "variance-and-bankroll"
   },
   {
     "term": "Standard deviation",
     "definition": "The usual size of the swing in one bet's result, in units of the bet. Over many hands it grows only with the square root of the number of hands, while the expected loss grows in a straight line.",
-    "see": ["variance"]
+    "see": ["variance"],
+    "seeAlso": "variance-and-bankroll"
   },
   {
     "term": "Squeeze",
