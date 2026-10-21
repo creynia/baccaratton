@@ -134,8 +134,15 @@ h3 {
   font-weight: 700;
 }
 .tab-icon {
+  /* One fixed box for every glyph, so no icon renders larger than the others. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
   font-size: 1.25rem;
   line-height: 1;
+  overflow: hidden;
 }
 @media (min-width: 768px) {
   .tabbar {
@@ -149,7 +156,8 @@ h3 {
   }
 }
 
-main {
+/* #main takes focus after a route change: show the ring for keyboard focus only. */
+main:focus:not(:focus-visible) {
   outline: none;
 }
 .page {
@@ -263,6 +271,7 @@ main:has(> .page-wide) {
 
 .chapter header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
@@ -689,7 +698,14 @@ textarea {
   font-weight: 600;
   cursor: pointer;
 }
-.seg[aria-pressed='true'] {
+.seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.seg[aria-pressed='true'],
+.seg[aria-current='page'] {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--accent-ink);
@@ -834,4 +850,101 @@ textarea {
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
+}
+
+/* ---- app WP: Drill, Bets, Rules, hands ---- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.8rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.chip[aria-current='page'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.hand-pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  margin: 0.4rem 0 0.8rem;
+}
+.hand-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.side-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.side-player .side-label {
+  color: var(--player);
+}
+.side-banker .side-label {
+  color: var(--banker);
+}
+.drill-q {
+  font-size: 1.15rem;
+  margin: 0.4rem 0 0.8rem;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+.keypad .btn,
+.choice-row .btn {
+  min-height: 48px;
+}
+.drill-spot .btn.right {
+  outline: 3px solid var(--good);
+}
+.drill-spot .btn.wrong {
+  outline: 3px solid var(--bad);
+}
+.drill-result.ok strong:first-child {
+  color: var(--good);
+}
+.drill-result.no strong:first-child {
+  color: var(--bad);
+}
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.bet-list .bet-row header {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.bet-list h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.money {
+  white-space: nowrap;
+}
+.highlight-note {
+  border-color: var(--accent);
+}
+.cell-notes {
+  margin: 0.4rem 0;
+}
+.rules-card {
+  margin-bottom: 1rem;
 }
