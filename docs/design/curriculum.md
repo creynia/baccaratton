@@ -362,7 +362,7 @@ showEV: false
 steps:
   - id: bet
     text: "Put **$10 on Player**: tap a $10 chip, then the Player spot."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { betOnFelt: { bet: player, minAmount: 1000 } }
   - id: deal
     text: "Tap **Deal** and watch."
@@ -435,7 +435,6 @@ version: 1
 title: What's the total?
 bankroll: 50000
 bets: { player: 1000 }
-allowedActions: []
 showEV: false
 steps:
   - id: total
@@ -443,12 +442,14 @@ steps:
     deals:
       - { player: [9c, 6d, 3h], banker: [Kd, Jh, 7s] }
     pauseAt: two-cards
-    predict: { kind: hand-total, hand: player }
+    predict: { kind: hand-total, side: player }
+    allowedActions: [deal]
     hint: "9 + 6 = 15. Keep only the last digit."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: finish
     text: "Right, **5**. Banker has 0 (two picture cards). Both hands draw. Player's {{3h}} makes 8 and Banker's {{7s}} makes 7. **Player wins 8 to 7**, and your $10 on Player won."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
 ```
 
@@ -525,7 +526,6 @@ version: 1
 title: A natural stops everything
 bankroll: 50000
 bets: { player: 1000 }
-allowedActions: []
 showEV: false
 steps:
   - id: natural
@@ -534,11 +534,13 @@ steps:
       - { player: [4s, 5d], banker: [Qh, 8c] }
     pauseAt: two-cards
     predict: { kind: player-draws }
+    allowedActions: [deal]
     hint: "Look for an 8 or a 9 on either side."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: result
     text: "Player has a natural 9 and Banker a natural 8, so both stand. **9 beats 8**: Player wins."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
 ```
 
@@ -548,7 +550,6 @@ version: 1
 title: Player draws or stands?
 bankroll: 50000
 bets: { player: 1000 }
-allowedActions: []
 showEV: false
 steps:
   - id: draws
@@ -557,11 +558,13 @@ steps:
       - { player: [2h, 3c, 4d], banker: [Td, 7h] }
     pauseAt: two-cards
     predict: { kind: player-draws }
+    allowedActions: [deal]
     hint: "The Player draws on 0 to 5."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: draws-result
     text: "Draws. The {{4d}} makes 9. Banker's 7 stands (a Banker 7 always stands), and **Player wins 9 to 7**."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: stands
     text: "New hand: Player has {{Qs 6h}} = 6. Draw or stand?"
@@ -569,11 +572,13 @@ steps:
       - { player: [Qs, 6h], banker: [3d, 2s, 3c] }
     pauseAt: two-cards
     predict: { kind: player-draws }
+    allowedActions: [deal]
     hint: "On 6 or 7 the Player stands."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: stands-result
     text: "Stands on 6. The Banker had 5 and drew a {{3c}} to make 8. **Banker wins 8 to 6.** Why did the Banker draw? That's the next lesson."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
 ```
 
@@ -637,7 +642,6 @@ version: 1
 title: The Banker copies the Player's rule
 bankroll: 50000
 bets: { banker: 1000 }
-allowedActions: []
 showEV: false
 steps:
   - id: banker-draws
@@ -646,11 +650,13 @@ steps:
       - { player: [7c, Kh], banker: [4h, Jd, 5c] }
     pauseAt: two-cards
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "The Player stood, so the Banker uses the Player's rule: draw on 0 to 5."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: result-1
     text: "Draws on 4. The {{5c}} makes 9. **Banker wins 9 to 7**. Your Banker bet won $10 less 50¢ commission: **+$9.50**."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: tie
     text: "Player has {{3s 3h}} = 6 and stands. Banker has {{6d Ks}} = 6. Does the Banker draw?"
@@ -658,11 +664,13 @@ steps:
       - { player: [3s, 3h], banker: [6d, Ks] }
     pauseAt: two-cards
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "On 6 or 7, the Banker stands when the Player stood."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: result-2
     text: "Both stand on 6: a **tie**. Your Banker bet **pushes**: it comes back to you, with no win and no loss."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
 ```
 
@@ -738,7 +746,6 @@ version: 1
 title: One row at a time
 bankroll: 50000
 bets: { banker: 1000 }
-allowedActions: []
 showEV: false
 steps:
   - id: b3-p8
@@ -747,11 +754,13 @@ steps:
       - { player: [Ah, 2c, 8s], banker: [Jc, 3d] }
     pauseAt: player-third
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "Banker 3 draws on anything **except an 8**."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: b3-result
     text: "Stands: 3 against an 8 is the one stand in that row. The Banker's 3 beats the Player's 1."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: b4-p2
     text: "Player had 4 and drew a **2** (now 6). Banker has {{Qs 4s}} = **4**. Draw?"
@@ -759,11 +768,13 @@ steps:
       - { player: [Kd, 4c, 2h], banker: [Qs, 4s, 3h] }
     pauseAt: player-third
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "Banker 4 draws when the Player's third card is **2 to 7**."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: b4-result
     text: "Draws. The {{3h}} makes 7, and **Banker wins 7 to 6**."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: b5-p3
     text: "Player had 5 and drew a **3** (now 8). Banker has {{2d 3s}} = **5**. Draw?"
@@ -771,11 +782,13 @@ steps:
       - { player: [5h, Tc, 3d], banker: [2d, 3s] }
     pauseAt: player-third
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "Banker 5 draws only on a Player third card of **4 to 7**."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: b5-result
     text: "Stands, because a 3 is outside 4–7. Player's 8 wins. (Yes, the rule can leave the Banker standing on a loser. It's a fixed rule, not a choice.)"
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: b6-p7
     text: "Player had 0 and drew a **7**. Banker has {{4d 2c}} = **6**. Draw?"
@@ -783,11 +796,13 @@ steps:
       - { player: [Ks, Jh, 7c], banker: [4d, 2c, 2s] }
     pauseAt: player-third
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "Banker 6 draws only on a Player third card of **6 or 7**."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: b6-result
     text: "Draws. The {{2s}} makes 8, and **Banker wins 8 to 7**."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
   - id: b6-p5
     text: "Last one. Player had 2 and drew a **5** (now 7). Banker has {{3h 3c}} = **6**. Draw?"
@@ -795,11 +810,13 @@ steps:
       - { player: [Qd, 2s, 5s], banker: [3h, 3c] }
     pauseAt: player-third
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     hint: "Banker 6 draws only on a 6 or a 7."
-    completeWhen: { predicted: { correct: true } }
+    completeWhen: { predicted: { count: 1 } }
   - id: b6-p5-result
     text: "Stands on 6. **Player wins 7 to 6.** You now know the whole rule."
-    completeWhen: { all: [ { hands: 1 }, { acknowledged: true } ] }
+    allowedActions: []
+    completeWhen: { acknowledged: true }
     advance: button
 ```
 
@@ -865,12 +882,13 @@ title: Five in a row
 bankroll: 50000
 bets: { banker: 1000 }
 seed: 6
-allowedActions: []
 showEV: false
+onDealsExhausted: random
 steps:
   - id: player-calls
     text: "Random hands now. Call the **Player**: draw or stand? Get three right."
     predict: { kind: player-draws }
+    allowedActions: [deal]
     pauseAt: two-cards
     skipNaturals: true
     hint: "Player: 0 to 5 draws, 6 and 7 stand."
@@ -878,6 +896,7 @@ steps:
   - id: banker-calls
     text: "Now the **Banker**. The deal pauses after the Player's turn. Get five right."
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     pauseAt: player-third
     skipNaturals: true
     hint: "If the Player stood: 0 to 5 draws. If the Player drew: 3 all but 8, 4 on 2–7, 5 on 4–7, 6 on 6–7."
@@ -964,7 +983,7 @@ showEV: false
 steps:
   - id: bet
     text: "Put **$20 on Banker**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { betOnFelt: { bet: banker, minAmount: 2000 } }
   - id: deal
     text: "Tap **Deal**."
@@ -988,7 +1007,7 @@ showEV: false
 steps:
   - id: bet
     text: "Bet **$10 on Player** and **$5 on Tie**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: player, minAmount: 1000 } }, { betOnFelt: { bet: tie, minAmount: 500 } } ] }
   - id: deal
     text: "Tap **Deal**."
@@ -1088,15 +1107,15 @@ showEV: true
 steps:
   - id: player
     text: "Open the EV sheet for a **$10 Player** bet."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { previewed: { bet: player } }
   - id: banker
     text: "About **−$0.12**: 1.24% of the bet. Now open **Banker**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { previewed: { bet: banker } }
   - id: tie
     text: "Banker is a little cheaper: about **−$0.11**, 1.06%. Now **Tie**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { previewed: { bet: tie } }
   - id: summary
     text: "Tie costs **$1.44** per $10 bet: over 13 times as much as Banker. Same table, same cards, very different prices."
@@ -1342,12 +1361,12 @@ showEV: true
 steps:
   - id: compare
     text: "Open the EV sheet on **Player**, **Banker** and **Tie**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { previewed: { bet: player } }, { previewed: { bet: banker } }, { previewed: { bet: tie } } ] }
   - id: bet
     text: "Now place the **lowest-edge bet**: $10 where the sheet shows the smallest house edge."
-    allowedActions: [place-bet, clear-bets]
-    expect: [ { type: place-bet, bet: banker } ]
+    allowedActions: [set-bet, clear-bets]
+    expect: [ { type: set-bet, bet: banker } ]
     hint: "Banker: 1.06%, the lowest on this table."
     completeWhen: { betOnFelt: { bet: banker, minAmount: 1000 } }
   - id: play
@@ -1426,14 +1445,14 @@ Super 6 Banker: EV = P(Banker) − ½ × P(Banker wins with 6) − P(Player) = �
 id: l12-s1
 version: 1
 title: EZ Baccarat's Dragon 7
-rules: { variant: ez }
+variant: ez
 bankroll: 50000
 allowedBets: [banker]
 showEV: true
 steps:
   - id: bet
     text: "This is an **EZ Baccarat** table. Put **$10 on Banker** and open its EV sheet: 1.02%, no commission."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: banker, minAmount: 1000 } }, { previewed: { bet: banker } } ] }
   - id: deal
     text: "Tap **Deal**."
@@ -1452,14 +1471,14 @@ steps:
 id: l12-s2
 version: 1
 title: Super 6
-rules: { variant: super-6 }
+variant: super-6
 bankroll: 50000
 allowedBets: [banker]
 showEV: true
 steps:
   - id: bet
     text: "A **Super 6** table. Put **$10 on Banker** and open its EV sheet: **1.46%**, more than the Player bet here."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: banker, minAmount: 1000 } }, { previewed: { bet: banker } } ] }
   - id: deal
     text: "Tap **Deal**."
@@ -1528,11 +1547,13 @@ bankroll: 50000
 bets: { banker: 1000 }
 seed: 13
 showEV: true
+onDealsExhausted: random
 steps:
   - id: calls
     text: "Three random hands. For each, call whether the **Banker** draws."
-    allowedActions: []
+    allowedActions: [deal]
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     pauseAt: player-third
     skipNaturals: true
     hint: "Player stood: 0–5 draws. Player drew: 3 all but 8, 4 on 2–7, 5 on 4–7, 6 on 6–7."
@@ -1543,15 +1564,15 @@ steps:
 id: l13-s2
 version: 1
 title: A new table
-rules: { variant: super-6 }
+variant: super-6
 bankroll: 50000
 showEV: true
 steps:
   - id: switch
     text: "A **Super 6** table. Place **$10 on the lowest-edge main bet**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     allowedBets: [player, banker, tie]
-    expect: [ { type: place-bet, bet: player } ]
+    expect: [ { type: set-bet, bet: player } ]
     hint: "At Super 6, Banker is 1.46% and Player 1.24%."
     completeWhen: { betOnFelt: { bet: player, minAmount: 1000 } }
 ```
@@ -1635,7 +1656,7 @@ ui: { showSession: true }
 steps:
   - id: bet
     text: "Put **$25 on Banker** and open its EV sheet: expected **−$0.26** a hand, **−$19.04** an hour."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     allowedBets: [banker]
     completeWhen: { all: [ { betOnFelt: { bet: banker, minAmount: 2500 } }, { previewed: { bet: banker } } ] }
   - id: play
@@ -1829,11 +1850,11 @@ steps:
     completeWhen: { tapped: big-road }
   - id: ev
     text: "Is Player \"due\"? Open the EV sheet on **Player** and then **Banker**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { previewed: { bet: player } }, { previewed: { bet: banker } } ] }
   - id: same
     text: "Exactly the same prices as a fresh shoe: Banker 1.06%, Player 1.24%. Place any $10 bet and deal."
-    allowedActions: [place-bet, clear-bets, deal]
+    allowedActions: [set-bet, clear-bets, deal]
     allowedBets: [player, banker]
     completeWhen: { hands: 1 }
   - id: bead
@@ -1954,7 +1975,7 @@ steps:
 id: l17-s2
 version: 1
 title: A Dragon 7 shoe
-rules: { variant: ez }
+variant: ez
 bankroll: 100000
 showEV: true
 ui: { shoeTracker: true }
@@ -1966,7 +1987,7 @@ steps:
     completeWhen: { tapped: shoe-tracker }
   - id: d7
     text: "Dragon 7 is now worth about **+32%** for the cards left, against −7.61% on a fresh shoe. Open the EV sheet on **Dragon 7**: the sheet still shows the fresh-shoe −7.61%, and the tracker shows this shoe."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     allowedBets: [dragon-7]
     completeWhen: { previewed: { bet: dragon-7 } }
   - id: end
@@ -2053,9 +2074,9 @@ ui: { showSession: true }
 steps:
   - id: bet
     text: "Your plan: **$10 Banker, flat, $300 bankroll**. Place the bet."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     allowedBets: [banker]
-    expect: [ { type: place-bet, bet: banker } ]
+    expect: [ { type: set-bet, bet: banker } ]
     completeWhen: { betOnFelt: { bet: banker, minAmount: 1000 } }
   - id: play
     text: "Deal **12 hands**, about ten minutes of real play. Use **Rebet** to keep it flat."
@@ -2158,12 +2179,12 @@ autoPlay:
   compare:
     - { id: flat-banker, unit: 1000 }
     - { id: follow-the-shoe, unit: 1000 }
-    - { id: paroli, unit: 1000, bet: banker }
-    - { id: one-three-two-six, unit: 1000, bet: banker }
-    - { id: fibonacci, unit: 1000, bet: banker }
-    - { id: martingale, unit: 1000, bet: banker }
-    - { id: dalembert, unit: 1000, bet: banker }
-    - { id: labouchere, unit: 1000, bet: banker }
+    - { id: paroli, unit: 1000, target: banker }
+    - { id: one-three-two-six, unit: 1000, target: banker }
+    - { id: fibonacci, unit: 1000, target: banker }
+    - { id: martingale, unit: 1000, target: banker }
+    - { id: dalembert, unit: 1000, target: banker }
+    - { id: labouchere, unit: 1000, target: banker }
 steps:
   - id: run
     text: "Each system plays **100 three-hour sessions** on the **same cards**, from a $3,000 bankroll and a $10 unit. Tap **Run**."
@@ -2259,7 +2280,7 @@ showEV: true
 steps:
   - id: bet
     text: "Bet **$10 on Player**, **$5 on Player Pair** and **$5 on Dragon Bonus (Player)**. Open the EV sheet on each side bet as you place it."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: player, minAmount: 1000 } }, { betOnFelt: { bet: player-pair, minAmount: 500 } }, { betOnFelt: { bet: dragon-bonus-player, minAmount: 500 } }, { previewed: { bet: player-pair } }, { previewed: { bet: dragon-bonus-player } } ] }
   - id: deal
     text: "Tap **Deal**."
@@ -2344,14 +2365,14 @@ Big/Small: P(4 cards) = 140356/370461 ≈ 37.887%.
 id: l21-s1
 version: 1
 title: Panda 8
-rules: { variant: ez }
+variant: ez
 bankroll: 50000
 allowedBets: [player, panda-8, dragon-7]
 showEV: true
 steps:
   - id: bet
     text: "At an EZ table: **$10 on Player** and **$5 on Panda 8**. Open the EV sheet on **Panda 8** and **Dragon 7**."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { all: [ { betOnFelt: { bet: player, minAmount: 1000 } }, { betOnFelt: { bet: panda-8, minAmount: 500 } }, { previewed: { bet: panda-8 } }, { previewed: { bet: dragon-7 } } ] }
   - id: deal
     text: "Tap **Deal**."
@@ -2444,8 +2465,8 @@ autoPlay:
   sessions: [100]
   compare:
     - { id: flat-banker, unit: 1000, label: "$10 Banker" }
-    - { id: flat-banker, unit: 1000, side: { dragon-bonus-player: 500 }, label: "+ $5 Dragon Bonus Player" }
-    - { id: flat-banker, unit: 1000, side: { tie: 500 }, label: "+ $5 Tie" }
+    - { id: flat-banker, unit: 1000, sideBets: { dragon-bonus-player: 500 }, label: "+ $5 Dragon Bonus Player" }
+    - { id: flat-banker, unit: 1000, sideBets: { tie: 500 }, label: "+ $5 Tie" }
 steps:
   - id: run
     text: "Run **100 three-hour evenings** of each plan on the same cards. Tap **Run**."
@@ -2533,7 +2554,7 @@ showEV: true
 steps:
   - id: bet
     text: "Bet **$20 on Banker**: a commission-friendly amount."
-    allowedActions: [place-bet, clear-bets]
+    allowedActions: [set-bet, clear-bets]
     completeWhen: { betOnFelt: { bet: banker, minAmount: 2000 } }
   - id: deal
     text: "Tap **Deal**."
@@ -2593,19 +2614,22 @@ bankroll: 50000
 bets: { banker: 1000 }
 seed: 24
 showEV: true
+onDealsExhausted: random
 steps:
   - id: player
     text: "Two Player calls: **draw or stand**?"
-    allowedActions: []
+    allowedActions: [deal]
     predict: { kind: player-draws }
+    allowedActions: [deal]
     pauseAt: two-cards
     skipNaturals: true
     hint: "0 to 5 draws; 6 and 7 stand."
     completeWhen: { predicted: { correct: true, count: 2 } }
   - id: banker
     text: "Three Banker calls."
-    allowedActions: []
+    allowedActions: [deal]
     predict: { kind: banker-draws }
+    allowedActions: [deal]
     pauseAt: player-third
     skipNaturals: true
     hint: "Player stood: 0–5 draws. Player drew: 3 all but 8, 4 on 2–7, 5 on 4–7, 6 on 6–7."
@@ -2616,14 +2640,14 @@ steps:
 id: l24-s2
 version: 1
 title: Final bet
-rules: { variant: ez }
+variant: ez
 bankroll: 50000
 showEV: true
 steps:
   - id: bet
     text: "An EZ table. Place **$10 on the lowest-edge bet** available."
-    allowedActions: [place-bet, clear-bets]
-    expect: [ { type: place-bet, bet: banker } ]
+    allowedActions: [set-bet, clear-bets]
+    expect: [ { type: set-bet, bet: banker } ]
     hint: "EZ Banker: 1.02%."
     completeWhen: { betOnFelt: { bet: banker, minAmount: 1000 } }
 ```

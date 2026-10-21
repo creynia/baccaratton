@@ -37,3 +37,89 @@
 | D23 | Scenes | The `SceneConfig` in simulator.md §5.1 is authoritative; the curriculum's scene names map 1:1 (simulator.md §5.3). |
 | D24 | File ownership | simulator.md §8 wins inside `src/sim/**`; architecture.md for the rest. Content split: **content-a** lessons 1–8 + `content/*.json`; **content-b** lessons 9–16; **content-c** lessons 17–24. |
 | D25 | Pinned numbers | simulator.md §2.5 is the source of the pinned fractions; curriculum.md must match it. |
+
+## 3. Design-review resolutions (Opus review of 5aa9dd6)
+
+An independent exact enumerator (Python `fractions`) reproduced every pinned number in simulator.md
+§2.5 and curriculum.md §6 and §11, plus the removal effects, the systems' 72-hand costs, the ruin and
+streak tables, and Labouchère (≈ simulated). The five frozen type blocks compile under `--strict`.
+The items below fix the scene dialect, contracts and copy. Content and implementation agents follow
+these over the spike docs.
+
+### D26 Scene dialect (content writes simulator `SceneConfig` only)
+Mapping: `rules:{variant}` → `variant`; `place-bet` → `set-bet`; `predict.hand` → `predict.side`;
+`shoe:{remaining}` → `shoe:{removed}` (removed = 8-deck count − remaining); StrategySpec `bet` →
+`target`, `side` → `sideBets`. Add `skipNaturals?: boolean` to `SceneStep`: on a natural hand no
+PredictBar shows and the hand doesn't count. There is no "Natural, nobody draws" button; l03-s1 asks
+"Does the Player draw?" (answer Stand, rule `natural`). Predict buttons read **Draw · Stand**.
+
+### D27 Predict and result steps
+Predict steps allow `[deal]` and carry the step's `deals`. A single forced-hand step completes on
+`{predicted:{count:1}}`: a wrong answer shows the hint and the rule row, with no replay, so the next
+step's text stays true. Random-hand steps keep `{predicted:{correct:true,count:n}}` with
+`onDealsExhausted: random`. Result steps use `{acknowledged:true}` with `allowedActions: []`. The
+`hands` condition counts only hands dealt since the step started. `read` steps (l09, l10, l15,
+l17-s1, l19, l22) set `allowedActions: []`.
+
+### D28 Systems contract
+Optional StrategySpec fields `maxSteps` (Martingale 7), `maxUnits` (D'Alembert 20), `maxBetUnits`
+(Labouchère 100); Fibonacci resets after a loss on 89. Over a limit the system resets to step 1
+(D'Alembert stays at its cap). Bust = the next bet can't be covered. The exact lesson costs must
+equal what auto-play reports with these caps.
+
+### D29 Drill contract
+`DrillSpot` and `DrillFilter` carry `category: DrillCategoryId` (the 14 ids in curriculum.md §9.1).
+`DrillMode` groups them: `player` ⊇ natural, player-draw; `banker` ⊇ banker-*; `winner` = who-wins;
+`payout` = settle; hand-total and which-bet appear in `mixed`. Progress is persisted per category;
+routes take `?cat=` and `?focus=misses`. There is no `total` mode.
+
+### D30 Copy and number fixes (curriculum spike applies)
+- Pair SD **3.1549** (lesson 15: "3.15").
+- Player vs Banker at $10 × 72/h = **$1.28** (lessons 11, 14, 18 prose, quizzes, tables); lesson 14
+  **$11.43**; §9.3 **$60.59/h**; lesson 22 Dragon Bonus Player big wins per hour **2.0**.
+- Shoe study re-run under D8/D17 (one more hand after the cut card), all labelled ≈ simulated:
+  Banker positive on ≈0.19% of hands (avg +0.37% when positive); Dragon 7 positive ≈11.5%; Panda 8
+  ≈5.3%; count ≥ +4 on ≈9.2% of hands, avg ≈+7.8%. Lesson 17: "about 1 hand in 500, by about
+  0.4%… about 5 cents an hour"; "about 9% of hands, about +8% per bet, roughly $13 an hour at $25
+  (≈ simulated)". Delete §13.4's "changes nothing material".
+- Tier names per D19 everywhere: `costly` / `sucker`, badges "Costly" / "Sucker bet" / "No house
+  edge" (tracker "Edge to you"); setting `confirmCostlyBets`. The Sucker confirmation is the inline
+  second tap; the sheet does not auto-open.
+- l01-s2: "tap the $5 chip twice" (no $10 chip, D16).
+- l17-s1: run step `allowedActions:[deal,rebet]`, `completeWhen:{hands:20}`; tracker "rows", not "lines".
+- l22-s1: "the expected line", not the band's centre. Lesson 17: "52 cards left, no 4s, eight 6s".
+- With `rebet` allowed and `lastBets` non-empty, the empty-felt Deal button is "Rebet & Deal".
+
+### D31 Alternatives
+"Use this" always moves the amount to the cheapest **main** bet (in `super-6`, Player). §8.3 may name
+a cheaper side bet in text only. The Player → Banker tip is shown.
+
+### D32 Per-resolved edge (amends D14)
+The per-resolved-bet figure (ties excluded) appears in "Why?", in More → Bets detail, and in lesson
+13/14 prose. Never on the EV sheet's headline.
+
+### D33 Architecture names (architecture spike applies)
+`rules`/`commission` settings and `?rules=`/`?commission=` → `variant`, `tiePays`, `?variant=`,
+`?tie=`; `simulateMany` → `simulate` with `sessions`; `previewBets` → `previewSlip`; Drill `total`
+mode → `winner`; curriculum §10 "in the worker" → same thread. Content split per D24 (replace the
+architecture §9 descriptions).
+
+### D34 Markup
+Tableau view `full` (not `both`). One cell-id syntax: simulator `TableauCellId` (`b4/p7`, `b6/s`,
+`p5`), including `#/rules?highlight=`. Quiz `hand` is YAML arrays. The ` ```roads ` block is parsed by
+engine `parseRoadString` (engine/roads.ts).
+
+### D35 UI ownership additions
+table-ui owns `SessionPanel.tsx` (curriculum §8.4 fields; used in l14, l18) and a tappable commission
+line in the settlement toast (target `commission`, l07-s1, l23-s1).
+
+### D36 Shoe setups
+A `ShoeSetup` may leave as few as 6 unseen cards; no deal is allowed when fewer than 40 cards remain
+before the cut card. The burn's face-up card comes from the removed set (l17-s2's 52-card shoe).
+
+### D37 WP0 additions
+WP0 also creates `src/sim/engine/job.ts` verbatim from holdumb (`protocol.ts` imports it; frozen,
+prettier-ignored) and `src/sim/ui/types.ts` with `SimSettings` (D13 fields; app `Settings` extends
+it). WP0 implements `TABLEAU`, `betsOffered` and `parseRoadString` for real, with variant ids. Batons
+add `src/sim/ui/types.ts`, `src/sim/engine/job.ts`, `.prettierignore` and architecture §6's [B]
+dotfiles. Simulator §1.1 `parseCard(s)` → `parseCards`.
