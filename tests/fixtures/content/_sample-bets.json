@@ -1,0 +1,14 @@
+{
+  "player": {
+    "summary": "Placeholder: player.",
+    "howItWorks": "Placeholder text. The real description is written by the lesson authors."
+  },
+  "banker": {
+    "summary": "Placeholder: banker.",
+    "howItWorks": "Placeholder text. The real description is written by the lesson authors."
+  },
+  "tie": {
+    "summary": "Placeholder: tie.",
+    "howItWorks": "Placeholder text. The real description is written by the lesson authors."
+  }
+}

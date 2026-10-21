@@ -1,0 +1,20 @@
+[
+  {
+    "term": "Natural",
+    "slug": "natural",
+    "definition": "A two-card total of 8 or 9. Both hands stand.",
+    "see": ["banker"]
+  },
+  {
+    "term": "Banker",
+    "slug": "banker",
+    "definition": "The hand that acts last. Placeholder entry.",
+    "see": ["natural"],
+    "seeAlso": "sample-welcome"
+  },
+  {
+    "term": "House edge",
+    "slug": "house-edge",
+    "definition": "The average share of each bet the casino keeps in the long run."
+  }
+]
