@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { applyAction, createGame, visibleView } from '../engine/game';
 import { VARIANT_RULES } from '../engine/rules';
 import type { TableRules, VisibleView } from '../engine/types';
 import { fullShoeRanks } from './distribution';
@@ -66,4 +67,35 @@ describe('shoeTracker (D6)', () => {
     expect(no5.ev).toEqual(frac(-188767945306n, 15052588566975n));
     expect(no5.delta.num < 0n).toBe(true);
   });
+});
+
+describe('shoeTracker on a real engine game', () => {
+  it('follows the shoe hand by hand; a whole shoe of live recomputes stays fast', () => {
+    let state = createGame({ seed: 12345 });
+    let view = visibleView(state);
+    expect(shoeTracker(view).nextHandNewShoe).toBe(true);
+    const times: number[] = [];
+    let hands = 0;
+    let prev = shoeTracker(view);
+    for (;;) {
+      const r = applyAction(state, { type: 'deal' });
+      if (!r.ok) throw new Error(r.error.message);
+      state = r.state;
+      hands++;
+      view = visibleView(state);
+      if (view.nextHandNewShoe) break;
+      const t0 = performance.now();
+      const t = shoeTracker(view);
+      times.push(performance.now() - t0);
+      expect(t.cardsLeft).toBe(view.unseenRanks.reduce((a, b) => a + b, 0));
+      expect(t.cardsLeft).toBeLessThan(prev.cardsLeft);
+      prev = t;
+    }
+    expect(hands).toBeGreaterThan(60);
+    expect(shoeTracker(view).rows.every((r) => r.delta.num === 0n)).toBe(true);
+    times.sort((a, b) => a - b);
+    const p50 = times[Math.floor(times.length / 2)]!;
+    console.log(`[perf] tracker over ${hands} hands: p50 ${p50.toFixed(2)} ms`);
+    expect(p50).toBeLessThan(10);
+  }, 60_000);
 });
