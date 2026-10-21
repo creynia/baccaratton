@@ -42,7 +42,7 @@ export function SurvivalChart({ series, hands, class: cls }: SurvivalChartProps)
     setHover(Math.max(0, Math.min(hands, Math.round(fx * hands))));
   };
   return (
-    <figure class={cls} style={{ margin: 0, position: 'relative' }} data-testid="survival-chart">
+    <figure class={cls} style={{ margin: 0 }} data-testid="survival-chart">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
@@ -100,35 +100,33 @@ export function SurvivalChart({ series, hands, class: cls }: SurvivalChartProps)
           onPointerMove={onMove}
           onPointerDown={onMove}
           onPointerLeave={() => setHover(null)}
+          onPointerUp={() => setHover(null)}
+          onPointerCancel={() => setHover(null)}
         />
       </svg>
-      {hover !== null ? (
-        <div
-          role="status"
-          style={{
-            position: 'absolute',
-            top: '4px',
-            right: '8px',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            border: '1px solid color-mix(in srgb, var(--muted) 40%, transparent)',
-            borderRadius: '6px',
-            padding: '4px 8px',
-            fontSize: '12px',
-            pointerEvents: 'none',
-          }}
-        >
-          <div style={{ color: 'var(--muted)' }}>Hand {hover.toLocaleString('en-US')}</div>
-          {series.map((s, k) =>
-            s.survival ? (
-              <div key={k} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                <Swatch k={k} />
-                {seriesLabel(s.strategy)}: {pct(s.survival[hover]!)} still playing
-              </div>
-            ) : null,
-          )}
-        </div>
-      ) : null}
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          minHeight: `${1.45 * (series.length + 1)}em`,
+          fontSize: '12px',
+          color: 'var(--text)',
+        }}
+      >
+        {hover === null ? null : (
+          <div data-testid="survival-tooltip">
+            <div style={{ color: 'var(--muted)' }}>Hand {hover.toLocaleString('en-US')}</div>
+            {series.map((s, k) =>
+              s.survival ? (
+                <div key={k} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <Swatch k={k} />
+                  {seriesLabel(s.strategy)}: {pct(s.survival[hover]!)} still playing
+                </div>
+              ) : null,
+            )}
+          </div>
+        )}
+      </div>
       <Legend series={series} />
       <figcaption style={{ fontSize: '12px', color: 'var(--muted)' }}>
         Sessions not busted (≈ simulated). Bust: the next bet can't be covered.
