@@ -256,7 +256,8 @@ function backUp(storage: StorageLike, text: string, now: number) {
 
 /**
  * Never throws. Unreadable or unknown-version data is copied to `baccaratton:v1:backup-<ts>`
- * before defaults are used; data from a newer version (version > 1) is left untouched (readOnly).
+ * before defaults are used; data from a newer version (version > 1) is left untouched, with no
+ * backup (readOnly).
  */
 export function loadDetailed(storage: StorageLike, now = Date.now()): LoadResult {
   let text: string | null;
@@ -273,11 +274,13 @@ export function loadDetailed(storage: StorageLike, now = Date.now()): LoadResult
     backUp(storage, text, now);
     return { data: defaultPersisted(), readOnly: false };
   }
+  // Data from a newer app: leave it alone (no backup copy on every boot) and never overwrite it.
+  if (isObj(parsed) && typeof parsed.version === 'number' && parsed.version > 1)
+    return { data: defaultPersisted(), readOnly: true };
   const data = migrate(parsed);
   if (data) return { data, readOnly: false };
   backUp(storage, text, now);
-  const newer = isObj(parsed) && typeof parsed.version === 'number' && parsed.version > 1;
-  return { data: defaultPersisted(), readOnly: newer };
+  return { data: defaultPersisted(), readOnly: false };
 }
 
 export function load(storage: StorageLike): PersistedV1 {

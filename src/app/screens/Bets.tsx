@@ -138,8 +138,9 @@ export function BetsList({ query }: { query: URLSearchParams }) {
         })}
       </ul>
       <p class="muted">
-        House edge per bet placed, ties counted as a push for Player and Banker. Exact for a full
-        8-deck shoe.
+        House edge per bet placed, ties counted as a push for Player and Banker
+        {variant === 'ez' ? ', and as a push for Banker when it wins with a three-card 7' : ''}.
+        Exact for a full 8-deck shoe.
       </p>
     </div>
   );

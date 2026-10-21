@@ -22,7 +22,7 @@ import type {
 } from '../../sim';
 import { HandPair } from '../components/Cards';
 import { Link } from '../components/Link';
-import { useStore } from '../context';
+import { useContent, useStore } from '../context';
 import { isCell } from '../tableauText';
 
 /** The strategy module's drill API (frozen types); tests pass fakes. */
@@ -102,6 +102,24 @@ export function drillHref(q: DrillQuery): string {
   return s ? `/drill?${s}` : '/drill';
 }
 
+/** The lesson that teaches each category (curriculum.md sections 4 and 9). */
+export const CATEGORY_LESSON: Record<DrillCategoryId, string> = {
+  'hand-total': 'card-values',
+  natural: 'naturals-and-player-rule',
+  'player-draw': 'naturals-and-player-rule',
+  'banker-player-stood': 'banker-when-player-stands',
+  'banker-0-2': 'banker-third-card-table',
+  'banker-3': 'banker-third-card-table',
+  'banker-4': 'banker-third-card-table',
+  'banker-5': 'banker-third-card-table',
+  'banker-6': 'banker-third-card-table',
+  'banker-7': 'banker-third-card-table',
+  'banker-mixed': 'banker-third-card-table',
+  'who-wins': 'third-card-practice',
+  settle: 'settling-bets',
+  'which-bet': 'strategy-lowest-edge',
+};
+
 /** splitmix32 → the engine's four-word RNG state. */
 export function rngFromSeed(seed: number): RngState {
   let x = seed >>> 0;
@@ -138,6 +156,8 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
   const key = drillHref(q);
   const rng = useRef<RngState>(rngFromSeed(Date.now()));
   const missQueue = useRef<string[]>([]);
+  const nextRef = useRef<HTMLButtonElement>(null);
+  const content = useContent();
   const [spot, setSpot] = useState<DrillSpot | null>(null);
   const [grade, setGrade] = useState<DrillGrade | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -177,6 +197,11 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
     deal();
   }, [key]);
 
+  // After an answer, focus moves to Next (keyboard and screen-reader users land on the result).
+  useEffect(() => {
+    if (grade) nextRef.current?.focus();
+  }, [grade]);
+
   const choose = (option: string) => {
     if (!spot || grade) return;
     try {
@@ -192,6 +217,9 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
   const cats = categoriesOf(q.mode);
   const keypad = spot?.category === 'hand-total';
   const copy = grade ? gradeCopy(grade) : null;
+  const lesson = grade
+    ? content.lessons.find((l) => l.id === CATEGORY_LESSON[grade.category])
+    : undefined;
   const showRule = grade !== null && grade.rule !== null && grade.cell !== '';
   const statCats =
     q.mode === 'banker' ? [] : cats.filter((c) => q.mode !== 'mixed' || d.byCategory[c]?.answered);
@@ -301,7 +329,7 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
             />
           )}
           <div class="row">
-            <button type="button" class="btn" onClick={deal}>
+            <button type="button" class="btn" ref={nextRef} onClick={deal}>
               Next
             </button>
             {showRule && (
@@ -312,6 +340,11 @@ export function Drill(props: { query: URLSearchParams; deps?: DrillDeps }) {
             {spot.player.length >= 2 && spot.banker.length >= 2 && (
               <Link to={`/play?shoe=${shoeParam(spot.player, spot.banker)}`} class="btn btn-ghost">
                 Play it out
+              </Link>
+            )}
+            {lesson && (
+              <Link to={`/learn/${lesson.id}`} class="btn btn-ghost">
+                Lesson: {lesson.title}
               </Link>
             )}
           </div>

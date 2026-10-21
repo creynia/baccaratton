@@ -94,9 +94,12 @@ describe('storage', () => {
   });
 
   it('is read-only on data from a newer version', () => {
-    const r = loadDetailed(withData({ version: 2, lessons: {} }));
+    const m = withData({ version: 2, lessons: {} });
+    const r = loadDetailed(m);
     expect(r.readOnly).toBe(true);
     expect(r.data).toEqual(defaultPersisted());
+    // no backup copy of newer data (it would pile up on every boot)
+    expect(m.keys()).toEqual([STORAGE_KEY]);
   });
 
   it('ignores prototype-polluting keys', () => {
@@ -218,6 +221,8 @@ describe('Store', () => {
     const newer = withData({ version: 9 });
     const t = new Store(newer);
     expect(t.persistent).toBe(false);
+    expect(t.readOnly).toBe(true);
+    expect(s.readOnly).toBe(false);
     t.completeLesson('x');
     t.flush();
     expect(JSON.parse(newer.getItem(STORAGE_KEY)!)).toEqual({ version: 9 });
