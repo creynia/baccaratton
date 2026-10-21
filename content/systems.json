@@ -25,7 +25,8 @@
       "After a **win**, go back to 1 unit. A tie repeats the same bet.",
       "After **7 losses in a row** (or when the next bet is over the table limit), give up the chase and go back to 1 unit.",
       "On Banker, a win after a long run of losses can still lose money overall, because the commission grows with the bet."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "paroli": {
     "title": "Paroli",
@@ -33,7 +34,8 @@
     "rules": [
       "Start at **1 unit**. After a **win**, double: 1, 2, 4 units.",
       "After the **third win in a row**, or after any **loss**, go back to 1 unit. A tie repeats the same bet."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "one-three-two-six": {
     "title": "1-3-2-6",
@@ -41,7 +43,8 @@
     "rules": [
       "Bet **1, 3, 2, 6 units**, moving one step on after each **win**.",
       "After the **fourth win**, or after any **loss**, go back to 1 unit. A tie repeats the same bet."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "fibonacci": {
     "title": "Fibonacci",
@@ -50,7 +53,8 @@
       "Bets follow **1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 units**.",
       "A **loss** moves one step forward. A **win** moves two steps back, never below the first step. A tie repeats the same bet.",
       "A loss on 89 units goes back to the first step."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "dalembert": {
     "title": "D'Alembert",
@@ -58,7 +62,8 @@
     "rules": [
       "Start at **1 unit**. After a **loss**, bet 1 unit more. After a **win**, bet 1 unit less, never below 1.",
       "The bet never goes over **20 units**: at the cap it stays there until a win. A tie repeats the same bet."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "labouchere": {
     "title": "Labouchère",
@@ -68,7 +73,8 @@
       "A **win** crosses both numbers off. A **loss** adds the amount you bet to the end of the line. A tie repeats the same bet.",
       "When the line is empty, write 1-2-3-4 again.",
       "A bet over **100 units** restarts the line, so the next bet is 5 units."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "follow-the-shoe": {
     "title": "Follow the shoe",
@@ -76,7 +82,8 @@
     "rules": [
       "Bet **1 unit on the side that won the last hand that wasn't a tie**. Ties are skipped.",
       "On the first hand of a shoe, bet Banker."
-    ]
+    ],
+    "lessonId": "betting-systems"
   },
   "side-bet-sprinkler": {
     "title": "Side-bet sprinkler",
@@ -84,6 +91,7 @@
     "rules": [
       "Bet **1 unit on Banker** every hand.",
       "Add the same small **side bets** every hand as well (by default $5 on Player Pair and $5 on Banker Pair)."
-    ]
+    ],
+    "lessonId": "strategy-fun-per-dollar"
   }
 }

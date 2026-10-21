@@ -32,18 +32,24 @@
     "id": "perfect-practical",
     "title": "Perfect strategy II: practical",
     "summary": "Bankroll, sessions, scoreboards and counting, and what really matters.",
-    "lessons": ["edge-and-hourly-cost", "variance-and-bankroll", "roads-and-streaks"]
+    "lessons": [
+      "edge-and-hourly-cost",
+      "variance-and-bankroll",
+      "roads-and-streaks",
+      "card-counting",
+      "strategy-practical"
+    ]
   },
   {
     "id": "perfect-fun",
     "title": "Perfect strategy III: fun per dollar",
     "summary": "Betting systems and side bets, priced per hour.",
-    "lessons": []
+    "lessons": ["betting-systems", "pairs-and-dragon-bonus", "ez-side-bets", "strategy-fun-per-dollar"]
   },
   {
     "id": "real-casino",
     "title": "The real casino",
     "summary": "Table types, the squeeze, commission, etiquette and the final exam.",
-    "lessons": []
+    "lessons": ["at-the-casino", "final-exam"]
   }
 ]
