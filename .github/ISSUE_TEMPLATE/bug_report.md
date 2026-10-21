@@ -15,4 +15,4 @@ labels: bug
 
 **Where were you using it?** (Pages site / installed app / downloaded `baccaratton.html`; device and browser; the build code from Settings → About)
 
-**If it is a math, EV or payout bug:** the hand, the board, the bet, and the number you expected (with the source).
+**If it is a math, EV or payout bug:** the hands (cards in deal order), the bet, the variant, and the number you expected (with the source).

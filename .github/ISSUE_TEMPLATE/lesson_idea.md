@@ -4,9 +4,9 @@ about: Suggest a lesson, quiz question or explanation to add or improve
 labels: lesson
 ---
 
-**Topic** (e.g. "Why you always bet 4x preflop with a pair", "The Blind pays on a flush or better")
+**Topic** (e.g. "When the Banker draws on 5", "Why Tie costs 14%")
 
-**Who is it for?** (complete beginner / knows poker but not UTH / wants perfect strategy)
+**Who is it for?** (complete beginner / knows the basics / wants the lowest-edge, practical or fun-per-dollar strategy)
 
 **What should the learner be able to do or understand afterwards?**
 
