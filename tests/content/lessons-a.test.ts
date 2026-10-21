@@ -256,7 +256,7 @@ describe('scenes', () => {
     ];
     const steps = new Map(
       IDS.flatMap((id) => scenesOf(id)).flatMap((s) =>
-        (s.steps ?? []).map((st) => [`${s.id}/${st.id}`, st] as const),
+        (s.steps ?? []).map((st) => [String(`${s.id}/${st.id}`), st] as const),
       ),
     );
     for (const [key, want] of calls) {
@@ -325,7 +325,7 @@ describe('quizzes', () => {
 
 /** Exact 8-deck tableau, enumerated by card value over ordered 6-card sequences. */
 function enumerate() {
-  const counts = [128, 32, 32, 32, 32, 32, 32, 32, 32, 32];
+  const counts: number[] = [128, 32, 32, 32, 32, 32, 32, 32, 32, 32];
   const N = 416;
   // tail[k] = (N-k)(N-k-1)...(N-5): the unused positions of a six-card sequence. Exact below 2^53.
   const tail = (k: number) => {
@@ -334,8 +334,8 @@ function enumerate() {
     return t;
   };
   const acc = { player: 0, banker: 0, tie: 0, natural: 0, pDraws: 0, bDraws: 0 };
-  const take = (v: number) => counts[v]--;
-  const back = (v: number) => counts[v]++;
+  const take = (v: number) => (counts[v] = counts[v]! - 1);
+  const back = (v: number) => (counts[v] = counts[v]! + 1);
   for (let p1 = 0; p1 < 10; p1++) {
     const w1 = counts[p1]!;
     take(p1);
