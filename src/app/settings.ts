@@ -1,7 +1,7 @@
-import { DEFAULT_SIM_SETTINGS } from '../sim/ui/types';
-import type { SimSettings } from '../sim/ui/types';
+import { DEFAULT_SIM_SETTINGS } from '../sim';
+import type { SimSettings } from '../sim';
 
-/** Persisted settings (architecture.md section 2.4). The app WP owns this file after WP0. */
+/** Persisted settings (architecture.md section 2.4). App-only fields extend the sim's. */
 export interface Settings extends SimSettings {
   theme: 'system' | 'light' | 'dark';
   reduceMotion: boolean;

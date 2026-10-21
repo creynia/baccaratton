@@ -96,6 +96,9 @@ describe('tableau blocks', () => {
       tableau: { view: 'full', highlight: ['b5/p9', 'b6/s', 'b0/p0', 'p5'] },
     });
     expect(blocksOf('```tableau\nview: player\n```')).toHaveLength(1);
+    expect(blocksOf('```tableau\nview: player\nhighlight: [nat]\n```')[0]).toMatchObject({
+      tableau: { highlight: ['nat'] },
+    });
     expect(blocksOf('```tableau\nview: banker\n```')[0]).toMatchObject({
       tableau: { view: 'banker' },
     });

@@ -26,6 +26,12 @@ describe.skipIf(!existsSync('dist/sw.js'))('dist/sw.js', () => {
     expect(assets.length).toBeGreaterThan(0);
     for (const a of assets) expect(urls).toContain(`./assets/${a}`);
   });
+  it('precaches with cache: reload (bypasses the HTTP cache, Pages max-age=600)', () => {
+    expect(sw).toMatch(/new Request\(\w+, \{ cache: ["']reload["'] \}\)/);
+  });
+  it('deletes only its own old caches on activate', () => {
+    expect(sw).toMatch(/startsWith\(PREFIX\) && \w+ !== CACHE/);
+  });
   it('never skips waiting on its own and does not cache the offline copy', () => {
     expect(sw).toContain('SKIP_WAITING');
     expect(list()).not.toContain('./baccaratton.html');

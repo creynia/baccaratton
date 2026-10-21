@@ -59,6 +59,21 @@ describe('the content pipeline (placeholders while no real content exists)', () 
   });
 });
 
+describe('real content covers the registries (architecture.md section 3.4)', () => {
+  const real = !src.samplesActive;
+  it.runIf(real)('bets.json covers exactly the engine bet ids (every variant)', () => {
+    expect(Object.keys(bundle.bets).sort()).toEqual([...BET_IDS].sort());
+  });
+  it.runIf(real)('systems.json covers exactly the strategy registry ids', () => {
+    expect(Object.keys(bundle.systems).sort()).toEqual([...STRATEGY_IDS].sort());
+  });
+  it('every bets / systems lessonId resolves to a lesson', () => {
+    const lessons = new Set(bundle.lessons.map((l) => l.id));
+    for (const c of [...Object.values(bundle.bets), ...Object.values(bundle.systems)])
+      if (c?.lessonId) expect(lessons.has(c.lessonId), c.lessonId).toBe(true);
+  });
+});
+
 describe('real content replaces the placeholders', () => {
   let tmp = '';
   const lesson = (id: string) =>

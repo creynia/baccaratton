@@ -1,12 +1,13 @@
 import { Link } from '../components/Link';
+import { OfflineLink } from '../components/OfflineLink';
 
 const ITEMS = [
-  { to: '/rules', label: 'Drawing rules' },
-  { to: '/bets', label: 'Bets & paytables' },
-  { to: '/roads', label: 'Roads' },
-  { to: '/glossary', label: 'Glossary' },
-  { to: '/settings', label: 'Settings' },
-  { to: '/about', label: 'About' },
+  { to: '/rules', label: 'Drawing rules', note: 'When each hand draws a third card' },
+  { to: '/bets', label: 'Bets & paytables', note: 'Payouts and house edge per variant' },
+  { to: '/roads', label: 'Roads', note: 'How to read the scoreboard' },
+  { to: '/glossary', label: 'Glossary', note: 'Every baccarat word' },
+  { to: '/settings', label: 'Settings', note: 'Table variant, bet unit, progress' },
+  { to: '/about', label: 'About', note: 'Version, updates and help' },
 ] as const;
 
 export function More() {
@@ -17,11 +18,17 @@ export function More() {
         {ITEMS.map((i) => (
           <li key={i.to}>
             <Link to={i.to} class="lesson-row">
-              {i.label}
+              <span class="lesson-main">
+                <strong>{i.label}</strong>
+                <span class="muted">{i.note}</span>
+              </span>
             </Link>
           </li>
         ))}
       </ul>
+      <p>
+        <OfflineLink />
+      </p>
     </div>
   );
 }

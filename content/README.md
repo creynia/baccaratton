@@ -14,6 +14,7 @@ The full guide is `docs/authoring.md`.
 Body extras: `:::math Title` ... `:::`, `:::tip` ... `:::`, inline cards `{{Kh 7d}}` (optionally `{{Kh 7d =}}` or `{{Kh 7d =7}}`),
 a ` ```tableau ` block, a ` ```roads ` block, a ` ```scene ` block (simulator `SceneConfig`, money in cents) and a
 ` ```quiz ` block with an optional `hand: { player: [..], banker: [..] }`. **An invalid scene, quiz, tableau, roads block or card fails the build.**
+Tableau cells: `b5/p4`, `b6/s`, `p5`, `nat` (the same ids as `#/rules?highlight=`). App deep links: `docs/authoring.md`.
 
 ## Pending links (content-b/c)
 
