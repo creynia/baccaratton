@@ -1,17 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import * as math from './math';
 import * as scene from './scene';
 
 // Math, strategy and scene-runner surfaces throw their TODO marker until their WP lands.
 describe('math / strategy / scene stubs', () => {
   const stubs: [RegExp, () => unknown][] = [
-    [/TODO\(math\)/, () => math.outcomeDistribution([])],
-    [/TODO\(math\)/, () => math.betEvs({} as never, {} as never)],
-    [/TODO\(math\)/, () => math.fullShoeEvs({} as never)],
-    [/TODO\(math\)/, () => math.previewSlip({} as never)],
-    [/TODO\(math\)/, () => math.shoeTracker({} as never)],
-    [/TODO\(math\)/, () => math.betTier({} as never)],
-    [/TODO\(math\)/, () => math.perHourCents({} as never, 72)],
     [/TODO\(integration\)/, () => scene.initScene({} as never)],
     [/TODO\(integration\)/, () => scene.currentStep({} as never, {} as never)],
     [/TODO\(integration\)/, () => scene.gateAction({} as never, {} as never, {} as never)],
