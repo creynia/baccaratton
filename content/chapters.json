@@ -1,0 +1,49 @@
+[
+  {
+    "id": "foundations",
+    "title": "Foundations",
+    "summary": "Three bets, two hands, and how to count a baccarat hand.",
+    "lessons": ["welcome", "card-values"]
+  },
+  {
+    "id": "third-card-rule",
+    "title": "The third-card rule",
+    "summary": "When each hand draws. The only rule you need to master, and the dealer applies it for you.",
+    "lessons": [
+      "naturals-and-player-rule",
+      "banker-when-player-stands",
+      "banker-third-card-table",
+      "third-card-practice"
+    ]
+  },
+  {
+    "id": "ev-basics",
+    "title": "EV basics",
+    "summary": "How bets are paid, what each one costs, and why Banker is the best of the three.",
+    "lessons": ["settling-bets", "expected-value"]
+  },
+  {
+    "id": "perfect-lowest-edge",
+    "title": "Perfect strategy I: lowest edge",
+    "summary": "The cheapest bet at the cheapest table: 1.06% or less.",
+    "lessons": []
+  },
+  {
+    "id": "perfect-practical",
+    "title": "Perfect strategy II: practical",
+    "summary": "Bankroll, sessions, scoreboards and counting, and what really matters.",
+    "lessons": []
+  },
+  {
+    "id": "perfect-fun",
+    "title": "Perfect strategy III: fun per dollar",
+    "summary": "Betting systems and side bets, priced per hour.",
+    "lessons": []
+  },
+  {
+    "id": "real-casino",
+    "title": "The real casino",
+    "summary": "Table types, the squeeze, commission, etiquette and the final exam.",
+    "lessons": []
+  }
+]

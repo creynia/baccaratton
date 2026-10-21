@@ -1,0 +1,267 @@
+[
+  {
+    "term": "Punto Banco",
+    "definition": "The version of baccarat almost every casino deals, and the one this app teaches. Every draw follows a fixed rule, and players only choose their bets.",
+    "seeAlso": "welcome"
+  },
+  {
+    "term": "Player",
+    "definition": "One of the two hands dealt every round, and the bet that it wins. It is only a name: you are not the Player, and anyone can bet on either hand. See [[Banker]].",
+    "seeAlso": "welcome",
+    "see": ["banker", "tie"]
+  },
+  {
+    "term": "Banker",
+    "definition": "The other hand dealt every round, and the bet that it wins. The casino is not the Banker. The Banker acts **last**, after the [[Player]], which is why it wins slightly more often and pays a [[commission]].",
+    "seeAlso": "welcome",
+    "see": ["player", "commission"]
+  },
+  {
+    "term": "Tie",
+    "definition": "Both hands end on the same total. The Tie bet wins; Player and Banker bets [[push]].",
+    "seeAlso": "settling-bets",
+    "see": ["push"]
+  },
+  {
+    "term": "Total",
+    "definition": "A hand's value: the sum of its cards, **last digit only** (7 + 8 = 15 counts 5). Ace is 1, 2 to 9 count face value, and 10, J, Q and K count 0. Totals run from 0 to 9, so a hand can never bust. Also called the hand's point.",
+    "seeAlso": "card-values",
+    "see": ["natural"]
+  },
+  {
+    "term": "Baccarat (hand)",
+    "slug": "baccarat-hand",
+    "definition": "A total of 0, the worst hand, such as two picture cards. The game takes its name from it.",
+    "seeAlso": "card-values",
+    "see": ["total"]
+  },
+  {
+    "term": "Natural",
+    "definition": "A two-card [[total]] of 8 or 9. If either hand has one, both hands stand at once and nobody draws. A natural 9 beats a natural 8.",
+    "seeAlso": "naturals-and-player-rule",
+    "see": ["third-card-rule"]
+  },
+  {
+    "term": "Third-card rule",
+    "definition": "The fixed rule that decides whether each hand takes a third card. Naturals first, then the [[Player]] (draws on 0–5, stands on 6–7), then the [[Banker]], whose choice can depend on the Player's third card. The dealer applies it; nobody chooses.",
+    "seeAlso": "naturals-and-player-rule",
+    "see": ["natural", "tableau"]
+  },
+  {
+    "term": "Tableau",
+    "definition": "The written drawing rules, especially the Banker's table: what the Banker does for each of its totals and each Player third card. See **More → Drawing rules**.",
+    "seeAlso": "banker-third-card-table",
+    "see": ["third-card-rule"]
+  },
+  {
+    "term": "Draw",
+    "definition": "Take a third card. Each hand draws at most once, and only when the [[third-card rule]] says so.",
+    "seeAlso": "naturals-and-player-rule",
+    "see": ["stand"]
+  },
+  {
+    "term": "Stand",
+    "definition": "Keep two cards: no third card for that hand.",
+    "seeAlso": "naturals-and-player-rule",
+    "see": ["draw"]
+  },
+  {
+    "term": "Commission",
+    "definition": "The 5% the casino keeps from a winning Banker bet: a $20 win pays $19. Charged only on wins. EZ Baccarat and Super 6 tables charge no commission and change the Banker payout instead.",
+    "seeAlso": "settling-bets",
+    "see": ["banker", "commission-box"]
+  },
+  {
+    "term": "Commission box",
+    "definition": "At many real tables the dealer pays Banker wins in full and tracks the [[commission]] you owe with markers in a numbered box for your seat. You settle it when you leave or when the shoe ends.",
+    "seeAlso": "settling-bets",
+    "see": ["commission"]
+  },
+  {
+    "term": "Push",
+    "definition": "A bet that neither wins nor loses: the chips come back. Player and Banker bets push on a [[tie]].",
+    "seeAlso": "settling-bets",
+    "see": ["tie"]
+  },
+  {
+    "term": "Even money",
+    "definition": "A payout of 1 to 1: bet $10, win $10. The Player bet pays even money; the Banker bet pays even money less [[commission]].",
+    "seeAlso": "settling-bets"
+  },
+  {
+    "term": "Expected value",
+    "slug": "ev",
+    "definition": "What a bet returns **on average** over many hands: each result weighted by how often it happens. A negative EV is the average cost of the bet. Often shortened to EV.",
+    "seeAlso": "expected-value",
+    "see": ["house-edge", "ev-sheet"]
+  },
+  {
+    "term": "House edge",
+    "definition": "The share of each bet the casino keeps on average: the [[expected value|EV]] as a percentage of the bet, with pushes counted as hands where the bet came back. It is an average, not a promise about any one session.",
+    "seeAlso": "expected-value",
+    "see": ["ev", "per-resolved-bet"]
+  },
+  {
+    "term": "Per resolved bet",
+    "definition": "A second way to quote the house edge that ignores the hands where the bet pushed (\"ties excluded\"). It reads higher than the per-hand figure, which is the one this app shows first.",
+    "see": ["house-edge"]
+  },
+  {
+    "term": "Element of risk",
+    "definition": "Expected loss divided by everything wagered in a hand. In baccarat it always equals the [[house edge]], because nothing can be added to a bet once the cards are out.",
+    "see": ["house-edge"]
+  },
+  {
+    "term": "EV sheet",
+    "definition": "The app's price tag for a bet: its [[expected value|EV]] in dollars, its [[house edge]], its rating, its cost per hour and a better choice if there is one. Tap and hold a bet spot, or tap **EV** beside it, before you bet.",
+    "seeAlso": "expected-value",
+    "see": ["ev", "house-edge"]
+  },
+  {
+    "term": "Sucker bet",
+    "definition": "The app's rating for the dearest bets on the table. The rating is always written out, never shown by colour alone. Placing one takes a second tap (\"Bet it anyway\").",
+    "seeAlso": "expected-value",
+    "see": ["ev-sheet"]
+  },
+  {
+    "term": "Cost per hour",
+    "definition": "What a bet costs on average over an hour of play: bet × [[house edge]] × hands per hour. The app counts 72 hands an hour, a typical mini-baccarat pace.",
+    "seeAlso": "expected-value",
+    "see": ["house-edge"]
+  },
+  {
+    "term": "Shoe",
+    "definition": "The box the cards are dealt from. Here it holds 8 decks (416 cards), shuffled together, with a [[burn]] at the start and a [[cut card]] near the end.",
+    "see": ["burn", "cut-card"]
+  },
+  {
+    "term": "Burn",
+    "definition": "At the start of a [[shoe]] the first card is turned face up and that many cards are discarded face down (a 10 or a picture card burns 10).",
+    "see": ["shoe"]
+  },
+  {
+    "term": "Cut card",
+    "definition": "A plastic card placed 16 cards from the end of the [[shoe]]. When it comes out, the hand is finished, one more hand is dealt, and then the shoe is reshuffled.",
+    "see": ["shoe"]
+  },
+  {
+    "term": "Side bet",
+    "definition": "An optional extra bet with its own paytable, such as the Pairs, Dragon Bonus, Dragon 7 and Panda 8. Side bets cost far more than Player or Banker: check the [[EV sheet]].",
+    "see": ["ev-sheet"]
+  },
+  {
+    "term": "Pair",
+    "definition": "A side bet that one hand's first two cards are the same rank (Q-Q yes, Q-K no). Pays 11 to 1. Player Pair and Banker Pair are separate bets.",
+    "see": ["side-bet"]
+  },
+  {
+    "term": "Dragon Bonus",
+    "definition": "A side bet on Player or Banker that pays more the bigger the winning margin: 1 to 1 for a natural win, up to 30 to 1 for a win by 9 without a natural.",
+    "see": ["side-bet"]
+  },
+  {
+    "term": "EZ Baccarat",
+    "definition": "A table variant with no [[commission]]: Banker wins pay 1 to 1, except a Banker win with a three-card 7, which pushes. It offers the Dragon 7 and Panda 8 side bets.",
+    "see": ["dragon-7", "panda-8", "super-6"]
+  },
+  {
+    "term": "Super 6",
+    "definition": "A table variant with no [[commission]]: Banker wins pay 1 to 1, except a Banker win with a total of 6, which pays only 1 to 2 (half). Also called Punto 2000.",
+    "see": ["ez-baccarat"]
+  },
+  {
+    "term": "Dragon 7",
+    "definition": "An [[EZ Baccarat]] side bet that the Banker wins with a three-card 7. Pays 40 to 1.",
+    "see": ["ez-baccarat", "panda-8"]
+  },
+  {
+    "term": "Panda 8",
+    "definition": "An [[EZ Baccarat]] side bet that the Player wins with a three-card 8. Pays 25 to 1.",
+    "see": ["ez-baccarat", "dragon-7"]
+  },
+  {
+    "term": "Bead Plate",
+    "definition": "A scoreboard with one bead per hand, in order: B (Banker), P (Player) or T (Tie). Red is Banker and blue is Player, but the letter is always there.",
+    "see": ["big-road", "gambler-s-fallacy"]
+  },
+  {
+    "term": "Big Road",
+    "definition": "A scoreboard that groups the results into streaks: each column is a run of the same winner, and a new column starts when the other side wins. Ties are marked on the last bead. A long column is a \"dragon\".",
+    "see": ["bead-plate", "derived-roads", "gambler-s-fallacy"]
+  },
+  {
+    "term": "Derived roads",
+    "definition": "Big Eye Boy, Small Road and Cockroach Pig: patterns of patterns drawn from the [[Big Road]]. They carry no more information than the Big Road, and the app only explains them.",
+    "see": ["big-road"]
+  },
+  {
+    "term": "Gambler's fallacy",
+    "definition": "The belief that past results change the next one: that Player is \"due\" after a run of Bankers, or that Banker is \"hot\". The cards don't remember who won.",
+    "see": ["big-road"]
+  },
+  {
+    "term": "Shoe tracker",
+    "definition": "An optional panel (off by default) that shows the exact EV of every bet for the cards still left in this shoe, updated after each hand. The [[EV sheet]] always shows the fresh-shoe price.",
+    "see": ["card-counting", "ev-sheet"]
+  },
+  {
+    "term": "Card counting",
+    "definition": "Tracking the cards already dealt to spot hands where a bet has turned in your favour. For Player and Banker it almost never works; the Dragon 7 side bet is the known exception.",
+    "see": ["shoe-tracker", "dragon-7"]
+  },
+  {
+    "term": "Effects of removal",
+    "definition": "How much each card taken out of the shoe moves each bet's EV. For Player and Banker the effects are tiny and nearly cancel.",
+    "see": ["card-counting"]
+  },
+  {
+    "term": "Betting system",
+    "definition": "A rule for changing your bet size after wins or losses, such as Martingale or Paroli. No system changes the [[house edge]] on each bet: it only changes how much you bet, and so how much you lose on average. See **More → Bets**.",
+    "see": ["house-edge", "flat-betting"]
+  },
+  {
+    "term": "Flat betting",
+    "definition": "Betting the same amount every hand. The simplest plan, and the one with the lowest cost per hour for a given unit.",
+    "see": ["betting-system"]
+  },
+  {
+    "term": "Unit",
+    "definition": "The base bet a [[betting system]] counts in. A $10 unit means a 3-unit bet is $30.",
+    "see": ["betting-system"]
+  },
+  {
+    "term": "Bankroll",
+    "definition": "The money you set aside to gamble with. In the app it is the stack the simulator plays from.",
+    "see": ["session", "variance"]
+  },
+  {
+    "term": "Session",
+    "definition": "One sitting at the table, from buy-in to walking away. The app's session panel tracks hands, amount bet, result and the expected cost so far.",
+    "see": ["bankroll"]
+  },
+  {
+    "term": "Variance",
+    "definition": "How far results swing around the average. Over a few hands luck dominates; over thousands the [[house edge]] does. Measured by the standard deviation.",
+    "see": ["standard-deviation", "bankroll"]
+  },
+  {
+    "term": "Standard deviation",
+    "definition": "The usual size of the swing in one bet's result, in units of the bet. Over many hands it grows only with the square root of the number of hands, while the expected loss grows in a straight line.",
+    "see": ["variance"]
+  },
+  {
+    "term": "Squeeze",
+    "definition": "Peeling a card up slowly from one corner to build suspense, at midi and big tables. It changes nothing: the card was decided when the shoe was shuffled. The app always reveals cards with a quick flip.",
+    "see": ["mini-baccarat"]
+  },
+  {
+    "term": "Mini-baccarat",
+    "definition": "A blackjack-sized baccarat table with one dealer, low minimums and fast play (about 72 hands an hour). Midi-baccarat and the big table deal the same game, more slowly and for higher limits.",
+    "see": ["squeeze"]
+  },
+  {
+    "term": "Chemin de Fer",
+    "definition": "An older cousin of Punto Banco in which players take turns being the Banker and some draws are optional. Described in lessons only.",
+    "see": ["punto-banco"]
+  }
+]
