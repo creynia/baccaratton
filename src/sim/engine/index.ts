@@ -27,7 +27,18 @@ export {
 export { profitCents, grossCents, commissionCents, settleBet, settleHand } from './settle';
 export { seedRng, nextU32, randBelow, shuffle } from './rng';
 export { formatMoney, formatPct } from './money';
-export { validateAction, validateForcedHand } from './validate';
+export { validateAction, validateForcedHand, betLimits, slipTotal, rebetSlip } from './validate';
+export {
+  burnValue,
+  newShoe,
+  placeForced,
+  unseenRanks,
+  cardsLeft,
+  needsShuffle,
+  removedCards,
+  MIN_UNSEEN,
+} from './shoe';
+export { applyLogged, replayLog } from './log';
 export { roadEntry, beadPlate, bigRoad, roadCounts, parseRoadString } from './roads';
 export type { RoadCounts } from './roads';
 export {
