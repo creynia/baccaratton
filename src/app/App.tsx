@@ -72,7 +72,9 @@ export function App() {
       banner={
         store.persistent ? undefined : (
           <p class="banner" role="status">
-            Progress will not be saved in this copy. Use Settings, then Export, to keep it.
+            {store.readOnly
+              ? 'This progress was saved by a newer version of the app. Reload to update; changes here are not saved.'
+              : 'Progress will not be saved in this copy. Use Settings, then Export, to keep it.'}
           </p>
         )
       }

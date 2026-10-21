@@ -4,15 +4,13 @@ import content from 'virtual:content';
 import { App } from '../../src/app/App';
 import { AppProviders } from '../../src/app/context';
 import { ROUTES } from '../../src/app/routes';
+import { MemoryStorage, STORAGE_KEY } from '../../src/app/storage';
 import { Store } from '../../src/app/store';
 import { TABS } from '../../src/app/components/Shell';
 
 const mount = (hash: string) => {
   location.hash = hash;
-  const store = new Store({
-    storage: { getItem: () => null, setItem: () => undefined },
-    persistent: true,
-  });
+  const store = new Store(new MemoryStorage());
   return render(
     <AppProviders content={content} store={store}>
       <App />
@@ -88,10 +86,9 @@ describe('app shell', () => {
 
   it('shows the in-memory banner when storage is blocked', () => {
     location.hash = '#/';
-    const store = new Store({
-      storage: { getItem: () => null, setItem: () => undefined },
-      persistent: false,
-    });
+    const newer = new MemoryStorage();
+    newer.setItem(STORAGE_KEY, '{"version":9}'); // read-only: progress can't be saved
+    const store = new Store(newer);
     const { getByRole } = render(
       <AppProviders content={content} store={store}>
         <App />

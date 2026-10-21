@@ -181,6 +181,33 @@ export default tseslint.config(
       ],
     },
   },
+  // app: reads the sim through the public barrel only ('../sim', '../../sim'), never a deep file.
+  {
+    files: ['src/app/**/*.{ts,tsx}', 'src/main.tsx'],
+    ignores: ['**/*.test.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                './sim/*',
+                './sim/**',
+                '../sim/*',
+                '../sim/**',
+                '../../sim/*',
+                '../../sim/**',
+                '../../../sim/*',
+                '../../../sim/**',
+              ],
+              message: "src/app imports the simulator only through the '../sim' barrel.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // content: the compiler reads the sim through its public barrel(s) only, never app or ui.
   {
     files: ['src/content/**/*.ts'],

@@ -7,7 +7,7 @@ const TEXT = '︎';
 /** D11: Learn · Play · Drill · More. Bets, Roads, Rules, Glossary, Settings, About live under More. */
 export const TABS = [
   { to: '/learn', label: 'Learn', icon: `♠${TEXT}`, match: (p: string) => p.startsWith('/learn') },
-  { to: '/play', label: 'Play', icon: `◆${TEXT}`, match: (p: string) => p.startsWith('/play') },
+  { to: '/play', label: 'Play', icon: `♦${TEXT}`, match: (p: string) => p.startsWith('/play') },
   { to: '/drill', label: 'Drill', icon: `◎${TEXT}`, match: (p: string) => p.startsWith('/drill') },
   {
     to: '/more',
