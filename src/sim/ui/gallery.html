@@ -33,7 +33,11 @@
         padding: 0 16px;
       }
       .sim-table-portrait {
-        padding: 8px 16px;
+        padding: 8px 16px 0;
+      }
+      /* The gallery has no tab bar: dock the chips and actions at the very bottom. */
+      html:root {
+        --sim-dock-bottom: 0px;
       }
     </style>
   </head>

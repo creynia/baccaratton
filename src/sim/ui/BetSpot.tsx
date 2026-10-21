@@ -177,7 +177,7 @@ export function BetSpot({
           >
             {amount > 0 ? money(amount) : payout}
           </text>
-          {ev ? <FeltBadge ev={ev} cx={cx} cy={r.y + r.h - 9} maxW={r.w - 4} fs={9} /> : null}
+          {ev ? <FeltBadge ev={ev} cx={cx} cy={r.y + r.h - 9} maxW={r.w - 4} fs={10} /> : null}
         </>
       ) : (
         <>
@@ -196,7 +196,7 @@ export function BetSpot({
       <rect
         role={interactive ? 'button' : 'img'}
         aria-label={label}
-        tabIndex={interactive ? 0 : undefined}
+        tabindex={interactive ? 0 : undefined}
         aria-disabled={onTap && disabled ? 'true' : undefined}
         onClick={interactive ? activate : undefined}
         onPointerDown={interactive ? down : undefined}

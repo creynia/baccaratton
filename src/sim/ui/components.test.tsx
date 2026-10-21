@@ -44,8 +44,12 @@ describe('EvSheet', () => {
     expect(banker.textContent).toContain(`${MINUS}$0.26 per hand`);
     expect(getByTestId('ev-row-tie').textContent).toContain('Sucker bet');
     expect(getByTestId('ev-slip-total').textContent).toBe(
-      `This slip: $35 per hand, expected ${MINUS}$1.70 per hand, ${MINUS}$122.43/hour`,
+      `This hand: ${MINUS}$1.70 expected · about $122.43 an hour ($35 on the felt)`,
     );
+    // Per hour is always the positive-cost sentence (curriculum §8.1), on and off the slip.
+    expect(banker.textContent).toContain('About $19.04 an hour at 72 hands');
+    expect(getByTestId('ev-row-player').textContent).toContain('About $8.89 an hour at 72 hands');
+    expect(getByTestId('ev-sheet').textContent).not.toContain('/hour');
   });
   it('never shows the per-resolved edge in the headline (D32), only in Why?', () => {
     const p = fixturePreview(PB, { banker: 1000 });
@@ -57,6 +61,15 @@ describe('EvSheet', () => {
     expect(why.textContent).toContain('1.17%');
     expect(why.querySelectorAll('tbody tr').length).toBeGreaterThanOrEqual(3);
     expect(why.textContent).toContain('2,292,252,566,437,888');
+    // The shared denominator is in the caption once; long counts break only after commas.
+    expect(why.querySelector('caption')!.textContent).toContain('4,998,398,275,503,360');
+    expect(why.querySelectorAll('wbr').length).toBeGreaterThan(5);
+    const approx = why.querySelector('.sim-why-approx')!;
+    expect(approx.textContent).toBe('≈ 2.29 × 10¹⁵ (45.8597%)');
+    expect(approx.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(approx);
+    expect(approx.getAttribute('aria-expanded')).toBe('true');
+    expect(why.querySelector('.sim-why-full.is-open')).not.toBeNull();
   });
   it('offers the alternative and "Use this" moves to Banker', () => {
     const p = fixturePreview(PB, { tie: 1000 });
@@ -149,8 +162,12 @@ describe('Felt and BetSpot', () => {
     expect(b.getAttribute('aria-label')).toBe(
       'Banker, $25 on it. Pays 1 to 1, less 5% commission. Good bet, house edge 1.06%.',
     );
+    // SVG needs the lowercase attribute to be focusable (Preact writes props on SVG verbatim).
+    expect(b.getAttribute('tabindex')).toBe('0');
     fireEvent.click(b);
     expect(tap).toHaveBeenCalledWith('banker');
+    fireEvent.keyDown(b, { key: 'Enter' });
+    expect(tap).toHaveBeenCalledTimes(2);
     const tie = getByRole('button', { name: /^Tie/ });
     expect(tie.getAttribute('aria-label')).toContain('Sucker bet, house edge 14.36%');
   });
@@ -197,6 +214,39 @@ describe('Felt and BetSpot', () => {
     expect(container.querySelectorAll('.sim-card-slide.is-anim').length).toBe(5);
     rerender(<Felt orientation="portrait" rules={PB} bets={{}} {...cards} timeline={tl} skipped />);
     expect(container.querySelectorAll('.is-anim').length).toBe(0);
+  });
+  it('shows a Skip button while animating; Escape skips', () => {
+    const r = settled(forcedHand('Kh 2d 3c', '4s 3h'), { banker: 2500 }, PB);
+    const tl = buildTimeline(dealEvents(r), 'normal');
+    const skip = vi.fn();
+    const cards = { player: r.hand.player.cards, banker: r.hand.banker.cards };
+    const { getByRole, queryByRole, rerender } = render(
+      <Felt
+        orientation="portrait"
+        rules={PB}
+        bets={{}}
+        {...cards}
+        timeline={tl}
+        playing
+        onSkip={skip}
+      />,
+    );
+    fireEvent.click(getByRole('button', { name: 'Skip' }));
+    expect(skip).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(skip).toHaveBeenCalledTimes(2);
+    rerender(
+      <Felt
+        orientation="portrait"
+        rules={PB}
+        bets={{}}
+        {...cards}
+        timeline={tl}
+        playing={false}
+        onSkip={skip}
+      />,
+    );
+    expect(queryByRole('button', { name: 'Skip' })).toBeNull();
   });
 });
 
@@ -267,6 +317,7 @@ describe('SettleToast (D35)', () => {
     fireEvent.click(getByRole('button', { name: '$1.25 commission (5% of $25)' }));
     expect(tapped).toHaveBeenCalledTimes(1);
     expect(getByTestId('commission-explainer').textContent).toContain('$25 × 5% = $1.25');
+    expect(getByTestId('commission-explainer').textContent).not.toContain('(1.06%)');
   });
   it('no commission line without a commission', () => {
     const r = settled(forcedHand('Kh 2d 3c', '4s 3h'), { player: 2500 }, PB);
