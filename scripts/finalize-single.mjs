@@ -17,10 +17,23 @@ if (!existsSync(`${dir}/baccaratton.html`)) {
 const html = readFileSync(`${dir}/baccaratton.html`, 'utf8');
 const bad = [];
 // Literal attributes in the HTML shell only (inline script/style bodies are skipped).
+const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
+  .map((m) => m[1])
+  .join('\n');
 const shell = html
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (m) => m.slice(0, m.indexOf('>') + 1))
   .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
-for (const m of shell.matchAll(/<([a-z0-9]+)\b[^>]*?\s(src|href)\s*=\s*("([^"]*)"|'([^']*)')/gi)) {
+// Inline CSS: no @import and no url() other than data: or a #fragment (fonts, images).
+if (/@import\b/i.test(styles)) bad.push('CSS @import');
+for (const m of styles.matchAll(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/gi)) {
+  const val = (m[1] ?? m[2] ?? m[3] ?? '').trim();
+  if (!val.startsWith('data:') && !val.startsWith('#')) bad.push(`CSS url(${val.slice(0, 80)})`);
+}
+if (/<base\b/i.test(shell)) bad.push('<base> element');
+if (/\ssrcset\s*=/i.test(shell)) bad.push('srcset attribute');
+for (const m of shell.matchAll(
+  /<([a-z0-9]+)\b[^>]*?\s(src|href|poster|data|action)\s*=\s*("([^"]*)"|'([^']*)')/gi,
+)) {
   const tag = m[1].toLowerCase();
   const val = (m[4] ?? m[5] ?? '').trim();
   if (val.startsWith('data:') || val.startsWith('#')) continue;

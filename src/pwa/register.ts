@@ -1,5 +1,14 @@
 // Service worker registration + update flow. No-op in dev, in the single-file build,
 // and on file:// / content:// (protocol check).
+//
+// Hook API for the app (architecture.md §5.2):
+// - registerSW()             main.tsx, once.
+// - <UpdateToast />          "Update available — Reload" (./UpdateToast).
+// - updatesSupported()       false in the offline file, dev and file://: Settings can hide or
+//                            disable "Check for updates" and say "Download a new copy instead".
+// - checkForUpdates()        Settings → "Check for updates"; resolves to an UpdateCheck.
+// - onUpdateAvailable(fn)    for a custom prompt; fn(apply) where apply() reloads into the update.
+// - __BUILD_SHA__            the build code shown in About (also on window.__baccaratton).
 
 type UpdateListener = (apply: () => void) => void;
 
@@ -23,6 +32,13 @@ export function onUpdateAvailable(listener: UpdateListener): () => void {
   return () => listeners.delete(listener);
 }
 
+/** True when this copy can update itself through a service worker (hosted PWA build only). */
+export function updatesSupported(): boolean {
+  if (__SINGLE_FILE__ || import.meta.env.DEV) return false;
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return false;
+  return location.protocol === 'https:' || location.protocol === 'http:';
+}
+
 export type UpdateCheck = 'unsupported' | 'update-available' | 'up-to-date' | 'failed';
 
 /**
@@ -31,8 +47,11 @@ export type UpdateCheck = 'unsupported' | 'update-available' | 'up-to-date' | 'f
  * When an update is found the onUpdateAvailable listeners fire (toast), as for the automatic check.
  */
 export async function checkForUpdates(): Promise<UpdateCheck> {
-  if (!registration) return 'unsupported';
+  if (!updatesSupported()) return 'unsupported';
   try {
+    // Called before the load-time registration finished: use the existing registration.
+    registration ??= (await navigator.serviceWorker.getRegistration()) ?? null;
+    if (!registration) return 'unsupported';
     await registration.update();
     const found = registration.waiting ?? registration.installing;
     if (!found || !navigator.serviceWorker.controller) return 'up-to-date';
@@ -51,9 +70,10 @@ export async function checkForUpdates(): Promise<UpdateCheck> {
 }
 
 export function registerSW(): void {
+  // Literal guard (not only updatesSupported()) so the bundler drops the registration code from
+  // the single-file build entirely; finalize-single fails if `serviceWorker.register` survives.
   if (__SINGLE_FILE__ || import.meta.env.DEV) return;
-  if (!('serviceWorker' in navigator)) return;
-  if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
+  if (!updatesSupported()) return;
 
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
