@@ -137,6 +137,12 @@ describe('simulate: bust and caps (D28)', () => {
     expect(() => sim(base({ id: 'flat-banker', unit: 0 }))).toThrow(/unit/);
     expect(() => sim(base({ id: 'martingale', unit: 400 }))).toThrow(/table limits/);
     expect(() => sim(base({ id: 'flat-banker', unit: 600_000 }))).toThrow(/table limits/);
+    // Labouchère's first bet is 5 units: a $1,001 unit can't be bet at a $5,000 maximum
+    expect(() => sim(base({ id: 'labouchere', unit: 100_100 }))).toThrow(/table limits/);
+    expect(
+      sim(base({ id: 'labouchere', unit: 100_000 }, { bankroll: 100_000_000 })).series[0]!
+        .handsPlayed,
+    ).toBe(72);
     expect(sim(base({ id: 'flat-tie', unit: 100 })).series[0]!.meanBetPerHand).toBe(100);
   });
 });

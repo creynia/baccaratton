@@ -167,6 +167,26 @@ export function stepMemory(
   }
 }
 
+/** Units of the system's first bet (1, or 5 for Labouchère's default 1-2-3-4 line). */
+export function firstBetUnits(spec: Pick<StrategySpec, 'id' | 'sequence'>): number {
+  return betUnits(initMemory({ ...spec, unit: 1 }), { ...spec, unit: 1 });
+}
+
+/**
+ * Allowed unit range (cents) for a system at this table: the main bet's minimum (Tie: side
+ * limits), and a maximum so that even the first bet fits: floor(max / firstBetUnits), whole dollars.
+ */
+export function unitLimits(
+  spec: Pick<StrategySpec, 'id' | 'sequence'>,
+  rules: TableRules,
+): { min: number; max: number } {
+  const tie = mainBet(null, { ...spec, unit: 1 }) === 'tie';
+  const min = tie ? rules.sideMin : rules.mainMin;
+  const tableMax = tie ? rules.sideMax : rules.mainMax;
+  const max = Math.floor(tableMax / firstBetUnits(spec) / rules.betUnit) * rules.betUnit;
+  return { min, max };
+}
+
 /** Largest main bet the table allows, in units: floor(max / unit) (Tie uses the side limits). */
 export function tableMaxUnits(spec: StrategySpec, rules: TableRules): number {
   const max = mainBet(null, spec) === 'tie' ? rules.sideMax : rules.mainMax;

@@ -11,8 +11,10 @@ import {
   mainBet,
   stepMemory,
   STRATEGIES,
+  firstBetUnits,
   tableCap,
   tableMaxUnits,
+  unitLimits,
 } from './presets';
 import type { MainOutcome } from './presets';
 import type { StrategyId, StrategyMemory, StrategySpec } from './types';
@@ -147,6 +149,20 @@ describe('presets: the table maximum (one shared rule)', () => {
     expect(betUnits(m, s)).toBe(10);
     m = tableCap(stepMemory(m, s, 'win'), s, 10);
     expect(betUnits(m, s)).toBe(9);
+  });
+});
+
+describe('presets: unit limits (the first bet must fit)', () => {
+  it('first bets: 1 unit for every system, 5 for Labouchère 1-2-3-4', () => {
+    for (const id of STRATEGY_IDS) expect(firstBetUnits({ id })).toBe(id === 'labouchere' ? 5 : 1);
+    expect(firstBetUnits({ id: 'labouchere', sequence: [2, 3, 5] })).toBe(7);
+    expect(firstBetUnits({ id: 'labouchere', sequence: [4] })).toBe(4);
+  });
+  it('max unit = floor(table max / first bet); Tie uses the side limits', () => {
+    expect(unitLimits({ id: 'labouchere' }, DEFAULT_RULES)).toEqual({ min: 500, max: 100_000 });
+    expect(unitLimits({ id: 'martingale' }, DEFAULT_RULES)).toEqual({ min: 500, max: 500_000 });
+    expect(unitLimits({ id: 'flat-tie' }, DEFAULT_RULES)).toEqual({ min: 100, max: 50_000 });
+    expect(unitLimits({ id: 'labouchere', sequence: [2, 3, 5] }, DEFAULT_RULES).max).toBe(71_400);
   });
 });
 

@@ -37,7 +37,7 @@ function fixture(
     costPerHourCents: 762,
     capHits: 3,
     winners: { player: 40, banker: 41, tie: 9 },
-    sideBetHits: {},
+    sideBetHits: Object.fromEntries(Object.keys(spec.sideBets ?? {}).map((b) => [b, 3])),
   };
   if (sessions === 1) s.equity = Int32Array.from(line);
   else {
@@ -256,6 +256,10 @@ describe('AutoPlayPanel: scene compare, limits and targets', () => {
     const legend = screen.getAllByTestId('legend')[0]!.textContent;
     for (const s of l22) expect(legend).toContain(s.label);
     expect(screen.getAllByLabelText('Who won the hands')).toHaveLength(1);
+    const hits = screen.getAllByTestId('side-bet-hits').map((t) => t.textContent);
+    expect(hits).toHaveLength(2);
+    expect(hits[0]).toContain('Dragon Bonus');
+    expect(hits[1]).toContain('Tie hits');
     evClient.dispose();
   });
   it('clamps the unit to the table minimum and passes the target to compared progressions', async () => {
@@ -274,6 +278,17 @@ describe('AutoPlayPanel: scene compare, limits and targets', () => {
       { id: 'paroli', unit: 500, target: 'player' },
       { id: 'flat-banker', unit: 500 },
     ]);
+    evClient.dispose();
+  });
+  it("clamps Labouchère's unit so its 5-unit first bet fits the $5,000 maximum", async () => {
+    const { seen, evClient } = capture();
+    render(<AutoPlayPanel evClient={evClient} settings={DEFAULT_SIM_SETTINGS} />);
+    fireEvent.change(screen.getByTestId('auto-strategy'), { target: { value: 'labouchere' } });
+    fireEvent.input(screen.getByTestId('auto-unit'), { target: { value: '2000' } });
+    expect(screen.getByTestId('auto-unit-note').textContent).toContain('$1,000');
+    fireEvent.click(screen.getByTestId('auto-run'));
+    await waitFor(() => expect(screen.getByTestId('auto-play-result')).toBeTruthy());
+    expect(seen[0]!.strategy).toMatchObject({ id: 'labouchere', unit: 100_000 });
     evClient.dispose();
   });
   it('labels the System select with <label for>', () => {

@@ -8,6 +8,7 @@ import type { BetId } from '../engine/types';
 import type { SessionSeries } from '../strategy/types';
 import { niceTicks, seriesColor, seriesLabel } from './BankrollChart';
 
+const ROW_HEAD = { textAlign: 'left', fontWeight: 400, paddingRight: '12px' } as const;
 const W = 360;
 const H = 130;
 const PAD = { l: 30, r: 10, t: 10, b: 24 };
@@ -60,6 +61,7 @@ export function OutcomeHistogram({
   showWinners = true,
 }: OutcomeHistogramProps) {
   const [active, setActive] = useState<number | null>(null);
+  const hits = Object.entries(series.sideBetHits) as [BetId, number][];
   const bins = binFinals(series.finals);
   const n = series.finals.length;
   const max = Math.max(1, ...bins.map((b) => b.count));
@@ -180,10 +182,7 @@ export function OutcomeHistogram({
           <tbody>
             {(['banker', 'player', 'tie'] as const).map((w) => (
               <tr key={w}>
-                <th
-                  scope="row"
-                  style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}
-                >
+                <th scope="row" style={ROW_HEAD}>
                   {w === 'banker' ? 'Banker won' : w === 'player' ? 'Player won' : 'Tie'}
                 </th>
                 <td style={{ textAlign: 'right' }}>
@@ -191,13 +190,24 @@ export function OutcomeHistogram({
                 </td>
               </tr>
             ))}
-            {Object.entries(series.sideBetHits).map(([bet, k]) => (
+          </tbody>
+        </table>
+      ) : null}
+      {hits.length > 0 ? (
+        <table
+          aria-label={`Side-bet hits · ${seriesLabel(series.strategy)}`}
+          data-testid="side-bet-hits"
+          style={{
+            borderCollapse: 'collapse',
+            fontSize: '13px',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <tbody>
+            {hits.map(([bet, k]) => (
               <tr key={bet}>
-                <th
-                  scope="row"
-                  style={{ textAlign: 'left', fontWeight: 400, paddingRight: '12px' }}
-                >
-                  {betDef(bet as BetId).label} hits
+                <th scope="row" style={ROW_HEAD}>
+                  {betDef(bet).label} hits
                 </th>
                 <td style={{ textAlign: 'right' }}>{k.toLocaleString('en-US')}</td>
               </tr>
