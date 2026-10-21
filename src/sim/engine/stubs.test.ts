@@ -13,17 +13,12 @@ describe('engine stubs', () => {
     ['legalActions', () => engine.legalActions({} as never)],
     ['queueForced', () => engine.queueForced({} as never, [])],
     ['startShoe', () => engine.startShoe({} as never, 'fresh')],
-    ['resolveRules', () => engine.resolveRules()],
-    ['betDef', () => engine.betDef('player')],
-    ['settleHand', () => engine.settleHand({} as never, {}, {} as never)],
-    ['profitCents', () => engine.profitCents(100, {} as never)],
     ['validateAction', () => engine.validateAction({} as never, { type: 'clear-bets' })],
     ['validateForcedHand', () => engine.validateForcedHand({} as never, {} as never)],
     ['roadEntry', () => engine.roadEntry({} as never)],
     ['beadPlate', () => engine.beadPlate([])],
     ['bigRoad', () => engine.bigRoad([])],
     ['roadCounts', () => engine.roadCounts([])],
-    ['playHand', () => engine.playHand(() => 0)],
   ];
   it.each(stubs)('%s throws TODO(engine)', (_name, call) => {
     expect(call).toThrow(/^TODO\(engine\)/);

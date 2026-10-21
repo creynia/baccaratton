@@ -1,7 +1,15 @@
 // The drawing rules of Punto Banco (simulator.md section 1.3). Real in WP0: content validation,
-// Drill and the quiz checker all need them. The engine WP adds `playHand` and the oracle test.
-import { cardValue } from './cards';
-import type { Card, CardValue, DrawDecision, HandRecord, TableauRuleId } from './types';
+// Drill and the quiz checker all need them. `playHand` deals one hand by these rules.
+import { cardValue, rankOf } from './cards';
+import type {
+  Card,
+  CardValue,
+  DrawDecision,
+  HandCards,
+  HandRecord,
+  TableauOutcome,
+  TableauRuleId,
+} from './types';
 
 /** Sum of the card values, last digit only. */
 export function handTotal(cards: readonly Card[]): CardValue {
@@ -86,9 +94,42 @@ export function bankerDraws(
   return { draws: row[1 + playerThird]!, rule: BANKER_RULE_AFTER_DRAW[bankerTotal]! };
 }
 
-/** Plays one hand from a card source (P1 B1 P2 B2, then P3, then B3). TODO(engine). */
+/**
+ * Plays one hand from a card source: P1 B1 P2 B2, then the Player's third card if the Player
+ * draws, then the Banker's if the Banker draws. `next` is called once per card, in deal order.
+ */
 export function playHand(
-  _next: () => Card,
+  next: () => Card,
 ): Omit<HandRecord, 'n' | 'shoeNo' | 'handInShoe' | 'forced'> {
-  throw new Error('TODO(engine): playHand');
+  const p = [next()];
+  const b = [next()];
+  p.push(next());
+  b.push(next());
+  const p2 = handTotal(p);
+  const b2 = handTotal(b);
+  const playerRule = playerDraws(p2, b2);
+  if (playerRule.draws) p.push(next());
+  const bankerRule = bankerDraws(b2, p2, p.length === 3 ? cardValue(p[2]!) : null);
+  if (bankerRule.draws) b.push(next());
+  const pt = handTotal(p);
+  const bt = handTotal(b);
+  const player: HandCards = { cards: p, total: pt, natural: isNatural(p2) };
+  const banker: HandCards = { cards: b, total: bt, natural: isNatural(b2) };
+  const outcome: TableauOutcome = {
+    playerTotal: pt,
+    bankerTotal: bt,
+    playerCards: p.length as 2 | 3,
+    bankerCards: b.length as 2 | 3,
+    playerPair: rankOf(p[0]!) === rankOf(p[1]!),
+    bankerPair: rankOf(b[0]!) === rankOf(b[1]!),
+  };
+  return {
+    player,
+    banker,
+    playerRule,
+    bankerRule,
+    winner: pt > bt ? 'player' : bt > pt ? 'banker' : 'tie',
+    natural: player.natural || banker.natural,
+    outcome,
+  };
 }
