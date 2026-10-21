@@ -423,9 +423,9 @@ export function Simulator(props: SimulatorProps) {
   const confirmEv = confirming ? preview.sheet.find((b) => b.bet === confirming) : null;
   const altEv = altFor ? preview.sheet.find((b) => b.bet === altFor) : null;
   const rejection = v.rejection && !sandbox ? null : v.rejection;
-  const notices = (
+  const feedbackCard = awaiting ? null : <PredictFeedbackCard feedback={revealing ? null : fb} />;
+  const betNotices = (
     <>
-      {awaiting ? null : <PredictFeedbackCard feedback={revealing ? null : fb} />}
       {confirming && confirmEv ? (
         <AltCard
           mode="confirm"
@@ -452,6 +452,11 @@ export function Simulator(props: SimulatorProps) {
           onDismiss={() => setAltFor(null)}
         />
       ) : null}
+    </>
+  );
+  // The result sits right under the felt in portrait, clear of the sticky chips and actions.
+  const resultNotices = (
+    <>
       {resultShown && last && last.settlements.length > 0 && dismissedHand !== last.hand.n ? (
         <SettleToast
           result={last}
@@ -507,7 +512,7 @@ export function Simulator(props: SimulatorProps) {
       layout={landscape ? 'rail' : 'bar'}
     />
   );
-  const roads = v.roads.length ? (
+  const scoreboard = v.roads.length ? (
     <Scoreboard
       entries={shown.history}
       view={v.roads.map((r) => ROAD_VIEW[r])}
@@ -565,17 +570,20 @@ export function Simulator(props: SimulatorProps) {
     ) : null;
   const step =
     scene && !sandbox ? (
-      <StepPanel
-        step={display.step}
-        index={display.index}
-        count={v.stepCount}
-        done={display.done}
-        showNext={v.showNext && !revealing}
-        onNext={() => driver.acknowledge()}
-        hint={(v.rejection?.text ?? null) || (idleHint ? (v.step?.hint ?? null) : null)}
-        busy={revealing}
-        compact={landscape}
-      />
+      <>
+        <StepPanel
+          step={display.step}
+          index={display.index}
+          count={v.stepCount}
+          done={display.done}
+          showNext={v.showNext && !revealing}
+          onNext={() => driver.acknowledge()}
+          hint={(v.rejection?.text ?? null) || (idleHint ? (v.step?.hint ?? null) : null)}
+          busy={revealing}
+          compact={landscape}
+        />
+        {feedbackCard}
+      </>
     ) : null;
 
   // ---------- tools and panels ----------
@@ -714,8 +722,26 @@ export function Simulator(props: SimulatorProps) {
         orientation={orientation}
         status={status}
         felt={felt}
-        roads={roads}
-        notices={notices}
+        roads={
+          landscape ? (
+            scoreboard
+          ) : (
+            <>
+              {resultNotices}
+              {scoreboard}
+            </>
+          )
+        }
+        notices={
+          landscape ? (
+            <>
+              {betNotices}
+              {resultNotices}
+            </>
+          ) : (
+            betNotices
+          )
+        }
         chips={chipRack}
         actions={actions}
         rail={

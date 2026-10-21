@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'preact/hooks';
 import './sim.css';
 // The drawing-rule chart, generated from the engine's own TABLEAU and playerDraws (D34 views
 // `player`, `banker`, `full`; highlights and taps use the TableauCellId syntax `p5`, `b4/p7`,
@@ -210,8 +211,17 @@ function BankerChart({
 export function Tableau({ view, highlight = [], onCell, caption }: TableauProps) {
   const set = new Set(highlight);
   const hl = (id: TableauCellId) => set.has(id);
+  const root = useRef<HTMLElement>(null);
+  const first = highlight[0];
+  useEffect(() => {
+    // The tappable chart (Rules screen) scrolls its highlighted cell into view.
+    if (!onCell || !first) return;
+    const el = root.current?.querySelector<HTMLElement>(`[data-cell="${first}"]`);
+    el?.scrollIntoView?.({ block: 'center', inline: 'center' });
+  }, [first, onCell]);
   return (
     <figure
+      ref={root}
       class={`tableau sim-tableau${onCell ? ' is-tap' : ''}`}
       data-view={view}
       aria-label="Drawing rules"

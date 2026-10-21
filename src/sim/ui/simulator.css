@@ -124,3 +124,7 @@
 .sim-nobet {
   margin: 0;
 }
+/* Landscape: the table fills the viewport under the app header (Deal and the felt both fit). */
+.sim-landscape {
+  --sim-table-h: max(300px, calc(100dvh - 88px));
+}
