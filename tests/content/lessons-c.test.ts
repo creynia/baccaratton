@@ -179,7 +179,7 @@ const tie = (c: Cell) => c.pt === c.bt;
 const pNat = (c: Cell) => c.pc === 2 && c.pt >= 8 && c.bc === 2;
 const bNat = (c: Cell) => c.bc === 2 && c.bt >= 8 && c.pc === 2;
 
-const PAYS: Record<string, Pay> = {
+const PAYS = {
   banker: (c) => (bWin(c) ? [19n, 20n] : tie(c) ? 'push' : 'lose'),
   player: (c) => (pWin(c) ? [1n, 1n] : tie(c) ? 'push' : 'lose'),
   tie8: (c) => (tie(c) ? [8n, 1n] : 'lose'),
@@ -197,7 +197,8 @@ const PAYS: Record<string, Pay> = {
   small: (c) => (c.pc + c.bc === 4 ? [3n, 2n] : 'lose'),
   super6Side12: (c) => (bWin(c) && c.bt === 6 ? [12n, 1n] : 'lose'),
   super6Side15: (c) => (bWin(c) && c.bt === 6 ? [15n, 1n] : 'lose'),
-};
+} satisfies Record<string, Pay>;
+type PayId = keyof typeof PAYS;
 const MARGIN_PAY: Record<number, bigint> = { 9: 30n, 8: 10n, 7: 6n, 6: 4n, 5: 2n, 4: 1n };
 function dragonBonus(side: 'player' | 'banker'): Pay {
   return (c) => {
@@ -214,12 +215,12 @@ function dragonBonus(side: 'player' | 'banker'): Pay {
 
 const D8 = dist(FULL8);
 const EV = Object.fromEntries(Object.entries(PAYS).map(([k, f]) => [k, ev(D8, f)])) as Record<
-  keyof typeof PAYS,
+  PayId,
   Q
 >;
-const edge = (k: keyof typeof PAYS) => -pct(EV[k]);
+const edge = (k: PayId) => -pct(EV[k]);
 /** Dollars per hour at `stake` dollars a hand, 72 hands an hour (D5). */
-const perHour = (k: keyof typeof PAYS, stake: number, hands = 72) => -num(EV[k]) * stake * hands;
+const perHour = (k: PayId, stake: number, hands = 72) => -num(EV[k]) * stake * hands;
 const cents = (x: number) => Math.round(x * 100) / 100;
 
 // Pair bets (rank composition: 32 cards of each of 13 ranks in 8 decks, 24 in 6).
@@ -544,16 +545,16 @@ describe('lessons 17–24: every quoted number, recomputed exactly', () => {
     let maxBanker = 0;
     for (let v = 0; v < 10; v++) {
       const d = removeOne(v);
-      const db = pct(ev(d, PAYS.banker!)) - pct(EV.banker);
+      const db = pct(ev(d, PAYS.banker)) - pct(EV.banker);
       maxBanker = Math.max(maxBanker, Math.abs(db));
       const row = rows.find((r) => r[0] === v);
       if (row) {
-        const dp = pct(ev(d, PAYS.player!)) - pct(EV.player);
+        const dp = pct(ev(d, PAYS.player)) - pct(EV.player);
         expect([fmt(db), fmt(dp)]).toEqual([row[1], row[2]]);
         quotes('card-counting', `| ${v} | ${v === 4 || v === 6 ? `**${row[1]}**` : row[1]} | ${row[2]} |`);
       }
       // Dragon 7 effects of removal (the math box), % per card.
-      const d7 = (pct(ev(d, PAYS.dragon7!)) - pct(EV.dragon7));
+      const d7 = (pct(ev(d, PAYS.dragon7)) - pct(EV.dragon7));
       const want = [0.086, 0.05, -0.09, -0.108, -0.268, -0.263, -0.324, -0.358, 0.538, 0.479][v]!;
       expect(d7).toBeCloseTo(want, 3);
     }
@@ -569,15 +570,15 @@ describe('lessons 17–24: every quoted number, recomputed exactly', () => {
 
   it('lesson 17: the 52-card shoes', () => {
     const d7shoe = dist([17, 4, 5, 5, 5, 5, 5, 5, 0, 1]);
-    const d7 = ev(d7shoe, PAYS.dragon7!);
+    const d7 = ev(d7shoe, PAYS.dragon7);
     expect(qeq(d7, qs('59135759/183226680'))).toBe(true);
     expect(Math.round(pct(d7))).toBe(32);
-    expect(qeq(ev(d7shoe, PAYS.banker!), qs('-306007601/24430224000'))).toBe(true);
-    expect(qeq(ev(d7shoe, PAYS.panda8!), qs('-18323/391510'))).toBe(true);
+    expect(qeq(ev(d7shoe, PAYS.banker), qs('-306007601/24430224000'))).toBe(true);
+    expect(qeq(ev(d7shoe, PAYS.panda8), qs('-18323/391510'))).toBe(true);
     expect(edge('dragon7').toFixed(2)).toBe('7.61');
     quotes('card-counting', 'about **+32%**', '−7.61%');
     const noFours = dist([16, 4, 4, 4, 0, 4, 8, 4, 4, 4]);
-    const b = ev(noFours, PAYS.banker!);
+    const b = ev(noFours, PAYS.banker);
     expect(qeq(b, qs('-10635473/2290333500'))).toBe(true);
     expect(pct(b).toFixed(2)).toBe('-0.46');
     quotes('card-counting', 'the Banker is still at −0.46%', 'a 1.06% edge');

@@ -132,32 +132,38 @@
   {
     "term": "Shoe",
     "definition": "The box the cards are dealt from. Here it holds 8 decks (416 cards), shuffled together, with a [[burn]] at the start and a [[cut card]] near the end.",
-    "see": ["burn", "cut-card"]
+    "see": ["burn", "cut-card"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Burn",
     "definition": "At the start of a [[shoe]] the first card is turned face up and that many cards are discarded face down (a 10 or a picture card burns 10).",
-    "see": ["shoe"]
+    "see": ["shoe"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Cut card",
     "definition": "A plastic card placed 16 cards from the end of the [[shoe]]. When it comes out, the hand is finished, one more hand is dealt, and then the shoe is reshuffled.",
-    "see": ["shoe"]
+    "see": ["shoe"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Side bet",
     "definition": "An optional extra bet with its own paytable, such as the Pairs, Dragon Bonus, Dragon 7 and Panda 8. Side bets cost far more than Player or Banker: check the [[EV sheet]].",
-    "see": ["ev-sheet"]
+    "see": ["ev-sheet"],
+    "seeAlso": "pairs-and-dragon-bonus"
   },
   {
     "term": "Pair",
     "definition": "A side bet that one hand's first two cards are the same rank (Q-Q yes, Q-K no). Pays 11 to 1. Player Pair and Banker Pair are separate bets.",
-    "see": ["side-bet"]
+    "see": ["side-bet"],
+    "seeAlso": "pairs-and-dragon-bonus"
   },
   {
     "term": "Dragon Bonus",
     "definition": "A side bet on Player or Banker that pays more the bigger the winning margin: 1 to 1 for a natural win, up to 30 to 1 for a win by 9 without a natural.",
-    "see": ["side-bet"]
+    "see": ["side-bet"],
+    "seeAlso": "pairs-and-dragon-bonus"
   },
   {
     "term": "EZ Baccarat",
@@ -172,12 +178,14 @@
   {
     "term": "Dragon 7",
     "definition": "An [[EZ Baccarat]] side bet that the Banker wins with a three-card 7. Pays 40 to 1.",
-    "see": ["ez-baccarat", "panda-8"]
+    "see": ["ez-baccarat", "panda-8"],
+    "seeAlso": "ez-side-bets"
   },
   {
     "term": "Panda 8",
     "definition": "An [[EZ Baccarat]] side bet that the Player wins with a three-card 8. Pays 25 to 1.",
-    "see": ["ez-baccarat", "dragon-7"]
+    "see": ["ez-baccarat", "dragon-7"],
+    "seeAlso": "ez-side-bets"
   },
   {
     "term": "Bead Plate",
@@ -202,32 +210,38 @@
   {
     "term": "Shoe tracker",
     "definition": "An optional panel (off by default) that shows the exact EV of every bet for the cards still left in this shoe, updated after each hand. The [[EV sheet]] always shows the fresh-shoe price.",
-    "see": ["card-counting", "ev-sheet"]
+    "see": ["card-counting", "ev-sheet"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Card counting",
     "definition": "Tracking the cards already dealt to spot hands where a bet has turned in your favour. For Player and Banker it almost never works; the Dragon 7 side bet is the known exception.",
-    "see": ["shoe-tracker", "dragon-7"]
+    "see": ["shoe-tracker", "dragon-7"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Effects of removal",
     "definition": "How much each card taken out of the shoe moves each bet's EV. For Player and Banker the effects are tiny and nearly cancel.",
-    "see": ["card-counting"]
+    "see": ["card-counting"],
+    "seeAlso": "card-counting"
   },
   {
     "term": "Betting system",
     "definition": "A rule for changing your bet size after wins or losses, such as Martingale or Paroli. No system changes the [[house edge]] on each bet: it only changes how much you bet, and so how much you lose on average. See **More → Bets**.",
-    "see": ["house-edge", "flat-betting"]
+    "see": ["house-edge", "flat-betting"],
+    "seeAlso": "betting-systems"
   },
   {
     "term": "Flat betting",
     "definition": "Betting the same amount every hand. The simplest plan, and the one with the lowest cost per hour for a given unit.",
-    "see": ["betting-system"]
+    "see": ["betting-system"],
+    "seeAlso": "betting-systems"
   },
   {
     "term": "Unit",
     "definition": "The base bet a [[betting system]] counts in. A $10 unit means a 3-unit bet is $30.",
-    "see": ["betting-system"]
+    "see": ["betting-system"],
+    "seeAlso": "betting-systems"
   },
   {
     "term": "Bankroll",
@@ -252,16 +266,19 @@
   {
     "term": "Squeeze",
     "definition": "Peeling a card up slowly from one corner to build suspense, at midi and big tables. It changes nothing: the card was decided when the shoe was shuffled. The app always reveals cards with a quick flip.",
-    "see": ["mini-baccarat"]
+    "see": ["mini-baccarat"],
+    "seeAlso": "at-the-casino"
   },
   {
     "term": "Mini-baccarat",
     "definition": "A blackjack-sized baccarat table with one dealer, low minimums and fast play (about 72 hands an hour). Midi-baccarat and the big table deal the same game, more slowly and for higher limits.",
-    "see": ["squeeze"]
+    "see": ["squeeze"],
+    "seeAlso": "at-the-casino"
   },
   {
     "term": "Chemin de Fer",
     "definition": "An older cousin of Punto Banco in which players take turns being the Banker and some draws are optional. Described in lessons only.",
-    "see": ["punto-banco"]
+    "see": ["punto-banco"],
+    "seeAlso": "at-the-casino"
   }
 ]
