@@ -1,42 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { BetEv, Fraction } from '../math/types';
-import type { TableRules } from '../engine/types';
+import { describe, expect, it } from 'vitest';
 import { runSession, simulateJob } from './simulate';
 import type { SimulateRequest, SimulateResult, StrategySpec } from './types';
-
-// Until math's fullShoeEvs lands, fall back to the pinned punto-banco values of simulator.md
-// section 2.5 (the real module wins as soon as it stops throwing its TODO marker).
-vi.mock('../math', async (importOriginal) => {
-  const real = await importOriginal<typeof import('../math')>();
-  const f = (num: bigint, den: bigint): Fraction => ({ num, den });
-  const pB = f(8954111587648n, 19524993263685n);
-  const pP = f(8712962041376n, 19524993263685n);
-  const pT = f(619306544887n, 6508331087895n);
-  const ev = (bet: string, e: Fraction, w: Fraction, p: Fraction, l: Fraction) =>
-    ({ bet, ev: e, pWin: w, pPush: p, pLose: l }) as unknown as BetEv;
-  const pinned = (rules: TableRules): BetEv[] => {
-    if (rules.variant !== 'punto-banco' || rules.tiePays !== 8)
-      throw new Error('pinned fallback: punto-banco 8:1 only');
-    return [
-      ev('banker', f(-114753351728n, 10847218479825n), pB, pT, pP),
-      ev('player', f(-241149546272n, 19524993263685n), pP, pT, pB),
-      ev('tie', f(-103841353768n, 723147898655n), pT, f(0n, 1n), f(1n, 1n)),
-      ev('player-pair', f(-43n, 415n), f(31n, 415n), f(0n, 1n), f(384n, 415n)),
-      ev('banker-pair', f(-43n, 415n), f(31n, 415n), f(0n, 1n), f(384n, 415n)),
-    ];
-  };
-  return {
-    ...real,
-    fullShoeEvs: (rules: TableRules): BetEv[] => {
-      try {
-        return real.fullShoeEvs(rules);
-      } catch (e) {
-        if (!/TODO\(math\)/.test((e as Error).message)) throw e;
-        return pinned(rules);
-      }
-    },
-  };
-});
 
 const BANKER_EDGE = 114753351728 / 10847218479825;
 const PLAYER_EDGE = 241149546272 / 19524993263685;

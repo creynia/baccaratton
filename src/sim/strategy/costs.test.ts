@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { randBelow, seedRng } from '../engine/rng';
 import { expectedUnitsBet, P_BANKER, P_PLAYER, P_TIE, targetProbabilities } from './costs';
+import { systemCost } from './metrics';
 import { betUnits, initMemory, stepMemory } from './presets';
 import type { StrategyId, StrategySpec } from './types';
 
@@ -69,5 +70,23 @@ describe('exact 72-hand system costs (curriculum.md section 7.2)', () => {
     const mean = sum / N;
     const se = Math.sqrt((sumSq / N - mean ** 2) / N);
     expect(Math.abs(mean - 12.46)).toBeLessThan(4 * se + 0.005);
+  });
+});
+
+describe('systemCost (math full-shoe EVs, one source of truth)', () => {
+  it.each(TABLE)('%s: $/hour from math equals the curriculum', (id, _bu, bh, _pu, ph) => {
+    const b = systemCost({ id, unit: 1000, target: 'banker' }, 'punto-banco', 8);
+    const p = systemCost({ id, unit: 1000, target: 'player' }, 'punto-banco', 8);
+    expect(b.kind).toBe('exact');
+    expect((b.costPerHourCents! / 100).toFixed(2)).toBe(bh);
+    expect((p.costPerHourCents! / 100).toFixed(2)).toBe(ph);
+  });
+  it('flat Banker $7.62/h; Labouchère is simulated', () => {
+    expect(
+      (
+        systemCost({ id: 'flat-banker', unit: 1000 }, 'punto-banco', 8).costPerHourCents! / 100
+      ).toFixed(2),
+    ).toBe('7.62');
+    expect(systemCost({ id: 'labouchere', unit: 1000 }, 'punto-banco', 8).kind).toBe('simulated');
   });
 });
