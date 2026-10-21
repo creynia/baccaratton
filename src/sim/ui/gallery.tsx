@@ -1,6 +1,5 @@
 // Dev-only gallery of the table UI, driven by the REAL engine (createGame / applyAction / roads)
-// and the REAL EV module once it lands (until then the pinned fixtures of simulator.md §2.5, with a
-// visible note). Run `npm run dev` and open /src/sim/ui/gallery.html
+// and the REAL EV module (previewSlip / shoeTracker). Run `npm run dev` and open /src/sim/ui/gallery.html
 //   ?scene=betting|sucker|result|thirds|natural|ez|super6|why|roads|tableau|tracker|session|play
 //   &view=portrait|landscape   &theme=dark|light   &four=1   &speed=normal|fast|instant
 import { render } from 'preact';
@@ -37,7 +36,7 @@ import { Tableau } from './Tableau';
 import { TierBadge } from './TierBadge';
 import { buildTimeline, effectiveSpeed, useSkippableMotion } from './animation';
 import type { Speed } from './animation';
-import { ROAD_FIXTURES, SESSION_FIXTURE, fixturePreview, fixtureTracker } from './fixtures';
+import { ROAD_FIXTURES, SESSION_FIXTURE } from './fixtures';
 import { BET_LABEL, resultHeadline, suckerPrompt } from './text';
 
 const q = new URLSearchParams(location.search);
@@ -47,23 +46,11 @@ const four = q.get('four') === '1';
 const speed = effectiveSpeed((q.get('speed') as Speed | null) ?? 'instant');
 const viewPref = (q.get('view') as 'portrait' | 'landscape' | null) ?? 'auto';
 
-let mathReal = true;
-/** The real previewSlip, or the pinned fixture while math is still a stub. */
 function preview(rules: TableRules, slip: Slip, unseen?: readonly number[]): SlipPreview {
-  try {
-    return math.previewSlip({ rules, slip, handsPerHour: 72, unseenRanks: unseen });
-  } catch {
-    mathReal = false;
-    return fixturePreview(rules, slip);
-  }
+  return math.previewSlip({ rules, slip, handsPerHour: 72, unseenRanks: unseen });
 }
 function tracker(state: GameState): TrackerView {
-  try {
-    return math.shoeTracker(visibleView(state));
-  } catch {
-    mathReal = false;
-    return fixtureTracker(state.rules);
-  }
+  return math.shoeTracker(visibleView(state));
 }
 
 const FORCED: Record<string, ForcedHand> = {
@@ -465,17 +452,7 @@ function App() {
     default:
       body = <p>Unknown scene {scene}</p>;
   }
-  return (
-    <>
-      {body}
-      {!mathReal ? (
-        <p class="gallery-note" data-testid="gallery-fixture-note">
-          EV: pinned simulator.md §2.5 values (math module pending). Cards, settlement and roads:
-          real engine.
-        </p>
-      ) : null}
-    </>
-  );
+  return <>{body}</>;
 }
 
 render(<App />, document.getElementById('app')!);
