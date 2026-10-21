@@ -13,5 +13,7 @@ Self-contained ideas to pick up later. Open an issue or PR and link it here when
 - Vite "configLoader native" warning: load `src/content/load` via `runnerImport` in `build/vite-plugin-content.ts` (infra's patch, held while app owned the file).
 - Auto-play panel: custom side-bet amounts; legend cost per hour (simulator §6.4).
 - Drill heat map per tableau cell (needs per-cell stats).
-- Derived roads (Big Eye Boy, Small Road, Cockroach Pig) drawn live; currently explained in text only.
 - Spot sheet on long-press (table-ui `onLongPress` hook exists).
+- Auto-play results table scrolls sideways at 390 px (integration review).
+- Landscape lesson scenes get a small felt; consider a scene-specific landscape layout (integration review).
+- Auto-play perf: first hand after load ≈70 ms while the engine JIT warms up (integration).
