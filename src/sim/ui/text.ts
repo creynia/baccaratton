@@ -9,6 +9,7 @@ import type {
   VariantId,
   Winner,
 } from '../engine/types';
+import { betDef } from '../engine/bets';
 import type { Alternative, BetEv, BetTier, Fraction } from '../math/types';
 
 /** U+2212, so a negative amount never wraps at a hyphen (and reads as a real minus). */
@@ -144,28 +145,9 @@ export function payoutShort(bet: BetId, rules: TableRules): string {
       return '25:1';
   }
 }
-/** Spoken payout ("Pays 1 to 1 less 5%"). */
+/** Spoken payout ("Pays 1 to 1, less 5% commission"): the engine registry's own text. */
 export function payoutSpoken(bet: BetId, rules: TableRules): string {
-  switch (bet) {
-    case 'player':
-      return 'Pays 1 to 1';
-    case 'banker':
-      if (rules.variant === 'punto-banco') return `Pays 1 to 1 less ${commissionPct(rules)}`;
-      if (rules.variant === 'ez') return 'Pays 1 to 1; a Banker win with a three-card 7 pushes';
-      return 'Pays 1 to 1; a Banker win with 6 pays 1 to 2';
-    case 'tie':
-      return `Pays ${rules.tiePays} to 1`;
-    case 'player-pair':
-    case 'banker-pair':
-      return 'Pays 11 to 1';
-    case 'dragon-bonus-player':
-    case 'dragon-bonus-banker':
-      return 'Pays up to 30 to 1 on the winning margin';
-    case 'dragon-7':
-      return 'Pays 40 to 1 when the Banker wins with a three-card 7';
-    case 'panda-8':
-      return 'Pays 25 to 1 when the Player wins with a three-card 8';
-  }
+  return betDef(bet).payoutText(rules).replace(/\.$/, '');
 }
 
 // ---------- tiers (D19) ----------
