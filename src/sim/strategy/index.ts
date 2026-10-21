@@ -1,42 +1,47 @@
-// Betting systems, simulation and the Drill trainer (simulator.md section 6). Signatures beyond
-// the frozen types.ts are provisional: the strategy WP owns them. Bodies are TODO(strategy).
-import type { Job } from '../engine/job';
-import type { RngState } from '../engine/types';
-import type {
-  DrillFilter,
-  DrillGrade,
-  DrillSpot,
-  SimulateRequest,
-  SimulateResult,
-  Strategy,
-  StrategyId,
-} from './types';
-
+// Betting systems, simulation and the Drill trainer (simulator.md section 6).
 export type * from './types';
 export { STRATEGY_IDS, STRATEGY_LENSES, DRILL_MODES } from './ids';
 export { DRILL_CATEGORY_IDS, DRILL_MODE_CATEGORIES } from './types';
-
-const todo = (name: string): never => {
-  throw new Error(`TODO(strategy): ${name}`);
-};
-
-export function getStrategy(_id: StrategyId): Strategy {
-  return todo('getStrategy');
-}
+export {
+  getStrategy,
+  STRATEGIES,
+  STRATEGY_NAMES,
+  STRATEGY_LENS,
+  PICKER_GROUPS,
+  DEFAULT_LIMITS,
+  DEFAULT_SEQUENCE,
+  DEFAULT_SPRINKLE,
+  initMemory,
+  betUnits,
+  stepMemory,
+  mainBet,
+  sideBetsOf,
+} from './presets';
+export type { MainOutcome } from './presets';
+export { expectedUnitsBet } from './costs';
+export {
+  HANDS_PER_HOUR,
+  HAND_OPTIONS,
+  MAX_HANDS,
+  betFigures,
+  slipEvCents,
+  systemCost,
+  fracToNumber,
+} from './metrics';
+export type { BetFigures, SystemCost } from './metrics';
 /** The `simulate` job: auto-play, many sessions and compare, one seed. */
-export const simulateJob: Job<SimulateRequest, SimulateResult> = () => todo('simulateJob');
-
-/** D29: `filter.category` must belong to `filter.mode` unless the mode is 'mixed'. */
-export function nextSpot(_rng: RngState, _filter: DrillFilter): { spot: DrillSpot; rng: RngState } {
-  return todo('nextSpot');
-}
-export function gradeSpot(_spot: DrillSpot, _chosen: string): DrillGrade {
-  return todo('gradeSpot');
-}
-/** 'banker-5:3h2c6d.Kd5s' (category, player cards, banker cards). Round-trips with spotFromCode. */
-export function spotCode(_spot: DrillSpot): string {
-  return todo('spotCode');
-}
-export function spotFromCode(_code: string): DrillSpot {
-  return todo('spotFromCode');
-}
+export { simulateJob, runSession } from './simulate';
+export {
+  nextSpot,
+  gradeSpot,
+  gradeCopy,
+  spotCode,
+  spotFromCode,
+  modeOf,
+  WHICH_BET_SPOTS,
+  CATEGORY_REMINDER,
+  RULE_REMINDER,
+  MIXED_WEIGHTS,
+  BANKER_WEIGHTING,
+} from './drill';
+export type { WhichBetSpot } from './drill';
