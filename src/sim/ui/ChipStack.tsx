@@ -60,15 +60,24 @@ export interface ChipStackProps {
   y: number;
   amount: Cents;
   r: number;
-  /** Show the amount pill under the stack. */
+  /** Show the amount pill under the stack (or to its right). */
   pill?: boolean;
+  pillSide?: 'below' | 'right';
   class?: string;
 }
 
 const STACK_LIMIT = 4;
 
 /** Up to four chips (biggest at the bottom) plus an amount pill. Decorative: the spot names it. */
-export function ChipStack({ x, y, amount, r, pill = true, class: cls }: ChipStackProps) {
+export function ChipStack({
+  x,
+  y,
+  amount,
+  r,
+  pill = true,
+  pillSide = 'below',
+  class: cls,
+}: ChipStackProps) {
   const chips = chipBreakdown(amount, STACK_LIMIT).reverse();
   const step = Math.max(2.5, r * 0.18);
   const text = money(amount);
@@ -87,7 +96,13 @@ export function ChipStack({ x, y, amount, r, pill = true, class: cls }: ChipStac
         </g>
       ))}
       {pill ? (
-        <g transform={`translate(0 ${r + ph / 2 + 1})`}>
+        <g
+          transform={
+            pillSide === 'right'
+              ? `translate(${r + pw / 2 + 4} 0)`
+              : `translate(0 ${r + ph / 2 + 1})`
+          }
+        >
           <rect x={-pw / 2} y={-ph / 2} width={pw} height={ph} rx={ph / 2} class="sim-pill" />
           <text y={ph * 0.33} text-anchor="middle" font-size={ph * 0.72} class="sim-pill-text">
             {text}

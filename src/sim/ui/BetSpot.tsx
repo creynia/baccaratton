@@ -187,7 +187,9 @@ export function BetSpot({
           <text x={cx} y={r.y + 35} text-anchor="middle" class="sim-spot-payout" aria-hidden="true">
             {payout}
           </text>
-          {amount > 0 ? <ChipStack x={cx} y={r.y + r.h * 0.52} amount={amount} r={13} /> : null}
+          {amount > 0 ? (
+            <ChipStack x={cx - 18} y={r.y + r.h * 0.58} amount={amount} r={13} pillSide="right" />
+          ) : null}
           {ev ? <FeltBadge ev={ev} cx={cx} cy={r.y + r.h - 10} maxW={r.w - 8} fs={10} /> : null}
         </>
       )}

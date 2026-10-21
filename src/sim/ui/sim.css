@@ -1025,6 +1025,10 @@ button.sim-evmini-btn {
   gap: 12px;
   align-items: flex-start;
 }
+.sim-tab-charts > * {
+  min-width: 0;
+  max-width: 100%;
+}
 .sim-tab-scroll {
   max-width: 100%;
   overflow-x: auto;
@@ -1155,6 +1159,12 @@ button.sim-evmini-btn {
 }
 .sim-road-scroll {
   flex: 1 1 auto;
+  background-color: var(--road-bg);
+  background-image:
+    linear-gradient(to right, var(--road-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--road-line) 1px, transparent 1px);
+  background-size: var(--sim-cell, 18px) var(--sim-cell, 18px);
+  background-attachment: local;
   min-width: 0;
   min-height: 44px;
   overflow-x: auto;

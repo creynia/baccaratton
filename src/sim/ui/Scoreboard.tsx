@@ -122,6 +122,7 @@ function Strip({
   children,
   label,
   cols,
+  cell,
 }: {
   name: string;
   road: RoadView;
@@ -129,6 +130,7 @@ function Strip({
   children: ComponentChildren;
   label: string;
   cols: number;
+  cell: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -141,6 +143,7 @@ function Strip({
       <div
         ref={ref}
         class={`sim-road-scroll${onTap ? ' is-tap' : ''}`}
+        style={`--sim-cell:${cell}px`}
         role={onTap ? 'button' : 'img'}
         tabIndex={onTap ? 0 : undefined}
         aria-label={label}
@@ -208,6 +211,7 @@ export function Scoreboard({
           onTap={onTap}
           label={`Bead plate. ${text}`}
           cols={beadCols}
+          cell={s}
         >
           <svg
             width={beadCols * s}
@@ -215,7 +219,6 @@ export function Scoreboard({
             viewBox={`0 0 ${beadCols * s} ${rows * s}`}
             aria-hidden="true"
           >
-            <rect width={beadCols * s} height={rows * s} class="sim-road-bg" />
             <Grid cols={beadCols} rows={rows} s={s} />
             {beads.map((c) => (
               <Bead key={c.index} c={c} s={s} showTotals={showTotals} />
@@ -230,6 +233,7 @@ export function Scoreboard({
           onTap={onTap}
           label={`Big Road: ${big.streaks.length} streaks${big.streaks.length ? `, longest ${Math.max(...big.streaks.map((x) => x.length))}` : ''}. ${text}`}
           cols={bigCols}
+          cell={s}
         >
           <svg
             width={bigCols * s}
@@ -237,7 +241,6 @@ export function Scoreboard({
             viewBox={`0 0 ${bigCols * s} ${rows * s}`}
             aria-hidden="true"
           >
-            <rect width={bigCols * s} height={rows * s} class="sim-road-bg" />
             <Grid cols={bigCols} rows={rows} s={s} />
             {big.cells.map((c) => (
               <BigCell
