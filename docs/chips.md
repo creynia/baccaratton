@@ -15,3 +15,7 @@ Self-contained ideas to pick up later. Open an issue or PR and link it here when
 - Drill heat map per tableau cell (needs per-cell stats).
 - Derived roads (Big Eye Boy, Small Road, Cockroach Pig) drawn live; currently explained in text only.
 - Spot sheet on long-press (table-ui `onLongPress` hook exists).
+- Auto-play results table scrolls sideways at 390 px (integration review).
+- Landscape lesson scenes get a small felt; consider a scene-specific landscape layout (integration review).
+- Auto-play perf: first hand after load ≈70 ms while the engine JIT warms up (integration).
+- Port holdumb-era note: crappy's SW precache should use `cache: 'reload'` (still open in crappy).
