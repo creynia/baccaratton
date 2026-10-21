@@ -6,8 +6,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compileLesson, type CompiledLesson } from '../../src/content/compile';
-import { BET_IDS, STRATEGY_IDS, validateScene } from '../../src/sim';
-import type { SceneConfig, SceneStep } from '../../src/sim';
+import { BET_IDS, STRATEGY_IDS, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
+import type { BetId, SceneConfig, SceneStep } from '../../src/sim';
 
 const DIR = join(process.cwd(), 'content/lessons');
 const LESSONS: readonly [number, string, string][] = [
@@ -800,5 +800,55 @@ describe('lesson 19: the systems cost what the table says (exact DP, D28 caps)',
     expect([10, 20, 40, 80, 160, 320, 640].reduce((a, b) => a + b)).toBe(1270);
     expect([0.95 * 320, 10 + 20 + 40 + 80 + 160]).toEqual([304, 310]);
     quotes('betting-systems', 'About once every 141 series', 'about 0.71% of the time: $1,270 lost', 'at most 7 bets ($10–$640)');
+  });
+});
+
+// ---------------------------------------------------------------- engine: the scenes' forced hands
+
+describe('lessons 20, 21, 23: the engine settles the forced hands as the step text says', () => {
+  const play = (sid: string) => {
+    const s = scene(sid);
+    const deal = steps(s).find((st) => st.deals)!;
+    const { player, banker } = deal.deals![0]!;
+    // The real order: P1 B1 P2 B2, then P3, then B3.
+    const seq = [player[0], banker[0], player[1], banker[1], player[2], banker[2]].filter(
+      (c): c is string => c !== undefined,
+    );
+    const cards = parseCards(seq.join(' '));
+    let i = 0;
+    const hand = { ...playHand(() => cards[i++]!), n: 1, shoeNo: 1, handInShoe: 1, forced: true };
+    expect(i).toBe(cards.length);
+    // The slip is the betting step's minimum amounts.
+    const slip: Partial<Record<BetId, number>> = {};
+    const collect = (c: unknown): void => {
+      if (typeof c !== 'object' || c === null) return;
+      const o = c as Record<string, unknown>;
+      if (o.betOnFelt) {
+        const b = o.betOnFelt as { bet: BetId; minAmount: number };
+        slip[b.bet] = b.minAmount;
+      }
+      for (const k of ['all', 'any']) if (Array.isArray(o[k])) (o[k] as unknown[]).forEach(collect);
+    };
+    collect(steps(s)[0]!.completeWhen);
+    return settleHand(hand, slip, resolveRules({ variant: s.variant ?? 'punto-banco' }));
+  };
+  const net = (r: ReturnType<typeof play>, bet: BetId) =>
+    r.settlements.find((x) => x.bet === bet)?.profit;
+
+  it('l20-s1: Pair +$55, Dragon Bonus +$150, Player +$10: +$215', () => {
+    const r = play('l20-s1');
+    expect(r.hand.winner).toBe('player');
+    expect([net(r, 'player-pair'), net(r, 'dragon-bonus-player'), net(r, 'player'), r.net]).toEqual([
+      5500, 15000, 1000, 21500,
+    ]);
+  });
+  it('l21-s1: Panda 8 +$125, Player +$10', () => {
+    const r = play('l21-s1');
+    expect([net(r, 'panda-8'), net(r, 'player'), r.net]).toEqual([12500, 1000, 13500]);
+  });
+  it('l23-s1: a $20 Banker win pays $19 after $1 commission', () => {
+    const r = play('l23-s1');
+    expect(r.hand.winner).toBe('banker');
+    expect(net(r, 'banker')).toBe(1900);
   });
 });
