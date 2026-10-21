@@ -2,7 +2,11 @@
 // run the `simulate` job through the EvClient (time-sliced, same thread); show the charts and a
 // summary that labels what is exact and what is simulated (section 2.7).
 import { useEffect, useId, useMemo, useRef, useState } from 'preact/hooks';
-import { formatMoney } from '../engine/money';
+import { formatMoney as engineMoney } from '../engine/money';
+
+/** Money with the minus sign (−), never a hyphen. */
+const formatMoney = (cents: number, opts?: { sign?: boolean }): string =>
+  engineMoney(cents, opts).replace(/^-/, '\u2212');
 import type { EvClient, Progress } from '../jobs/protocol';
 import { HAND_OPTIONS, MAX_HANDS, rulesFor, systemCost } from '../strategy/metrics';
 import type { SystemCost } from '../strategy/metrics';
@@ -372,9 +376,10 @@ export function AutoPlayPanel({
         <p style={{ margin: 0, fontSize: '13px' }} data-testid="auto-exact">
           {cost.kind === 'exact' && cost.costPerHourCents !== null && cost.avgBetCents !== null ? (
             <>
-              Exact: average bet {formatMoney(Math.round(cost.avgBetCents))} per hand, cost{' '}
+              Exact over a {hands.toLocaleString('en-US')}-hand session: average bet{' '}
+              {formatMoney(Math.round(cost.avgBetCents))} per hand, cost{' '}
               {formatMoney(Math.round(cost.costPerHourCents))} per hour ({settings.handsPerHour}{' '}
-              hands, edge {pct(cost.edge)}).
+              hands an hour, edge {pct(cost.edge)}).
             </>
           ) : (
             <>
@@ -509,12 +514,12 @@ function Row({
   bankroll: number;
   many: boolean;
 }) {
-  const cell = { padding: '4px 6px', textAlign: 'right' } as const;
+  const cell = { padding: '4px 6px', textAlign: 'right', whiteSpace: 'nowrap' } as const;
   const expected = s.expected[s.expected.length - 1]! - bankroll;
   const actual = s.meanFinal - bankroll;
   return (
     <tr>
-      <th scope="row" style={{ ...cell, textAlign: 'left', fontWeight: 400 }}>
+      <th scope="row" style={{ ...cell, textAlign: 'left', fontWeight: 400, whiteSpace: 'normal' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           <Swatch k={k} />
           {seriesLabel(s.strategy)}

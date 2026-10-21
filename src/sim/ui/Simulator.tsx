@@ -11,6 +11,7 @@ import { shoeTracker } from '../math/tracker';
 import type { Alternative, SlipPreview } from '../math/types';
 import type { EvClient } from '../jobs/protocol';
 import { SimDriver, sessionSummary } from '../scene/driver';
+import { gateAction, leaves } from '../scene/runner';
 import type { DriverEvent } from '../scene/driver';
 import type { SceneConfig, TapTarget } from '../scene/types';
 import { getStrategy } from '../strategy/presets';
@@ -60,8 +61,6 @@ export interface SimulatorProps {
   /** Injected; the app creates one EvClient per page. */
   evClient: EvClient;
   onEvent?: (e: SimulatorEvent) => void;
-  /** Kept for the app's call sites; persistence goes through `snapshot` / `onSnapshot`. */
-  persistKey?: string;
   /** Sandbox query (`?seed=`, `?shoe=`, `?variant=`, `?tie=`, `?system=`, `?speed=`; D33). */
   query?: URLSearchParams;
   /** The saved sandbox snapshot (opaque, PersistedV1.sandbox): resumes the same shoe mid-way. */
@@ -95,8 +94,14 @@ const BET_SET = new Set<string>([
 function slipOf(r: HandResult): Slip {
   return Object.fromEntries(r.settlements.map((s) => [s.bet, s.amount]));
 }
-function cardsLeft(s: GameState): number {
-  return visibleView(s).unseenRanks.reduce((a, b) => a + b, 0);
+const CUT_CARD = 'The cut card is out: one more hand, then a new shoe.';
+const SHOE_FINISHED = 'Shoe finished. The next Deal shuffles a new shoe.';
+
+/** Cards still in the shoe (face-down burns and dealt cards are out of it). */
+function physicalCardsLeft(s: GameState): number {
+  return s.shoe.shoeNo === 0 || s.shoe.finished
+    ? s.rules.decks * 52
+    : s.shoe.order.length - s.shoe.pos;
 }
 
 interface Watch {
@@ -258,16 +263,23 @@ export function Simulator(props: SimulatorProps) {
     q.errors.map((text, i) => ({ id: i + 1, text, tone: 'bad' as const })),
   );
   const toastId = useRef(100);
-  const pushToast = (text: string, tone: Toast['tone'] = 'info') =>
-    setToasts((t) => [...t.slice(-2), { id: toastId.current++, text, tone }]);
+  /** Adds a toast unless the same text is showing; `replaces` drops toasts it supersedes. */
+  const pushToast = (text: string, tone: Toast['tone'] = 'info', replaces: string[] = []) =>
+    setToasts((t) =>
+      t.some((x) => x.text === text)
+        ? t
+        : [
+            ...t.filter((x) => !replaces.includes(x.text)).slice(-2),
+            { id: toastId.current++, text, tone },
+          ],
+    );
   const shoeNoteSeq = useRef(-1);
   useEffect(() => {
     if (revealing || shoeNoteSeq.current === v.eventSeq) return;
     shoeNoteSeq.current = v.eventSeq;
     if (events.some((e) => e.type === 'shoe-finished'))
-      pushToast('Shoe finished. The next Deal shuffles a new shoe.');
-    else if (events.some((e) => e.type === 'cut-card'))
-      pushToast('The cut card is out: one more hand, then a new shoe.');
+      pushToast(SHOE_FINISHED, 'info', [CUT_CARD]);
+    else if (events.some((e) => e.type === 'cut-card')) pushToast(CUT_CARD);
   }, [revealing, v.eventSeq]);
 
   // ---------- persistence ----------
@@ -355,7 +367,8 @@ export function Simulator(props: SimulatorProps) {
     setSheetOpen(true);
     tap('ev-sheet');
     if (focus) driver.previewed(focus);
-    else for (const b of Object.keys(state.bets) as BetId[]) driver.previewed(b);
+    // The sheet lists every offered bet with its EV: opening it previews each row.
+    else for (const b of preview.sheet) if (b.offered) driver.previewed(b.bet);
   };
   /** "Use this" (D31, D42): the alternative's amount (at least the main-bet minimum). */
   const useAlternative = (alt: Pick<Alternative, 'from' | 'to' | 'amount'>) => {
@@ -371,6 +384,10 @@ export function Simulator(props: SimulatorProps) {
     });
     setAltFor(null);
   };
+  /** "Use this" only when the current step lets that bet be placed. */
+  const canPlace = (bet: BetId): boolean =>
+    sandbox ||
+    gateAction(v.scene, v.rt, { type: 'set-bet', bet, amount: rules.mainMin }, state.bets).ok;
   const cheapest: BetId = rules.variant === 'super-6' ? 'player' : 'banker';
   const altAmount = (bet: BetId) => Math.max(state.bets[bet] ?? chip, rules.mainMin);
 
@@ -436,9 +453,12 @@ export function Simulator(props: SimulatorProps) {
           to={cheapest}
           autoFocus
           onConfirm={() => place(confirming)}
-          onUse={() =>
-            useAlternative({ from: confirming, to: cheapest, amount: altAmount(confirming) })
-          }
+          {...(canPlace(cheapest)
+            ? {
+                onUse: () =>
+                  useAlternative({ from: confirming, to: cheapest, amount: altAmount(confirming) }),
+              }
+            : {})}
           onDismiss={() => setConfirming(null)}
         />
       ) : null}
@@ -449,7 +469,9 @@ export function Simulator(props: SimulatorProps) {
           tier={altEv.tier}
           text={alternativeText(preview.alternative, preview.sheet, rules, hph)}
           to={preview.alternative.to}
-          onUse={() => useAlternative(preview.alternative!)}
+          {...(canPlace(preview.alternative.to)
+            ? { onUse: () => useAlternative(preview.alternative!) }
+            : {})}
           onDismiss={() => setAltFor(null)}
         />
       ) : null}
@@ -532,7 +554,7 @@ export function Simulator(props: SimulatorProps) {
         onFelt={slipTotal(shown.bets)}
         sessionNet={shown.stats.hands ? equity(shown) - v.startEquity : null}
         shoe={{
-          cardsLeft: cardsLeft(shown),
+          cardsLeft: physicalCardsLeft(shown),
           cutCardOut: shown.shoe.cutCardOut,
           finished: shown.shoe.finished,
         }}
@@ -568,7 +590,13 @@ export function Simulator(props: SimulatorProps) {
         handsPerHour={hph}
         tracker={trackerPreview}
         unitCents={settings.unitCents}
-        onUseAlternative={scene?.evDetail === 'basic' ? undefined : useAlternative}
+        onUseAlternative={
+          scene?.evDetail === 'basic' ||
+          !sheetPreview?.alternative ||
+          !canPlace(sheetPreview.alternative.to)
+            ? undefined
+            : useAlternative
+        }
         mode={landscape ? 'panel' : 'dialog'}
         onClose={() => setSheetOpen(false)}
       />
@@ -584,6 +612,13 @@ export function Simulator(props: SimulatorProps) {
           showNext={v.showNext && !revealing}
           onNext={() => driver.acknowledge()}
           hint={(v.rejection?.text ?? null) || (idleHint ? (v.step?.hint ?? null) : null)}
+          tip={
+            display.step && leaves(display.step.completeWhen).some((l) => 'previewed' in l)
+              ? landscape
+                ? 'Tap **EV** (or a bet in the list) to open the sheet: it prices every bet.'
+                : 'Tap **EV** to open the sheet: it prices every bet. Long-press a spot to open it on that bet.'
+              : null
+          }
           busy={revealing}
           compact={landscape}
         />
@@ -732,6 +767,7 @@ export function Simulator(props: SimulatorProps) {
             scoreboard
           ) : (
             <>
+              {betNotices}
               {resultNotices}
               {scoreboard}
             </>
@@ -742,17 +778,15 @@ export function Simulator(props: SimulatorProps) {
             <>
               {step}
               {betNotices}
-              {resultNotices}
             </>
-          ) : (
-            betNotices
-          )
+          ) : null
         }
         chips={chipRack}
         actions={actions}
         rail={
           landscape ? (
             <>
+              {resultNotices}
               {!sheetOpen && showEV && !practiceHidden ? (
                 <EvList
                   sheet={preview.sheet}

@@ -75,3 +75,14 @@ test('an auto-play scene completes on Run (l09)', async ({ page }) => {
   await page.locator('[data-scene="l09-s1"] [data-testid="auto-run"]').click();
   await expect(t.getByTestId('step-panel')).toContainText('Step 2 of 2', { timeout: 60_000 });
 });
+
+test('step text draws {{cards =N}} as cards with a total, never raw markup', async ({ page }) => {
+  const t = await openScene(page, 'naturals-and-player-rule', 'l03-s2');
+  await t.locator('[data-action="deal"]').click();
+  await t.getByTestId('predict-bar').locator('[data-answer="Draw"]').click();
+  await settled(t);
+  const panel = t.getByTestId('step-panel');
+  await expect(panel).toContainText('Step 2 of 4');
+  await expect(panel).not.toContainText('{{');
+  await expect(panel.locator('.pc-total').first()).toBeVisible();
+});

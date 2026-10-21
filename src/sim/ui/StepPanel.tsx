@@ -2,7 +2,8 @@
 // text with **bold**, _italic_ and {{Kh 7d}} inline cards, its hint, "Show the math", and the Next
 // button for `acknowledged` / `advance: button` steps.
 import type { ComponentChildren } from 'preact';
-import { parseCards, rankOf, suitOf } from '../engine/cards';
+import { cardName, parseCards, rankOf, suitOf } from '../engine/cards';
+import { handTotal } from '../engine/tableau';
 import { RANK_CHARS } from '../engine/types';
 import type { SceneStep } from '../scene/types';
 import { SUIT_GLYPH } from './Card';
@@ -10,25 +11,42 @@ import './simulator.css';
 
 const SUIT_CLASS = ['s', 'h', 'd', 'c'];
 
+/**
+ * One `{{…}}` group, rendered like the lesson prose (src/content/cards.ts): card codes, then
+ * optionally `=` (a total badge) or `=N` (a badge; validateScene checks N).
+ */
 function inlineCards(group: string, key: string): ComponentChildren {
+  const m = /^([^=]*?)\s*(=\s*(\d?))?\s*$/.exec(group);
   let cards: number[];
   try {
-    cards = parseCards(group);
+    cards = parseCards(m?.[1] ?? group);
   } catch {
     return `{{${group}}}`;
   }
+  const total = handTotal(cards);
+  const names = cards.map(cardName).join(', ');
   return (
-    <span class="sim-inline-cards" key={key}>
+    <span
+      class="cards sim-inline-cards"
+      key={key}
+      role="img"
+      aria-label={`${names} (total ${total})`}
+    >
       {cards.map((c, i) => {
         const r = RANK_CHARS[rankOf(c)]!;
         const s = suitOf(c);
         return (
-          <span key={i} class={`sim-inline-card suit-${SUIT_CLASS[s]}`}>
+          <span key={i} class={`pc sim-inline-card suit-${SUIT_CLASS[s]}`} aria-hidden="true">
             {r === 'T' ? '10' : r}
             {SUIT_GLYPH[s]}
           </span>
         );
       })}
+      {m?.[2] !== undefined ? (
+        <span class="pc-total" aria-hidden="true">
+          {total}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -60,6 +78,8 @@ export interface StepPanelProps {
   onNext?: () => void;
   /** A rejected action's hint, or the idle hint. */
   hint?: string | null;
+  /** A standing tip under the text (how to do what the step asks). */
+  tip?: string | null;
   /** The table is still dealing: Next waits. */
   busy?: boolean;
   compact?: boolean;
@@ -73,6 +93,7 @@ export function StepPanel({
   showNext,
   onNext,
   hint,
+  tip,
   busy,
   compact,
 }: StepPanelProps) {
@@ -103,6 +124,11 @@ export function StepPanel({
       <p class="sim-step-text" aria-live="polite">
         {richText(step.text)}
       </p>
+      {tip ? (
+        <p class="sim-step-tip" data-testid="step-tip">
+          {richText(tip)}
+        </p>
+      ) : null}
       {hint ? (
         <p class="sim-step-hint" role="status" data-testid="step-hint">
           {richText(hint)}

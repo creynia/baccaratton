@@ -1,7 +1,15 @@
 // The Play sandbox (simulator.md section 7.5 items 1-5, 9): EV before Deal, the Sucker second tap
 // and "Use this", EZ, roads and the shoe, the tracker, persistence, keyboard betting, Deal in view.
 import { expect, test } from '@playwright/test';
-import { bankroll, inViewport, noHorizontalScroll, settled, sim } from './helpers';
+import {
+  bankroll,
+  inViewport,
+  noHorizontalScroll,
+  settled,
+  sim,
+  tabTo,
+  uncovered,
+} from './helpers';
 
 // Player K 2 3 = 5, Banker 4 3 = 7 stands: Banker wins 7 to 5.
 const BANKER_WINS = 'Kh,4s,2d,3h,3c';
@@ -65,7 +73,10 @@ test('Tie needs a second tap; "Use this" moves the stake to Banker', async ({ pa
   const t = sim(page);
   await t.locator('[data-chip="500"]').click();
   await t.locator('[data-hit="tie"]').click();
-  await expect(t.locator('.sim-alt').first()).toContainText('Tie loses');
+  const confirm = t.getByTestId('sucker-confirm');
+  await expect(confirm).toContainText('Tie loses');
+  // In view and not under the sticky chips / actions / tab bar.
+  await expect.poll(() => uncovered(confirm.locator('[data-action="confirm-bet"]'))).toBe(true);
   expect(await bankroll(t)).toBe('$500.00'); // nothing placed yet
   await t
     .getByRole('button', { name: /Banker instead|Use this/ })
@@ -79,12 +90,15 @@ test('Tie needs a second tap; "Use this" moves the stake to Banker', async ({ pa
   expect(await bankroll(t)).toBe('$490.00');
 });
 
-test('EZ: Dragon 7 and Panda 8 appear; a 3-card Banker 7 pushes the Banker bet', async ({
+test('Settings → EZ: Dragon 7 and Panda 8 appear; a 3-card Banker 7 pushes the Banker bet', async ({
   page,
 }) => {
+  await page.goto('/#/settings');
+  await page.getByLabel('Variant').selectOption('ez');
   // Player K 6 = 6 stands; Banker 2 2 = 4 draws a 3: 7 with three cards.
-  await page.goto('/#/play?variant=ez&seed=2&shoe=Ks,2c,6d,2h,3s&speed=instant');
+  await page.goto('/#/play?seed=2&shoe=Ks,2c,6d,2h,3s&speed=instant');
   const t = sim(page);
+  await expect(t.getByTestId('felt')).toHaveAttribute('data-variant', 'ez');
   await expect(t.locator('[data-hit="dragon-7"]')).toBeVisible();
   await expect(t.locator('[data-hit="panda-8"]')).toBeVisible();
   await t.locator('[data-chip="2500"]').click();
@@ -93,6 +107,8 @@ test('EZ: Dragon 7 and Panda 8 appear; a 3-card Banker 7 pushes the Banker bet',
   await settled(t);
   expect(await bankroll(t)).toBe('$500.00');
   await expect(t.getByTestId('settle-toast')).toContainText(/push/i);
+  await page.goto('/#/settings');
+  await page.getByLabel('Variant').selectOption('punto-banco');
 });
 
 test('roads fill, the Shoe tracker updates, and a reload resumes the same shoe', async ({
@@ -124,16 +140,23 @@ test('roads fill, the Shoe tracker updates, and a reload resumes the same shoe',
   await expect(t2).toHaveAttribute('data-hands', '10');
 });
 
-test('keyboard: Tab to a spot and press Enter to bet', async ({ page }) => {
-  await page.goto('/#/play?seed=4&speed=instant');
+test('keyboard: Tab to the $5 chip, a spot and Deal, pressing Enter each time', async ({
+  page,
+}) => {
+  await page.goto('/#/play?seed=4&shoe=Kh,4s,2d,3h,3c&speed=instant');
   const t = sim(page);
-  const spot = t.locator('[data-hit="player"]');
-  await spot.focus();
+  await expect(t.locator('[data-action="deal"]')).toBeVisible();
+  await tabTo(page, '[data-chip="500"]');
   await page.keyboard.press('Enter');
-  await expect(t.locator('[data-action="deal"]')).toContainText('Slip $25');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Shift+Tab');
-  await expect(spot).toBeFocused();
+  await expect(t.locator('[data-chip="500"]')).toHaveAttribute('aria-checked', 'true');
+  await tabTo(page, '[data-hit="banker"]');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await expect(t.locator('[data-action="deal"]')).toContainText('Slip $10');
+  await tabTo(page, '[data-action="deal"]');
+  await page.keyboard.press('Enter');
+  await settled(t);
+  expect(await bankroll(t)).toBe('$509.50');
 });
 
 test('auto-play: Martingale vs flat Banker on the same cards, with exact and simulated labels', async ({

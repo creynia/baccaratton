@@ -52,6 +52,7 @@ export function parseSandboxQuery(q: URLSearchParams | undefined): SandboxQuery 
   }
   const tie = q.get('tie');
   if (tie === '8' || tie === '9') out.tiePays = Number(tie) as TiePays;
+  else if (tie !== null) out.errors.push(`?tie=${tie} must be 8 or 9`);
   const sys = q.get('system');
   if (sys !== null) {
     if ((STRATEGY_IDS as readonly string[]).includes(sys)) out.system = sys as StrategyId;

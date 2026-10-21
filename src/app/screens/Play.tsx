@@ -23,7 +23,6 @@ export function Play({ query }: { query: URLSearchParams }) {
         {...(preset
           ? {}
           : {
-              persistKey: 'baccaratton:sandbox',
               snapshot: store.sandbox,
               onSnapshot: (s: unknown) => store.setSandbox(s),
             })}

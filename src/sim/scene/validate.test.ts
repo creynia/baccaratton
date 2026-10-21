@@ -281,3 +281,14 @@ describe('validateScene: no dead ends (rules 2-11)', () => {
     expect(errorsOf(scene([{ ...ack, advance: undefined }]))).toMatch(/advance: button/);
   });
 });
+
+describe('validateScene: inline cards in step text', () => {
+  it('parses every {{…}} group in text, hint and math, with =N totals', () => {
+    const step = (text: string, extra = {}) => scene([{ ...ack, text, ...extra }]);
+    expect(errorsOf(step('Banker {{4h Jd =4}} draws'))).toBe('');
+    expect(errorsOf(step('Banker {{4h Jd =}} draws'))).toBe('');
+    expect(errorsOf(step('Banker {{4h Jd =5}} draws'))).toMatch(/total is 4, not 5/);
+    expect(errorsOf(step('ok', { hint: 'See {{Zz}}' }))).toMatch(/hint: bad card group/);
+    expect(errorsOf(step('ok', { math: '{{}}' }))).toMatch(/math: bad card group/);
+  });
+});

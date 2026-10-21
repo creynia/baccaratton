@@ -1,7 +1,7 @@
 import './sim.css';
 import type { TrackerView } from '../math/types';
 import { TierBadge } from './TierBadge';
-import { BET_LABEL, MINUS, fracNeg, pct, tierOfEdge, toNum } from './text';
+import { BET_LABEL, fracNeg, pct, pctSigned, tierOfEdge, toNum } from './text';
 
 export interface ShoeTrackerProps {
   view: TrackerView;
@@ -63,12 +63,9 @@ export function ShoeTracker({ view, onClose }: ShoeTrackerProps) {
                 </th>
                 <td class="num">{pct(r.fullShoeEv)}</td>
                 <td class="num">
-                  <strong>{pct(r.ev)}</strong>
+                  <strong>{pctSigned(r.ev)}</strong>
                 </td>
-                <td class="num">
-                  {d > 0 ? '+' : d < 0 ? MINUS : ''}
-                  {pct(Math.abs(d), 2)}
-                </td>
+                <td class="num">{pctSigned(d)}</td>
               </tr>
             );
           })}

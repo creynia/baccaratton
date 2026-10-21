@@ -73,7 +73,7 @@ for (const q of [
 ]) {
   test(`axe: no serious or critical issues (${q})`, async ({ page }) => {
     await page.goto(gallery(q));
-    await page.waitForTimeout(200);
+    await page.waitForLoadState('networkidle');
     const r = await new AxeBuilder({ page }).analyze();
     const bad = r.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
     expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual(

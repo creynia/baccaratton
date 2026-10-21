@@ -2,7 +2,6 @@
 // Player · Banker · Tie. After the call it shows a tick, or the hint and the deciding rule row with
 // a link to that tableau cell. There is no replay (D27).
 import type { PredictFeedback, Reveal } from '../scene/driver';
-import { richText } from './StepPanel';
 import './simulator.css';
 
 export interface PredictBarProps {
@@ -60,7 +59,6 @@ export function PredictFeedbackCard({ feedback }: { feedback: PredictFeedback | 
           <p class="sim-feedback-rule" data-testid="rule-row">
             {f.ruleRow}
           </p>
-          {f.hint ? <p class="sim-feedback-hint">{richText(f.hint)}</p> : null}
           {f.cell ? (
             <a class="sim-link sim-feedback-chart" href={`#/rules?highlight=${f.cell}`}>
               See the chart

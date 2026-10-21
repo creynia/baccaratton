@@ -6,7 +6,7 @@ import { isOffered } from '../engine/bets';
 import { createGame, applyAction, visibleView, startShoe } from '../engine/game';
 import { parseRoadString } from '../engine/roads';
 import { VARIANT_RULES } from '../engine/rules';
-import { playHand } from '../engine/tableau';
+import { handTotal, playHand } from '../engine/tableau';
 import { BET_IDS, VARIANT_IDS } from '../engine/types';
 import type {
   ActionType,
@@ -385,6 +385,8 @@ export function validateScene(json: unknown): SceneValidation {
     else if (seen.has(raw.id)) err(`${where}: duplicate step id "${raw.id}"`);
     else seen.add(raw.id);
     if (typeof raw.text !== 'string' || raw.text === '') err(`${where}: text is required`);
+    for (const k of ['text', 'hint', 'math'] as const)
+      if (typeof raw[k] === 'string') checkInlineCards(raw[k], `step ${String(raw.id)} ${k}`, err);
     if (raw.advance !== undefined && raw.advance !== 'auto' && raw.advance !== 'button')
       err(`${where}: advance must be 'auto' or 'button'`);
     const shapeOk = checkCondition(raw.completeWhen, where, errors, checkBetId);
@@ -591,6 +593,23 @@ export function validateScene(json: unknown): SceneValidation {
   if (json.showEV === false && json.whyOpen !== undefined) err('whyOpen needs showEV');
   if (errors.length) return { ok: false, errors, warnings };
   return { ok: true, scene: json as unknown as SceneConfig, errors: [], warnings };
+}
+
+/** Every `{{cards}}` / `{{cards =N}}` group in step text must parse, and N must be the total. */
+function checkInlineCards(text: string, where: string, err: (m: string) => void): void {
+  for (const g of text.matchAll(/\{\{([^{}]*)\}\}/g)) {
+    const body = g[1] ?? '';
+    const m = /^([^=]*?)\s*(=\s*(\d?))?\s*$/.exec(body);
+    try {
+      const cards = parseCards(m?.[1] ?? body);
+      if (cards.length === 0) throw new Error('empty group');
+      const n = m?.[3];
+      if (n && Number(n) !== handTotal(cards))
+        throw new Error(`total is ${handTotal(cards)}, not ${n}`);
+    } catch (e) {
+      err(`${where}: bad card group {{${body}}}: ${(e as Error).message}`);
+    }
+  }
 }
 
 function leavesOf(c: Condition): Condition[] {

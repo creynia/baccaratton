@@ -15,6 +15,7 @@ import {
   payoutShort,
   perfectStrategyLine,
   pct,
+  pctSigned,
   tierOfEdge,
 } from './text';
 
@@ -101,7 +102,8 @@ function Row({
       <p class="sim-evrow-sub sim-money">{c.perHour}</p>
       {trackerRow ? (
         <p class="sim-evrow-tracker" data-testid={`tracker-line-${b.bet}`}>
-          <strong>This shoe</strong>: {pct(trackerRow.ev)} (exact for the {trackerCards} cards left)
+          <strong>This shoe</strong>: {pctSigned(trackerRow.ev)} (exact for the {trackerCards} cards
+          left)
           {trackerRow.ev.num > 0n ? (
             <>
               {' '}
@@ -151,21 +153,24 @@ export function EvSheet({
   const root = useRef<HTMLElement>(null);
   const titleId = useId();
   const dialog = mode === 'dialog';
+  // The landscape panel also takes focus and closes on Escape (no trap: the rail stays usable).
+  const focusing = dialog || mode === 'panel';
   useEffect(() => {
-    if (!dialog) return;
+    if (!focusing) return;
     const opener = typeof document === 'undefined' ? null : document.activeElement;
     root.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
     return () => {
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
     };
-  }, [dialog]);
+  }, [focusing]);
   const onKeyDown = (e: KeyboardEvent) => {
-    if (!dialog) return;
+    if (!focusing) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       onClose?.();
       return;
     }
+    if (!dialog) return;
     if (e.key !== 'Tab' || !root.current) return;
     const els = Array.from(root.current.querySelectorAll<HTMLElement>(FOCUSABLE));
     if (els.length === 0) return;

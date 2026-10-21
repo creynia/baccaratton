@@ -23,7 +23,9 @@ async function shot(page: Page, name: string, theme: string) {
     (page.viewportSize()?.width ?? 0) > (page.viewportSize()?.height ?? 0)
       ? 'landscape'
       : 'portrait';
-  await page.waitForTimeout(250);
+  await page.evaluate(
+    () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))),
+  );
   await page.screenshot({ path: `docs/screenshots/${name}-${orient}-${theme}.png` });
 }
 const top = (page: Page, sel: string) =>

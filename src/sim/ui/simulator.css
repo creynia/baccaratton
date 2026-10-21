@@ -132,3 +132,15 @@
 .sim-landscape {
   --sim-table-h: max(300px, calc(100dvh - 88px));
 }
+/* The Sucker confirm and alternative cards scroll clear of the sticky chips + actions + tab bar. */
+.sim-alt {
+  scroll-margin: 16px 0 240px;
+}
+.sim-landscape .sim-alt {
+  scroll-margin: 8px;
+}
+.sim-step-tip {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

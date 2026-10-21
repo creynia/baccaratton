@@ -46,3 +46,24 @@ export async function inViewport(page: Page, el: Locator): Promise<boolean> {
     box.x + box.width <= vp.width + 1
   );
 }
+
+/** Presses Tab until the focused element matches `selector` (real keyboard navigation). */
+export async function tabTo(page: Page, selector: string, max = 80): Promise<void> {
+  for (let i = 0; i < max; i++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate((s) => document.activeElement?.matches(s) ?? false, selector)) return;
+  }
+  throw new Error(`Tab never reached ${selector}`);
+}
+
+/** The element is on screen and nothing (a sticky bar, the tab bar) covers its centre. */
+export async function uncovered(el: Locator): Promise<boolean> {
+  return el.evaluate((e) => {
+    const r = e.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    if (y < 0 || y > window.innerHeight || x < 0 || x > window.innerWidth) return false;
+    const hit = document.elementFromPoint(x, y);
+    return !!hit && (hit === e || e.contains(hit));
+  });
+}

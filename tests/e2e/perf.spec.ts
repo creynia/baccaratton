@@ -79,7 +79,7 @@ test('no long task over 50 ms while betting and dealing (after a first, warm-up 
   await page.goto('/#/play?seed=1&speed=instant');
   // The first hand compiles the engine's code paths (≈ 70 ms at 4×); budgets apply after it.
   await page.locator('[data-action="deal"]').click();
-  await page.waitForTimeout(500);
+  await expect(page.getByTestId('simulator')).toHaveAttribute('data-hands', '1');
   await page.evaluate(() => {
     (window as unknown as { __long: number[] }).__long = [];
     new PerformanceObserver((l) => {
