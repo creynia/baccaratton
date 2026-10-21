@@ -51,17 +51,17 @@ check. Scratch code: `/tmp/baccaratton-scratch/simulator/` (`oracle.py`,
 ```
 src/sim/engine/
   types.ts        // FROZEN contract, verbatim from §1.2
-  cards.ts        // parseCard(s), cardCode, rankOf, suitOf, cardValue, cardName (a11y), FULL_DECK
+  cards.ts        // parseCards, cardCode, rankOf, suitOf, cardValue, cardName (a11y), FULL_DECK
   rng.ts          // seedRng, nextU32, randBelow, shuffle (verbatim from holdumb)
   shoe.ts         // newShoe(rng, rules), burn, draw, placeForced, applySetup, unseenRanks
   tableau.ts      // handTotal, isNatural, playerDraws, bankerDraws, TABLEAU (literal table), playHand
-  bets.ts         // BETS registry (BetDef per BetId), DRAGON_BONUS_TABLE, betsOffered(rules)
+  bets.ts         // BETS registry (BetDef per BetId), DRAGON_BONUS_TABLE, betsOffered(rules) (real in WP0)
   rules.ts        // VARIANT_RULES, DEFAULT_RULES, resolveRules
   settle.ts       // settleHand(hand, bets, rules) -> HandResult (pure), profitCents
   validate.ts     // validateAction, validateForcedHand
-  roads.ts        // roadEntry(hand), beadPlate, bigRoad, roadCounts (+ derived-road helpers, §3.4)
+  roads.ts        // roadEntry(hand), beadPlate, bigRoad, roadCounts, parseRoadString (D34; real in WP0)
   game.ts         // createGame, applyAction, replay, visibleView, equity, legalActions
-  job.ts          // Progress, Job (verbatim from holdumb)
+  job.ts          // FROZEN, prettier-ignored: Progress, Job (verbatim from holdumb, §6.2); protocol.ts imports it
   money.ts        // formatMoney, formatPct (verbatim from holdumb)
   log.ts          // LogEntry helpers
   index.ts
@@ -107,8 +107,8 @@ export interface TableRules {
   afterCutCard: 'one-more-hand';   // D8: finish the hand, deal one more, then reshuffle
   burn: 'first-card-value';        // face-up card, then that many face down (T/J/Q/K = 10)
   betUnit: Cents;                  // 100: every bet is whole dollars
-  mainMin: Cents; mainMax: Cents;  // player, banker: 500 .. 100_000
-  sideMin: Cents; sideMax: Cents;  // tie and side bets: 100 .. 10_000
+  mainMin: Cents; mainMax: Cents;  // player, banker: 500 .. 500_000 (D16: $5–$5,000)
+  sideMin: Cents; sideMax: Cents;  // tie and side bets: 100 .. 50_000 (D16: $1–$500)
 }
 
 // ---------- bets ----------
@@ -204,7 +204,8 @@ export interface ForcedHand {
   player: readonly CardCode[];       // 2 or 3 cards
   banker: readonly CardCode[];       // 2 or 3 cards
 }
-/** Rich or poor shoes for lessons: cards removed as if already dealt (they count as seen). */
+/** Rich or poor shoes for lessons: cards removed as if already dealt (they count as seen).
+ * D36: may leave as few as 6 unseen cards; with `removed`, the burn (face-up and face-down) is drawn from the removed set. */
 export interface ShoeSetup {
   seed?: number;
   /** Value class → how many cards to remove ('0' = tens and faces). Ranks within a class round-robin, suits round-robin. */
@@ -390,6 +391,10 @@ export function handTotal(cards: readonly Card[]): CardValue;
 export function playerDraws(total: CardValue, bankerTotal: CardValue): DrawDecision;          // natural check included
 export function bankerDraws(bankerTotal: CardValue, playerTotal2: CardValue, playerThird: CardValue | null): DrawDecision;
 export function playHand(next: () => Card): Omit<HandRecord, 'n' | 'shoeNo' | 'handInShoe' | 'forced'>;
+// cards.ts / bets.ts / roads.ts (real in WP0, D37)
+export function parseCards(codes: string): Card[];                    // 'Kh 7d' or 'Kh7d'; throws on bad codes
+export function betsOffered(rules: TableRules): BetId[];              // BET_IDS filtered by offeredIn
+export function parseRoadString(s: string): RoadEntry[];              // the ```roads block and SceneConfig.history (§3.1)
 ```
 
 ### 1.3 The tableau (`tableau.ts`)
@@ -419,7 +424,7 @@ reads it; the oracle (§5.1) restates the rules as if/else code without importin
 `VARIANT_RULES[variant]` = `DEFAULT_RULES` with `variant` set. `DEFAULT_RULES`:
 `decks 8, tiePays 8, commission [1, 20], cutCardFromEnd 16, afterCutCard
 'one-more-hand', burn 'first-card-value', betUnit 100, mainMin 500, mainMax
-100_000, sideMin 100, sideMax 10_000`. `resolveRules` rejects `decks` outside
+500_000, sideMin 100, sideMax 50_000` (D16). `resolveRules` rejects `decks` outside
 1..8 (the exact fast path in §2.3 needs N ≤ 416), a `cutCardFromEnd` < 14 (§1.6),
 and amounts that aren't multiples of `betUnit`.
 
@@ -515,11 +520,19 @@ rebets first (the "Rebet & Deal" button). An empty felt deals a no-money hand
   forced card has no copy left at or after `pos`, the engine **reshuffles first**
   (new shoe, events emitted), so a forced hand can never dead-end. Forced cards
   count against the cut card like any others.
-- **`ShoeSetup`** (scenes: rich or poor shoes): applied right after the shuffle and
-  burn. `removed` swaps the requested cards to the next positions and deals them
-  out face up (exposed, as if dealt in earlier hands); `startAtCard` then advances
-  `pos` to that index (those cards count as seen).
-  The validator checks that removals leave ≥ 40 cards before the cut card.
+- **`ShoeSetup`** (scenes: rich or poor shoes, D36): applied at the shuffle.
+  `removed` swaps the requested cards to the front of `order` and deals them out
+  face up (exposed, as if dealt in earlier hands). **The burn comes from the removed
+  set**: the first removed card in `order` is the face-up burn card and the next
+  `value` removed cards are its face-down burns, all exposed, so the unseen
+  composition is exactly the 8-deck shoe minus `removed` (l17-s2's 52-card shoe is
+  `removed` = 364 cards). Without `removed` the burn is the normal one.
+  `startAtCard` then advances `pos` to that index (those cards count as seen).
+  `startShoe`/`createGame` throw when a setup leaves fewer than 6 unseen cards, or
+  when `Σ removed` is too small to hold the burn (< 1 + the face-up card's value).
+  A setup that leaves **fewer than 40 cards before the cut card** is a study shoe:
+  the engine still deals it correctly, but `validateScene` forbids `deal` on any
+  step that uses it (§5.4 rule 7a).
 
 ### 1.7 Validation (`validateAction`, pure; first failure wins)
 
@@ -823,8 +836,10 @@ bet `best` (ties of the edge → Banker). For each slip line whose edge exceeds
 instead of Tie: −$0.11 vs −$1.44 per $10 hand, $95.77 less per hour at 72 hands."*
 with "Use this" (moves the amount). Player → Banker in punto-banco/EZ is offered
 as a small `good`-tier tip (saves $1.28/hour at $10); in Super 6 the tip is
-Banker → Player. Side bets are additive, so "Use this" on a side bet removes it
-and adds the amount to `best`.
+Banker → Player. "Use this" always moves the amount to the cheapest **main** bet (D31; in
+`super-6` that is Player), even when a side bet is the costly line; a cheaper side
+bet may be named in lesson text only. The per-resolved-bet edge never appears on
+the sheet's headline, only in "Why?" and More → Bets (D32).
 
 **"Why?"** (`explain.ts`), rows with real deciding outcomes, counted over the
 ordered six-card sequences (or two-card starts for Pairs). Pinned examples:
@@ -858,12 +873,14 @@ Banker draws more cleverly, so it wins by big margins less often.)
 | Bet EVs, edges, tiers, probabilities, $/hand, $/hour, full shoe and Shoe tracker | **exact** | "−1.06%", exact fraction in "Why?" |
 | A system's expected line (Σ bet × full-shoe EV of the bets it actually placed) | exact given the bets, full-shoe approximation of a real shoe | "Expected (house edge × money bet)" |
 | Simulated bankroll paths, percentiles, bust rate, P(ahead), cap hits | **estimate** | "≈ … (simulated, 100 sessions)" |
-| Shoe-tracker frequency facts in lessons (e.g. "Dragon 7 had the edge on ≈ 11.6% of hands") | **estimate** | "≈ simulated over 500 shoes" |
+| Shoe-tracker frequency facts in lessons (e.g. "Dragon 7 had the edge on ≈ 11.5% of hands") | **estimate** | "≈ simulated" |
 
-From `shoe.mjs` (500 real shoes, seed 777, exact EV after every hand; lessons may
-quote these as "≈ simulated"): the share of hands where a bet had positive EV for
-the cards left: Banker 0.20%, Player 0.15%, EZ Banker 0.47%, Tie 8:1 0.10%,
-Dragon 7 11.6%, Panda 8 5.8%, Dragon Bonus Player 8.3%, Dragon Bonus Banker 1.2%.
+Lesson figures follow the design review's re-run (decisions D30, D8/D17 shoe
+rules, all "≈ simulated"): Banker positive on ≈ 0.19% of hands (avg +0.37% when
+positive), Dragon 7 ≈ 11.5%, Panda 8 ≈ 5.3%. The spike's own `shoe.mjs` run (500
+shoes, seed 777) agrees within sampling noise: Banker 0.20%, Player 0.15%, EZ
+Banker 0.47%, Tie 8:1 0.10%, Dragon 7 11.6%, Panda 8 5.8%, Dragon Bonus Player
+8.3%, Dragon Bonus Banker 1.2%.
 This is the material for the counting lesson: the main bets almost never turn,
 the EZ side bets do, but only near the end of the shoe and at small bet sizes.
 
@@ -874,7 +891,10 @@ the EZ side bets do, but only near the end of the shoe and at small bet sizes.
 ### 3.1 Data
 
 `roadEntry(hand: HandRecord): RoadEntry` (winner, pair flags, natural, winning or
-tied total). `GameState.history` holds this shoe's entries (scene prefill entries
+tied total). `parseRoadString(s)` (D34) reads whitespace-separated tokens
+`[BPT][b]?[p]?[n]?[0-9]?`: winner letter, optional `b` (Banker pair), `p` (Player
+pair), `n` (natural), optional total digit (default 7 for B/P, 0 for T); e.g.
+`B Bbp P5 T Pn9`. It throws on anything else, so content validation catches typos. `GameState.history` holds this shoe's entries (scene prefill entries
 first, `prefilled: true`). Both roads are pure functions of the list, so a
 replay rebuilds them exactly.
 
@@ -985,8 +1005,8 @@ with its edge ("Good · −1.06%"). Without EZ the felt is 0 0 390 366.
 
 Below the felt (HTML): the **roads strip** (bead plate 6 × 18 px rows, Big Road
 toggle, tap to expand; collapsible), the **chip rack** ($1 $5 $25 $100 $500, each
-≥ 48 px), then the **action bar**: **Deal** (primary, shows "Slip $35 · EV −$1.70"),
-**Rebet**, **Clear**, and **EV** (opens the sheet). Budget at 390×844: header 48 +
+≥ 48 px), then the **action bar**: **Deal** (primary, shows "Slip $35 · EV −$1.70"; it reads **Rebet & Deal** when the felt is
+empty, `rebet` is allowed and `lastBets` is non-empty, D30), **Rebet**, **Clear**, and **EV** (opens the sheet). Budget at 390×844: header 48 +
 status 40 (bankroll · on felt · shoe meter "312 cards left" · session ±) + felt 432 +
 roads 116 + chips 56 + actions 64 = 756, + tab bar 56 = 812 ≤ 844. Shorter phones
 scale the felt by `meet`; the roads strip collapses first.
@@ -1051,6 +1071,7 @@ src/sim/ui/
   Simulator.tsx  StepPanel.tsx  PredictBar.tsx  persist.ts  settings.ts   [integration]
   Felt.tsx  Card.tsx  HandView.tsx  BetSpot.tsx  ChipStack.tsx            [table-ui]
   ActionBar.tsx  ChipRack.tsx  StatusBar.tsx  ShoeMeter.tsx  Toasts.tsx   [table-ui]
+  SessionPanel.tsx  (D35)  SettleToast.tsx (tappable commission line, D35) [table-ui]
   EvSheet.tsx  EvList.tsx  WhyTable.tsx  TierBadge.tsx  AltCard.tsx       [table-ui]
   Scoreboard.tsx (BeadPlate + BigRoad)  ShoeTracker.tsx  Tableau.tsx     [table-ui]
   AutoPlayPanel.tsx  BankrollChart.tsx  SurvivalChart.tsx  OutcomeHistogram.tsx  [strategy]
@@ -1058,11 +1079,51 @@ src/sim/ui/
   gallery.tsx  (dev-only, driven by the REAL engine + math)               [table-ui]
 ```
 
-`ui/types.ts` holds `SimSettings` (architecture §2.4) with these ids:
-`variant: VariantId` (architecture's `commission: 'classic' | 'ez' | 'super-6'`
-becomes `variant` with `'punto-banco'` for classic), `tiePays: TiePays`,
-`animationSpeed`, `fourColorDeck`, `unitCents`, `handsPerHour` (72),
-`confirmCostlyBets`, `practice`, `showRoads`, `shoeTracker` (default false, D6).
+**Session panel** (`SessionPanel.tsx`, table-ui, D35; curriculum §8.4; used in
+l14 and l18): "Hands 42 · Total bet $520 · Expected −$5.65 · Actual +$35.00 · Luck
++$40.65", "Your average edge: 1.09% (Banker only: 1.06%)", "Commission paid:
+$4.75". Expected = Σ over hands of Σ bet × full-shoe EV (never the tracker's), so
+it means the same everywhere. Tapping the panel emits `tapped: session`.
+
+**Settlement toast** (`SettleToast.tsx`, table-ui, D35): "Banker wins 7 to 5. You
+win $23.75." with a tappable line "$1.25 commission (5% of $25)" that emits
+`tapped: commission` (l07-s1, l23-s1) and opens a short explainer.
+
+`ui/types.ts` (WP0 creates it, D37; a baton; app `Settings` extends `SimSettings`):
+
+```ts
+// ===== src/sim/ui/types.ts — WP0 (baton) =====
+import type { Cents, TiePays, VariantId } from '../engine/types';
+
+export interface SimSettings {
+  variant: VariantId;              // default 'punto-banco' (D13)
+  tiePays: TiePays;                // default 8 (D2)
+  animationSpeed: 'normal' | 'fast' | 'instant'; // OS reduced motion forces 'instant'
+  fourColorDeck: boolean;          // default false
+  unitCents: Cents;                // default 1_000 ($10): per-hour lines and units
+  handsPerHour: number;            // default 72 (D5)
+  confirmCostlyBets: boolean;      // default true: sucker-tier bets need a second tap
+  practice: boolean;               // default false: hide EV until the hand settles
+  shoeTracker: boolean;            // default false (D6)
+  showRoads: boolean;              // default true: Bead plate + Big Road strip in Play
+}
+export const DEFAULT_SIM_SETTINGS: SimSettings = {
+  variant: 'punto-banco', tiePays: 8, animationSpeed: 'normal', fourColorDeck: false,
+  unitCents: 1_000, handsPerHour: 72, confirmCostlyBets: true, practice: false,
+  shoeTracker: false, showRoads: true,
+};
+/** Session panel figures (D35), computed by the container from SessionStats + full-shoe EVs. */
+export interface SessionSummary {
+  hands: number;
+  totalBet: Cents;
+  expectedCents: number;           // Σ bet × full-shoe EV (display; exact sum kept as a Fraction in math)
+  actualCents: Cents;
+  luckCents: number;               // actual − expected
+  averageEdge: number;             // Σ expected ÷ Σ bet, as a fraction (0.0109)
+  bankerOnlyEdge: number;          // the variant's Banker edge, for the comparison line
+  commissionPaid: Cents;
+}
+```
 
 ---
 
@@ -1080,7 +1141,8 @@ export type RoadId = 'bead-plate' | 'big-road';
 /** Things a learner can tap that scenes can wait for (emitted even when set-bet is gated). */
 export type TapTarget = BetId | 'commission' | 'bead-plate' | 'big-road' | 'shoe-tracker' | 'ev-sheet' | 'session';
 export type PredictKind = 'player-draws' | 'banker-draws' | 'hand-total' | 'winner';
-export type HistoryCode = 'B' | 'P' | 'T' | RoadEntry;  // 'B' = banker win, no pairs, total 7
+/** A parseRoadString token ('B', 'Pp5', 'Tn8' …, §3.1) or a full entry. */
+export type HistoryCode = string | RoadEntry;
 
 export interface SceneUi {
   orientation?: 'auto' | 'portrait' | 'landscape';
@@ -1142,6 +1204,8 @@ export interface SceneStep {
   /** Staged reveal: stop the deal animation here (with predict, wait for the answer). */
   pauseAt?: PausePoint;
   predict?: { kind: PredictKind; side?: 'player' | 'banker' }; // side for hand-total
+  /** D26: on a natural hand no PredictBar shows and the hand doesn't count toward `predicted`. */
+  skipNaturals?: boolean;
   completeWhen: Condition;
   advance?: 'auto' | 'button';        // default 'auto'
   showEV?: boolean;
@@ -1158,7 +1222,7 @@ export type Condition =
   | { all: Condition[] } | { any: Condition[] }
   | { action: ActionMatcher; count?: number }               // accepted since step start
   | { event: GameEvent['type']; count?: number }
-  | { hands: number }                                       // hands settled since step start
+  | { hands: number }                                       // D27: hands dealt since this step started
   | { handResult: { winner?: Winner; natural?: boolean; minNet?: Cents } }
   | { betOnFelt: { bet: BetId; minAmount?: Cents } }
   | { bankrollAtLeast: Cents } | { bankrollAtMost: Cents }  // equity
