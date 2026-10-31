@@ -977,3 +977,38 @@ textarea {
 .source-note {
   font-size: 0.85rem;
 }
+
+.cite {
+  font-size: 0.75em;
+  line-height: 0;
+}
+.cite-link {
+  all: unset;
+  cursor: pointer;
+  color: var(--link);
+  padding: 0 0.15em;
+  min-width: 1em;
+  text-align: center;
+}
+.cite-link:focus-visible {
+  outline: 2px solid var(--focus);
+}
+.lesson-sources {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.lesson-sources h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.3rem;
+}
+.lesson-sources ol {
+  padding-left: 1.4rem;
+  margin: 0;
+}
+.lesson-sources li {
+  margin: 0.3rem 0;
+}
+.lesson-sources .flash {
+  color: var(--text);
+}

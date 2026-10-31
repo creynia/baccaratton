@@ -132,8 +132,7 @@ export function buildContent(root: string): ContentBundle {
   const src = readSources(root);
   const glossarySlugs = new Set(src.glossary.map((g) => g.slug));
   const glossaryTerms = new Map(src.glossary.map((g) => [g.term.toLowerCase(), g.slug] as const));
-  indexSources(src.sources); // validate
-  const opts = { glossarySlugs, glossaryTerms };
+  const opts = { glossarySlugs, glossaryTerms, sources: indexSources(src.sources) };
   const compiled = new Map<string, CompiledLesson>();
   for (const f of src.lessonFiles) {
     const file = f.file.startsWith('_sample-')

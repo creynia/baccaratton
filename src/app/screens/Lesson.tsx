@@ -9,6 +9,18 @@ import { useContent, useStore } from '../context';
 import { FINAL_EXAM_ID, finalExamScore } from '../store';
 import { NotFound } from './NotFound';
 
+/** `[^n]` buttons scroll to the matching item of the Sources list (hash routing rules out #fragments). */
+function jumpToSource(e: MouseEvent) {
+  const btn = (e.target as Element | null)?.closest?.('[data-cite]');
+  if (!btn) return;
+  const li = document.querySelector(`[data-source-n="${btn.getAttribute('data-cite')}"]`);
+  if (li instanceof HTMLElement) {
+    li.scrollIntoView?.({ block: 'center' });
+    li.classList.add('flash');
+    setTimeout(() => li.classList.remove('flash'), 1500);
+  }
+}
+
 export function LessonView({ id }: { id: string }) {
   const content = useContent();
   const store = useStore();
@@ -29,7 +41,7 @@ export function LessonView({ id }: { id: string }) {
     (b) => b.kind === 'quiz' && progress?.quizzes[b.quiz.id]?.correct,
   ).length;
   return (
-    <article class="page lesson" data-lesson={lesson.id}>
+    <article class="page lesson" data-lesson={lesson.id} onClick={jumpToSource}>
       <Link to="/learn" class="back">
         {'←'} All lessons
       </Link>
@@ -85,6 +97,26 @@ export function LessonView({ id }: { id: string }) {
             );
         }
       })}
+      {lesson.sources && (
+        <section class="lesson-sources" aria-label="Sources">
+          <h2>Sources</h2>
+          <ol>
+            {lesson.sources.map((src, i) => (
+              <li key={i} data-source-n={i + 1}>
+                {src.url ? (
+                  <a href={src.url} target="_blank" rel="noopener noreferrer">
+                    {src.title}
+                  </a>
+                ) : (
+                  src.title
+                )}
+                {src.author && `, ${src.author}`}
+                {src.note && <span class="source-note"> {src.note}</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       {lesson.id === FINAL_EXAM_ID && (
         <section class="card exam-score" aria-label="Exam score">
           <p>

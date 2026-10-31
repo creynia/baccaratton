@@ -102,3 +102,14 @@ describe('real content replaces the placeholders', () => {
     expect(() => buildContent(tmp)).toThrow(/must equal "two"/);
   });
 });
+
+describe('content/sources.json', () => {
+  it('has unique ids and https urls, and every lesson source resolves', () => {
+    const ids = bundle.sources.flatMap((g) => g.items.map((i) => i.id));
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const g of bundle.sources)
+      for (const i of g.items) if (i.url) expect(i.url).toMatch(/^https:\/\/\S+$/);
+    for (const l of bundle.lessons)
+      for (const s of l.sources ?? []) expect(s.title.length).toBeGreaterThan(0);
+  });
+});

@@ -251,6 +251,24 @@ describe('Sources', () => {
   });
 });
 
+describe('Lesson sources', () => {
+  const withSources = content.lessons.find((l) => l.sources);
+  const without = content.lessons.find((l) => !l.sources);
+
+  it('renders a numbered Sources list after a lesson that cites, and not otherwise', () => {
+    if (without) {
+      const r = mount(`#/learn/${without.id}`);
+      expect(r.container.querySelector('.lesson-sources')).toBeNull();
+      cleanup();
+    }
+    if (!withSources) return;
+    const { container } = mount(`#/learn/${withSources.id}`);
+    const items = container.querySelectorAll('.lesson-sources ol > li');
+    expect(items).toHaveLength(withSources.sources!.length);
+    expect(container.querySelectorAll('sup.cite [data-cite]').length).toBeGreaterThan(0);
+  });
+});
+
 describe('Rules', () => {
   it('describes a highlighted cell and every Banker row from TABLEAU', () => {
     const { getByTestId } = mount('#/rules?highlight=b5/p4');

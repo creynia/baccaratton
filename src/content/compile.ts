@@ -15,6 +15,8 @@ import { assertDistinct, cardsHtml, checkInline } from './cards';
 import type {
   Block,
   Lesson,
+  LessonSource,
+  SourceItem,
   Quiz,
   QuizHand,
   RoadsBlockData,
@@ -30,6 +32,10 @@ export interface CompileOptions {
   glossaryTerms?: ReadonlyMap<string, string>;
   /** subtract from every heading depth (min result 2), so lesson headings sit under the page h1 */
   headingShift?: number;
+  /** content/sources.json by id, for a lesson's `sources:` string entries */
+  sources?: ReadonlyMap<string, SourceItem>;
+  /** how many sources the lesson lists; `[^n]` must be 1..citeCount (default 0: no citations) */
+  citeCount?: number;
 }
 
 /** Inline `{{As Kd}}` cards, tokenised by marked so code spans and code blocks stay literal. */
@@ -49,12 +55,44 @@ const cardsExtension: TokenizerAndRendererExtension = {
   },
 };
 
-const instances = new Map<number, Marked>();
-function markedFor(shift: number): Marked {
-  let m = instances.get(shift);
+/**
+ * `[^n]` citations: n is a 1-based index into the lesson's `sources:`. The apps use hash routing,
+ * so this is a button (Lesson.tsx scrolls to the matching Sources item), not a `#fragment` link.
+ */
+function citeExtension(count: number): TokenizerAndRendererExtension {
+  return {
+    name: 'cite',
+    level: 'inline',
+    start(src: string) {
+      const i = src.indexOf('[^');
+      return i < 0 ? undefined : i;
+    },
+    tokenizer(src: string) {
+      const m = /^\[\^(\d+)\]/.exec(src);
+      if (!m) return undefined;
+      const n = Number(m[1]);
+      if (n < 1 || n > count)
+        throw new Error(
+          count === 0
+            ? `citation [^${n}] but the lesson has no sources`
+            : `citation [^${n}] is out of range (the lesson lists ${count} source${count === 1 ? '' : 's'})`,
+        );
+      return { type: 'cite', raw: m[0], n };
+    },
+    renderer(token) {
+      const n = (token as unknown as { n: number }).n;
+      return `<sup class="cite"><button type="button" class="cite-link" data-cite="${n}" aria-label="Source ${n}">${n}</button></sup>`;
+    },
+  };
+}
+
+const instances = new Map<string, Marked>();
+function markedFor(shift: number, cites: number): Marked {
+  const key = `${shift}:${cites}`;
+  let m = instances.get(key);
   if (!m) {
     m = new Marked({
-      extensions: [cardsExtension],
+      extensions: [cardsExtension, citeExtension(cites)],
       ...(shift
         ? {
             renderer: {
@@ -66,7 +104,7 @@ function markedFor(shift: number): Marked {
           }
         : {}),
     });
-    instances.set(shift, m);
+    instances.set(key, m);
   }
   return m;
 }
@@ -117,7 +155,7 @@ export function renderMarkdown(md: string, opts: CompileOptions = {}): string {
     },
   );
   // Tables scroll sideways on phones; a scrolling region must be keyboard focusable (axe).
-  return markedFor(opts.headingShift ?? 0)
+  return markedFor(opts.headingShift ?? 0, opts.citeCount ?? 0)
     .parse(withLinks, { async: false })
     .trim()
     .replace(/<table>/g, '<table tabindex="0" aria-label="Table, scrolls sideways">');
@@ -127,6 +165,32 @@ function str(v: unknown, what: string): string {
   if (typeof v !== 'string' || v.trim() === '')
     throw new Error(`${what} must be a non-empty string`);
   return v;
+}
+
+/** Front-matter `sources:` → resolved entries: a string is an id in sources.json, an object is a one-off. */
+export function parseSources(
+  raw: unknown,
+  known: ReadonlyMap<string, SourceItem> | undefined,
+): LessonSource[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length === 0)
+    throw new Error('front matter sources must be a non-empty list');
+  return raw.map((e: unknown, i) => {
+    const what = `sources[${i + 1}]`;
+    if (typeof e === 'string') {
+      const hit = known?.get(e);
+      if (!hit) throw new Error(`${what}: unknown source id "${e}" (not in content/sources.json)`);
+      const { id: _id, ...rest } = hit;
+      return rest;
+    }
+    if (!isObj(e)) throw new Error(`${what} must be a source id or { title, url?, note? }`);
+    const out: LessonSource = { title: str(e.title, `${what}.title`) };
+    for (const k of ['author', 'url', 'note'] as const)
+      if (e[k] !== undefined) out[k] = str(e[k], `${what}.${k}`);
+    if (out.url !== undefined && !/^https:\/\//.test(out.url))
+      throw new Error(`${what}.url must be an https url`);
+    return out;
+  });
 }
 
 const isObj = (x: unknown): x is Record<string, unknown> =>
@@ -379,7 +443,12 @@ export function compileLesson(
     const { data, body } = splitFrontMatter(source);
     const id = str(data.id, 'front matter id');
     const min = minHeadingDepth(body);
-    opts = { ...opts, headingShift: min <= 6 ? Math.max(0, min - 2) : 0 };
+    const sources = parseSources(data.sources, opts.sources);
+    opts = {
+      ...opts,
+      headingShift: min <= 6 ? Math.max(0, min - 2) : 0,
+      citeCount: sources?.length ?? 0,
+    };
     const blocks: Block[] = [];
     const quizIds = new Set<string>();
     let quizCount = 0;
@@ -427,6 +496,7 @@ export function compileLesson(
       summary: str(data.summary, 'front matter summary'),
       minutes,
       blocks,
+      ...(sources ? { sources } : {}),
       ...(chapter ? { chapter } : {}),
     };
   } catch (e) {
