@@ -4,6 +4,10 @@ title: "Choosing a table: commission, EZ and Super 6"
 chapter: perfect-lowest-edge
 summary: "No-commission tables, 4% tables, 6 decks and 9:1 ties: which is cheapest."
 minutes: 7
+sources:
+  - woo-ez-baccarat
+  - woo-baccarat-appendix-6
+  - woo-baccarat-basics
 ---
 
 Many casinos now advertise **no-commission** baccarat. There's no free lunch: each version takes
@@ -12,13 +16,13 @@ the 5% back in a different way.
 **EZ Baccarat** (`ez`). Banker wins pay **1:1**, except when the Banker wins with a **three-card 7**
 (the "Dragon 7"). Then the Banker bet **pushes**. That happens about once every 44 hands. The Banker edge
 is **1.02%**, a hair **better** than the commission game's 1.06%. EZ tables also offer two famous side
-bets, Dragon 7 and Panda 8 (lesson 21).
+bets, Dragon 7 and Panda 8 (lesson 21).[^1]
 
 **Super 6 / Punto 2000** (`super-6`). Banker wins pay **1:1**, except when the Banker wins with a total of
 **6**. Then it pays only **half** (1 to 2). That happens about once every 19 hands, and it costs more than
-it looks: the Banker edge is **1.46%**, worse than both the commission game and the Player bet.
+it looks: the Banker edge is **1.46%**, worse than both the commission game and the Player bet.[^2]
 
-Every option, cheapest first (8 decks unless noted):
+Every option, cheapest first (8 decks unless noted; 6-deck and 4% figures as published by the Wizard of Odds):[^3]
 
 | Table | Banker edge | Player edge | Banker, $10 for an hour |
 |---|---|---|---|

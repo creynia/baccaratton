@@ -6,6 +6,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compileLesson, type CompiledLesson } from '../../src/content/compile';
+import { indexSources, readSources } from '../../src/content/load';
+
+const SOURCES = indexSources(readSources(process.cwd()).sources);
 import { BET_IDS, STRATEGY_IDS, betEvs, expectedUnitsBet, fullShoeEvs, outcomeDistribution, simulateJob, parseCards, playHand, resolveRules, settleHand, validateScene } from '../../src/sim';
 import type { BetEv, BetId, SceneConfig, SceneStep } from '../../src/sim';
 
@@ -23,7 +26,7 @@ const LESSONS: readonly [number, string, string][] = [
 
 const source = (n: number, id: string) => readFileSync(join(DIR, `${n}-${id}.md`), 'utf8');
 const compiled = new Map<string, CompiledLesson>(
-  LESSONS.map(([n, id]) => [id, compileLesson(source(n, id), `${n}-${id}.md`)]),
+  LESSONS.map(([n, id]) => [id, compileLesson(source(n, id), `${n}-${id}.md`, { sources: SOURCES })]),
 );
 const lesson = (id: string) => compiled.get(id)!;
 const prose = (id: string) => {

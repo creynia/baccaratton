@@ -4,13 +4,15 @@ title: "The Tie bet: 8 to 1 isn't enough"
 chapter: ev-basics
 summary: Ties come about 1 hand in 10.5, so 8 to 1 is short.
 minutes: 5
+sources:
+  - woo-baccarat-basics
 ---
 
 Ties feel common, and they are: about **9.5%** of hands, roughly one in every 10.5. So why is the Tie bet
 the worst of the three?
 
 Picture 1,000 hands with $1 on Tie each time. About 95 are ties (95.2), each paying $8: about $761 in winnings. The
-other 905 lose $1 each: −$905. Net: about **−$144** per 1,000 hands, or **14.36%** of every Tie bet.
+other 905 lose $1 each: −$905. Net: about **−$144** per 1,000 hands, or **14.36%** of every Tie bet.[^1]
 
 For a fair bet, a tie would have to pay about **9.5 to 1**. At 8 to 1 the casino keeps the difference.
 Some casinos pay **9 to 1** on ties. That cuts the edge to **4.84%**: much better, but still more

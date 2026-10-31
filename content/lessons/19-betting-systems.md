@@ -4,6 +4,8 @@ title: "Martingale, Paroli and friends: what they really cost"
 chapter: perfect-fun
 summary: "No system changes the edge. Most raise your average bet, and with it the hourly cost."
 minutes: 10
+sources:
+  - wikipedia-martingale
 ---
 
 Betting systems change **how much** you bet based on what just happened. They're fun, they can make a
@@ -13,7 +15,7 @@ makes and the answer is always the same:
 
 > **Expected cost = house edge × total amount bet**
 
-So the honest question about any system is: **how much does it make me bet?** Here are the common ones,
+So the honest question about any system is: **how much does it make me bet?** Here are the common ones[^1],
 with a $10 unit on Banker:
 
 | System | How it works | Average bet | Cost per hour (72 hands) |

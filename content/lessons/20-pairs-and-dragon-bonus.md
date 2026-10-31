@@ -4,6 +4,8 @@ title: "Pairs and the Dragon Bonus"
 chapter: perfect-fun
 summary: "Pairs pay 11:1 but cost 10%. Dragon Bonus on Player is the cheapest side bet."
 minutes: 7
+sources:
+  - woo-baccarat-side-bets
 ---
 
 Side bets are optional bets placed next to your main bet. They pay more, they hit less, and they cost
@@ -28,7 +30,7 @@ Fewer decks mean fewer cards of each rank, so pairs are rarer.
 | … by 4 | 1 to 1 |
 | anything else (smaller win, loss, other tie) | loses |
 
-On **Player** the edge is **2.65%**, the cheapest side bet in this app. On **Banker** it's **9.37%**.
+On **Player** the edge is **2.65%**, the cheapest side bet in this app. On **Banker** it's **9.37%**, matching the Wizard of Odds analysis.[^1]
 Why the difference? The Banker's drawing rule wins a lot of **close** hands, and close wins don't
 pay here. When the Player wins, it wins by a wide margin a bit more often.
 

@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compileLesson } from '../../src/content/compile';
-import { buildContent, readSources } from '../../src/content/load';
+import { buildContent, indexSources, readSources } from '../../src/content/load';
 import type { Block, Quiz } from '../../src/content/types';
 import {
   BET_OFFERED_IN,
@@ -56,7 +56,7 @@ const sources = readSources(root);
 const glossarySlugs = new Set(sources.glossary.map((g) => g.slug));
 const glossaryTerms = new Map(sources.glossary.map((g) => [g.term.toLowerCase(), g.slug] as const));
 const COMPILED = new Map(
-  LESSONS.map((l) => [l.id, compileLesson(raw(l.id), fileOf(l.id), { glossarySlugs, glossaryTerms })]),
+  LESSONS.map((l) => [l.id, compileLesson(raw(l.id), fileOf(l.id), { glossarySlugs, glossaryTerms, sources: indexSources(sources.sources) })]),
 );
 const blocks = (id: LId): Block[] => COMPILED.get(id)!.blocks;
 const quizzes = (id: LId): Quiz[] => blocks(id).flatMap((b) => (b.kind === 'quiz' ? [b.quiz] : []));
