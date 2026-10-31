@@ -1,9 +1,11 @@
 // Service worker source. Compiled (type-stripped) and injected with the precache
 // list by build/vite-plugin-sw.ts, which emits it as `sw.js`. Not bundled into the app.
-// The two build-time constants declared below are replaced textually.
+// The build-time constants declared below are replaced textually.
 
 declare const __PRECACHE__: string[];
 declare const __VERSION__: string;
+/** Scope-relative paths the SW leaves to the network: the static SEO pages and files. */
+declare const __BYPASS__: string[];
 
 interface ExtendableEventLike extends Event {
   waitUntil(p: Promise<unknown>): void;
@@ -29,6 +31,14 @@ const PREFIX = 'baccaratton-';
 const CACHE = PREFIX + __VERSION__;
 const urls = __PRECACHE__.map((p) => new URL(p, sw.location.href).href);
 const indexUrl = new URL('./index.html', sw.location.href).href;
+const scopePath = new URL('./', sw.location.href).pathname;
+
+/** True for the static pages (learn/, bets/, …), sitemap.xml and llms*.txt: never the shell. */
+function bypassed(url: URL): boolean {
+  if (!url.pathname.startsWith(scopePath)) return false;
+  const rel = url.pathname.slice(scopePath.length);
+  return __BYPASS__.some((p) => rel === p || rel.startsWith(p + '/'));
+}
 
 sw.addEventListener('install', (event) => {
   // Note: no automatic skipWaiting; the app shows "Update available" and posts SKIP_WAITING.
@@ -64,6 +74,8 @@ sw.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== new URL(sw.location.href).origin) return;
+  // Static pages are plain network requests: no cache, and no app-shell fallback offline.
+  if (bypassed(url)) return;
 
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {

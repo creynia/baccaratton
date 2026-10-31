@@ -31,6 +31,11 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      # For the IndexNow ping after the deploy (the Pages artifact is not readable by later jobs).
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sitemap
+          path: dist/sitemap.xml
 
   deploy:
     needs: build
@@ -41,3 +46,17 @@ jobs:
     steps:
       - id: d
         uses: actions/deploy-pages@v4
+      # Tell search engines (IndexNow) about the deployed pages. Best effort, main only.
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: sitemap
+          path: dist
+      - name: Ping IndexNow
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        run: node scripts/indexnow.mjs dist/sitemap.xml

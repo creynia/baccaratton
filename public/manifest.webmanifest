@@ -1,7 +1,7 @@
 {
-  "name": "baccaratton: learn Baccarat",
+  "name": "Baccarat lessons & practice: baccaratton",
   "short_name": "baccaratton",
-  "description": "Learn Baccarat: lessons, odds, and a practice table that shows the EV of every bet.",
+  "description": "Learn Baccarat (Punto Banco) free: lessons, exact odds and a play-money practice table that shows the EV of every bet.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

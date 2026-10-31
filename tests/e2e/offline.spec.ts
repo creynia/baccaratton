@@ -25,9 +25,28 @@ test('PWA works offline after the service worker is installed', async ({ page, c
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page).toHaveTitle('baccaratton');
+  await expect(page).toHaveTitle(/\| baccaratton$/);
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   await context.setOffline(false);
+});
+
+test('with the service worker in control, static pages come from the network, not the shell', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.waitForFunction('!!navigator.serviceWorker.controller');
+  await page.goto('/learn/welcome/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Welcome to baccarat');
+  await expect(page.locator('#app')).toHaveCount(0);
+  await expect(
+    page.getByRole('link', { name: /Open this lesson in baccaratton/ }).first(),
+  ).toHaveAttribute('href', '../../#/learn/welcome');
+  const cached = await page.evaluate(async () => {
+    const names = (await caches.keys()).filter((k) => k.startsWith('baccaratton-'));
+    const c = await caches.open(names[0]!);
+    return (await c.keys()).map((r) => new URL(r.url).pathname);
+  });
+  expect(cached.some((u) => /\/(learn|bets|glossary|systems)\/|sitemap|llms/.test(u))).toBe(false);
 });
 
 test('manifest and icons are served', async ({ request }) => {

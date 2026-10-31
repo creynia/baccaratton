@@ -291,14 +291,14 @@ function checkSceneText(scene: unknown): void {
   }
 }
 
-type FenceLang = 'scene' | 'quiz' | 'tableau' | 'roads';
-type Seg =
+export type FenceLang = 'scene' | 'quiz' | 'tableau' | 'roads';
+export type Seg =
   | { t: 'md'; text: string }
   | { t: 'fence'; lang: FenceLang; text: string }
   | { t: 'box'; kind: 'math' | 'tip'; title: string; text: string };
 
 /** Split a lesson body into markdown / scene / quiz / tableau / roads / math / tip segments. */
-function segment(body: string): Seg[] {
+export function segment(body: string): Seg[] {
   const lines = body.split(/\r?\n/);
   const segs: Seg[] = [];
   let md: string[] = [];
