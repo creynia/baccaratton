@@ -8,7 +8,7 @@ A phone-first web app that teaches **Baccarat** (Punto Banco) from zero to perfe
 
 ### The web app
 
-1. Open **<https://creynia.github.io/baccaratton/>** in Chrome. Every merge to `main` redeploys it from GitHub Actions.
+1. Open **<https://creynia.com/baccaratton/>** in Chrome. Every merge to `main` redeploys it from GitHub Actions.
 2. Chrome menu (**⋮**) → **Add to Home screen** (or **Install app**) → **Install**. It opens full screen like an app (burgundy icon with a "9" card) and works offline after the first load.
 
 ### The offline file
@@ -21,7 +21,7 @@ A phone-first web app that teaches **Baccarat** (Punto Banco) from zero to perfe
 
 - The installed app shows **"Update available — Reload"** when a new version is ready. Tap **Reload**.
 - No toast? Open **Settings → Check for updates** (coming), and compare the build code in **About** (coming) with the latest commit on `main`.
-- Still stale: close the app from Recents and reopen it. As a last resort, Chrome **⋮ → Settings → Site settings → All sites → creynia.github.io → Delete & reset** (export your progress first).
+- Still stale: close the app from Recents and reopen it. As a last resort, Chrome **⋮ → Settings → Site settings → All sites → creynia.com → Delete & reset** (export your progress first).
 - Deploys: **Actions** tab → **Deploy to GitHub Pages** → **Run workflow** if one needs a nudge. A deploy that failed with "deployment in progress" just needs **Re-run failed jobs**. For a fork: **Settings → Pages → Source: GitHub Actions** (use **⋮ → Desktop site** if Settings is hidden).
 
 ## Is this gambling advice?
@@ -46,7 +46,7 @@ npm run build:all  # dist/ (PWA) and dist-single/baccaratton.html
 npm run test:e2e   # Playwright (needs a browser, see CONTRIBUTING.md)
 ```
 
-Design documents are in [`docs/design/`](docs/design/). Planned future work is listed in [`docs/chips.md`](docs/chips.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
+Design documents are in [`docs/design/`](docs/design/). The build also writes static, crawlable pages for every lesson, bet and glossary term, plus `sitemap.xml` and `llms.txt`: see [`docs/seo.md`](docs/seo.md). Planned future work is listed in [`docs/chips.md`](docs/chips.md). See [CONTRIBUTING.md](CONTRIBUTING.md) to get involved.
 
 ## License
 

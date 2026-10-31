@@ -17,7 +17,7 @@ test('single-file build opens from file:// with no failed requests or errors', a
     if (m.type() === 'error') failed.push(`console: ${m.text()}`);
   });
   await page.goto(pathToFileURL(file).href);
-  await expect(page).toHaveTitle('baccaratton');
+  await expect(page).toHaveTitle(/\| baccaratton$/);
   await expect(page.locator('h1').first()).toBeVisible();
 
   // The test hook says this is the offline copy.
