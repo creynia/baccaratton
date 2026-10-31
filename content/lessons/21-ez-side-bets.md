@@ -38,7 +38,8 @@ Super 6 side bet at 12 to 1 is among the worst bets in any casino.
 P(Dragon 7) = 19129247848/848912750595 ≈ 2.2534%. EV = 41·P − 1 = −64613588827/848912750595 ≈ **−7.6113%**.
 P(Panda 8) = 674456106496/19524993263685 ≈ 3.4543%. EV = 26·P − 1 = −153010345753/1501922558745 ≈ **−10.1876%**.
 Lucky 6: P(Banker wins with a two-card 6) ≈ 3.7247%, three-card ≈ 1.6617%; EV ≈ −16.68%.
-Big/Small: P(4 cards) = 140356/370461 ≈ 37.887%.
+Big/Small (8 decks): P(4 cards) = 140356/370461 ≈ 37.887%. Small edge = 19571/370461 ≈ 5.2829%; Big edge = 22999/529230 ≈ 4.3457%.
+At 6 decks the same bets cost 4.3545% (Big) and 5.2687% (Small), the figures the Wizard of Odds lists.
 :::
 
 ```scene
