@@ -4,6 +4,10 @@ title: "Dragon 7, Panda 8 and the rest of the side bets"
 chapter: perfect-fun
 summary: "The EZ table's two famous bets, plus a tour of side bets you'll meet elsewhere."
 minutes: 7
+sources:
+  - woo-ez-baccarat
+  - woo-baccarat-side-bets
+  - woo-lucky-6
 ---
 
 **Dragon 7** (EZ only) wins when the **Banker wins with a three-card 7**: the same hand that makes EZ Banker
@@ -11,11 +15,11 @@ bets push. Pays **40 to 1**. It happens about once in 44 hands, so a fair payout
 Edge: **7.61%**.
 
 **Panda 8** (EZ only) wins when the **Player wins with a three-card 8**. Pays **25 to 1**. It happens about once
-in 29 hands (fair would be about 28 to 1). Edge: **10.19%**.
+in 29 hands (fair would be about 28 to 1). Edge: **10.19%**.[^1]
 
 Dragon 7 is the bet card counters target (lesson 17). Off the count, it's just an expensive thrill.
 
-**Other side bets you'll meet** (not in the app's simulator; paytables vary, so check the sign):
+**Other side bets you'll meet** (not in the app's simulator; paytables vary, so check the sign):[^2][^3]
 
 | Bet | Wins when | Typical pay | Edge (8 decks) |
 |---|---|---|---|
@@ -34,7 +38,8 @@ Super 6 side bet at 12 to 1 is among the worst bets in any casino.
 P(Dragon 7) = 19129247848/848912750595 ≈ 2.2534%. EV = 41·P − 1 = −64613588827/848912750595 ≈ **−7.6113%**.
 P(Panda 8) = 674456106496/19524993263685 ≈ 3.4543%. EV = 26·P − 1 = −153010345753/1501922558745 ≈ **−10.1876%**.
 Lucky 6: P(Banker wins with a two-card 6) ≈ 3.7247%, three-card ≈ 1.6617%; EV ≈ −16.68%.
-Big/Small: P(4 cards) = 140356/370461 ≈ 37.887%.
+Big/Small (8 decks): P(4 cards) = 140356/370461 ≈ 37.887%. Small edge = 19571/370461 ≈ 5.2829%; Big edge = 22999/529230 ≈ 4.3457%.
+At 6 decks the same bets cost 4.3545% (Big) and 5.2687% (Small), the figures the Wizard of Odds lists.
 :::
 
 ```scene

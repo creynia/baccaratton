@@ -4,7 +4,7 @@ import { Link } from './Link';
 /** U+FE0E asks for the text (not emoji) presentation, so Android does not draw coloured icons. */
 const TEXT = '︎';
 
-/** D11: Learn · Play · Drill · More. Bets, Roads, Rules, Glossary, Settings, About live under More. */
+/** D11: Learn · Play · Drill · More. Bets, Roads, Rules, Glossary, Sources, Settings, About live under More. */
 export const TABS = [
   { to: '/learn', label: 'Learn', icon: `♠${TEXT}`, match: (p: string) => p.startsWith('/learn') },
   { to: '/play', label: 'Play', icon: `♦${TEXT}`, match: (p: string) => p.startsWith('/play') },
@@ -13,7 +13,8 @@ export const TABS = [
     to: '/more',
     label: 'More',
     icon: `≡${TEXT}`,
-    match: (p: string) => /^\/(more|rules|bets|roads|glossary|settings|about)(\/|$)/.test(p),
+    match: (p: string) =>
+      /^\/(more|rules|bets|roads|glossary|sources|settings|about)(\/|$)/.test(p),
   },
 ] as const;
 

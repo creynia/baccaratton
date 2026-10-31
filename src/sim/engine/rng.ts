@@ -1,3 +1,7 @@
+// Pseudo-random numbers for shoes and shuffles. No behavior here depends on these credits.
+// - xoshiro128** (nextU32): David Blackman and Sebastiano Vigna, public domain, https://prng.di.unimi.it/
+// - splitmix32 (seed mixing): the 32-bit SplitMix mixer, constants 0x21f0aaad / 0x735a2d97.
+// - Fisher-Yates shuffle with rejection sampling (below).
 import type { RngState } from './types';
 
 /** One step of splitmix32; returns [output, nextCounter]. */

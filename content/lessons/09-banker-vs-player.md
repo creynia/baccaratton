@@ -4,11 +4,13 @@ title: Why the Banker wins more often
 chapter: ev-basics
 summary: Acting last is worth 1.24%, and the commission takes it back and a bit more.
 minutes: 6
+sources:
+  - woo-baccarat-basics
 ---
 
 The two hands aren't treated equally. The Player follows a blind rule (0–5 draws). The Banker acts
 **after** seeing what the Player did, and in lesson 5 you saw how its table reacts to the Player's third
-card. That small information edge means the Banker wins a bit more often:
+card. That small information edge means the Banker wins a bit more often:[^1]
 
 | Result | How often (8 decks) |
 |---|---|
@@ -20,7 +22,7 @@ Leave out the ties, and the Banker wins **50.68%** of the hands that are decided
 
 If Banker paid even money, it would be a **winning** bet for you: +1.24%, exactly the mirror of the Player
 bet's −1.24%. Casinos fix that with the **5% commission**. A Banker win then pays 95¢, and the bet
-goes from +1.24% to **−1.06%**.
+goes from +1.24% to **−1.06%**.[^1]
 
 So both bets lose in the long run, but the Banker bet loses **less**: about 1.06¢ per dollar against
 1.24¢. Paying the commission feels like a cost, and it is, but it's smaller than the price of betting

@@ -215,3 +215,45 @@ describe('scene blocks', () => {
     fails(scene() + '\n\n' + scene(), /duplicate scene id/);
   });
 });
+
+describe('sources and [^n] citations', () => {
+  const known = new Map([
+    ['woo', { id: 'woo', title: 'WoO', author: 'M. S.', url: 'https://wizardofodds.com/' }],
+  ]);
+  const compile = (body: string, extra: string) =>
+    compileLesson(fm(body, extra), 't.md', { sources: known });
+
+  it('resolves id strings and one-off objects, in order', () => {
+    const l = compile(
+      'Edge is 1.06%.[^1] Tie too.[^2]',
+      'sources:\n  - woo\n  - { title: Paper, note: n }\n',
+    );
+    expect(l.sources).toEqual([
+      { title: 'WoO', author: 'M. S.', url: 'https://wizardofodds.com/' },
+      { title: 'Paper', note: 'n' },
+    ]);
+    const html = l.blocks[0]?.kind === 'html' ? l.blocks[0].html : '';
+    expect(html).toContain('<sup class="cite"><button type="button" class="cite-link" data-cite="1"');
+    expect(html).toContain('data-cite="2"');
+    expect(html).not.toContain('href="#');
+  });
+  it('leaves sources off a lesson that has none', () => {
+    expect(compileLesson(fm('Hi.'), 't.md').sources).toBeUndefined();
+  });
+  it('rejects an unknown id, a bad url and an empty list', () => {
+    expect(() => compile('Hi.', 'sources: [nope]\n')).toThrow(/unknown source id "nope"/);
+    expect(() => compile('Hi.', 'sources:\n  - { title: X, url: "http://x.test" }\n')).toThrow(
+      /https/,
+    );
+    expect(() => compile('Hi.', 'sources: []\n')).toThrow(/non-empty/);
+  });
+  it('rejects an out-of-range marker, and any marker when there are no sources', () => {
+    expect(() => compile('Hi.[^2]', 'sources: [woo]\n')).toThrow(/\[\^2\] is out of range/);
+    expect(() => compile('Hi.[^0]', 'sources: [woo]\n')).toThrow(/out of range/);
+    expect(() => compileLesson(fm('Hi.[^1]'), 't.md')).toThrow(/no sources/);
+  });
+  it('keeps [^1] literal inside code', () => {
+    const l = compileLesson(fm('Use `[^1]` here.'), 't.md');
+    expect(l.blocks[0]).toMatchObject({ kind: 'html' });
+  });
+});

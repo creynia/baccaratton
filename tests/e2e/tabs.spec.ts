@@ -14,6 +14,7 @@ const PAGES = [
   '/roads',
   '/glossary',
   '/settings',
+  '/sources',
   '/about',
 ];
 
@@ -26,7 +27,15 @@ for (const path of PAGES) {
 
 test('More links reach every page', async ({ page }) => {
   await page.goto('/#/more');
-  for (const name of ['Drawing rules', 'Bets', 'Roads', 'Glossary', 'Settings', 'About']) {
+  for (const name of [
+    'Drawing rules',
+    'Bets',
+    'Roads',
+    'Glossary',
+    'Sources',
+    'Settings',
+    'About',
+  ]) {
     await page.goto('/#/more');
     await page
       .getByRole('main')

@@ -4,14 +4,18 @@ title: "Can you count cards at baccarat?"
 chapter: perfect-practical
 summary: "In theory yes; in practice the main bets barely move. Dragon 7 is the famous exception."
 minutes: 9
+sources:
+  - thorp-walden-1966
+  - woo-baccarat-appendix-2
+  - jacobson-dragon-bet
 ---
 
 In blackjack, counting works because the cards left in the shoe can swing the edge to the player. Baccarat
 is dealt from a shoe too, so does the same trick work?
 
-**For the main bets, effectively no.** Every card dealt shifts the odds a little, but the Banker and Player
+**For the main bets, effectively no.**[^1] Every card dealt shifts the odds a little, but the Banker and Player
 hands use the same cards and the shifts cancel almost perfectly. Removing one card from a fresh shoe
-moves the Banker EV by at most 0.012%. A huge imbalance is needed to overcome a 1.06% edge.
+moves the Banker EV by at most 0.012%.[^2] A huge imbalance is needed to overcome a 1.06% edge.
 
 | One card removed (8 decks) | Banker EV changes by | Player EV changes by |
 |---|---|---|
@@ -27,7 +31,7 @@ about **0.4%**. Betting $100 only on those hands would earn about **5 cents an h
 
 **The exception: Dragon 7.** The EZ side bet that pays 40 to 1 on a Banker three-card 7 is far more
 sensitive. **8s and 9s** left in the shoe hurt it (they make naturals and spoil three-card 7s), and **4s to 7s**
-help it. The best-known count (by Eliot Jacobson) is:
+help it. The best-known count (Eliot Jacobson's, from "Card Counting the Dragon Bet")[^3] is:
 
 | Card seen | 4, 5, 6, 7 | 8, 9 | Others |
 |---|---|---|---|
@@ -50,7 +54,7 @@ The tracker runs the same exact enumeration as the reference tables, over the **
 not yet shown. The face-down burn cards are still unseen, so they count as in the shoe. Each result is
 exact for that composition.
 Effects of removal (fresh 8 decks, % per card, Dragon 7): 0s +0.086, A +0.050, 2 −0.090, 3 −0.108, 4 −0.268,
-5 −0.263, 6 −0.324, 7 −0.358, 8 **+0.538**, 9 **+0.479**. The count's signs follow these.
+5 −0.263, 6 −0.324, 7 −0.358, 8 **+0.538**, 9 **+0.479**. The count's signs follow these, as in Jacobson's table.[^3]
 Simulation (≈): 3,000 shoes, 243,382 hands, exact EV before every hand. Banker +EV in about 0.19% of hands (average
 about +0.4% when positive). Dragon 7 +EV in about 11.5% of hands, Panda 8 in about 5%. With the count at a true +4 or
 more: about 9.2% of hands, average about +7.6% to +7.8% per bet (two independent runs).
