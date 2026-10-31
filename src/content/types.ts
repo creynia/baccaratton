@@ -64,6 +64,25 @@ export interface Lesson {
   minutes: number;
   chapterId: ChapterId;
   blocks: Block[];
+  /** Cited sources, in `[^n]` order (n is 1-based); omitted when the lesson cites none. */
+  sources?: LessonSource[];
+}
+
+/** One cited source, resolved from a content/sources.json id or written inline in front matter. */
+export interface LessonSource {
+  title: string;
+  author?: string;
+  url?: string;
+  note?: string;
+}
+
+/** An entry of content/sources.json; `id` is the stable key lessons use in `sources:`. */
+export interface SourceItem extends LessonSource {
+  id: string;
+}
+export interface SourceGroup {
+  group: string;
+  items: SourceItem[];
 }
 
 export interface Chapter {
@@ -106,6 +125,8 @@ export interface ContentBundle {
   glossary: GlossaryEntry[];
   bets: Partial<Record<BetId, BetCopy>>;
   systems: Partial<Record<StrategyId, SystemCopy>>;
+  /** content/sources.json: the Sources screen */
+  sources: SourceGroup[];
 }
 
 /** Variant ids a lesson may name in front matter or scenes. */

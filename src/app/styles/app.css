@@ -963,3 +963,17 @@ textarea {
   min-width: 44px;
   min-height: 44px;
 }
+
+.source-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0;
+}
+.source-list li {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+.source-note {
+  font-size: 0.85rem;
+}

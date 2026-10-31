@@ -247,6 +247,7 @@ describe('progress helpers', () => {
     glossary: [],
     bets: {},
     systems: {},
+    sources: [],
   };
 
   it('finds the next unfinished lesson and the overall progress', () => {

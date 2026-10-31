@@ -6,6 +6,7 @@ const ITEMS = [
   { to: '/bets', label: 'Bets & paytables', note: 'Payouts and house edge per variant' },
   { to: '/roads', label: 'Roads', note: 'How to read the scoreboard' },
   { to: '/glossary', label: 'Glossary', note: 'Every baccarat word' },
+  { to: '/sources', label: 'Sources', note: 'Where the rules, figures and strategies come from' },
   { to: '/settings', label: 'Settings', note: 'Table variant, bet unit, progress' },
   { to: '/about', label: 'About', note: 'Version, updates and help' },
 ] as const;

@@ -8,6 +8,8 @@ import type {
   ContentBundle,
   GlossaryEntry,
   Lesson,
+  SourceGroup,
+  SourceItem,
   SystemCopy,
 } from './types';
 import type { BetId } from '../sim/engine';
@@ -52,6 +54,7 @@ export interface ContentSources {
   glossary: GlossaryEntry[];
   bets: Record<string, BetCopy>;
   systems: Record<string, SystemCopy>;
+  sources: SourceGroup[];
   samplesActive: boolean;
   lessonFiles: { file: string; slug: string; source: string }[];
 }
@@ -95,15 +98,41 @@ export function readSources(root: string, includeSamples = false): ContentSource
     glossary: json<RawGlossary[]>('glossary.json', []).map(normalizeGlossary),
     bets: normalizeBets(json<unknown>('bets.json', {})),
     systems: json<Record<string, SystemCopy>>('systems.json', {}),
+    sources: json<SourceGroup[]>('sources.json', []),
     samplesActive,
     lessonFiles,
   };
+}
+
+const isHttps = (u: string) => {
+  try {
+    return new URL(u).protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+/** sources.json: non-empty titles, unique ids, https urls. Returns id → item for lesson `sources:`. */
+export function indexSources(groups: SourceGroup[]): Map<string, SourceItem> {
+  const byId = new Map<string, SourceItem>();
+  for (const g of groups) {
+    if (!g.group) throw new Error('sources.json: every group needs a name');
+    for (const it of g.items) {
+      if (!it.id || !it.title) throw new Error(`sources.json: ${g.group}: items need an id and a title`);
+      if (byId.has(it.id)) throw new Error(`sources.json: duplicate id "${it.id}"`);
+      if (it.url !== undefined && !isHttps(it.url))
+        throw new Error(`sources.json: "${it.id}" url must be a valid https url`);
+      byId.set(it.id, it);
+    }
+  }
+  return byId;
 }
 
 export function buildContent(root: string): ContentBundle {
   const src = readSources(root);
   const glossarySlugs = new Set(src.glossary.map((g) => g.slug));
   const glossaryTerms = new Map(src.glossary.map((g) => [g.term.toLowerCase(), g.slug] as const));
+  indexSources(src.sources); // validate
   const opts = { glossarySlugs, glossaryTerms };
   const compiled = new Map<string, CompiledLesson>();
   for (const f of src.lessonFiles) {
@@ -156,5 +185,6 @@ export function buildContent(root: string): ContentBundle {
     glossary,
     bets,
     systems,
+    sources: src.sources,
   };
 }

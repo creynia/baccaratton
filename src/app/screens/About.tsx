@@ -34,6 +34,10 @@ export function About(props: { check?: () => Promise<UpdateCheck> }) {
         8-deck shoe unless it says "simulated".
       </p>
       <p class="muted">
+        Figures are computed by baccaratton and agree with the Wizard of Odds baccarat analysis; the
+        Dragon 7 count is Eliot Jacobson's. See <Link to="/sources">Sources</Link>.
+      </p>
+      <p class="muted">
         MIT licensed. Source and releases:{' '}
         <a href="https://github.com/creynia/baccaratton">github.com/creynia/baccaratton</a>.
       </p>

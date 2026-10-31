@@ -222,6 +222,35 @@ describe('About', () => {
   });
 });
 
+describe('Sources', () => {
+  it('lists every group, and each linked item has a valid https url', () => {
+    const { container } = mount('#/sources');
+    expect(container.querySelector('h1')?.textContent).toBe('Sources');
+    expect(container.querySelector('a.back')?.getAttribute('href')).toBe('#/more');
+    const groups = [...container.querySelectorAll('.source-group h2')].map(text);
+    expect(groups).toEqual(content.sources.map((g) => g.group));
+    expect(groups.length).toBeGreaterThan(3);
+    const items = content.sources.flatMap((g) => g.items);
+    expect(container.querySelectorAll('[data-source]')).toHaveLength(items.length);
+    for (const it of items)
+      if (it.url) {
+        expect(new URL(it.url).protocol).toBe('https:');
+        const a = container.querySelector(`[data-source="${it.id}"] a`)!;
+        expect(a.getAttribute('href')).toBe(it.url);
+        expect(a.getAttribute('target')).toBe('_blank');
+        expect(a.getAttribute('rel')).toBe('noopener noreferrer');
+      }
+  });
+
+  it('is reachable from More and About', () => {
+    const more = mount('#/more');
+    expect(more.getByText('Sources').closest('a')?.getAttribute('href')).toBe('#/sources');
+    cleanup();
+    const about = mount('#/about');
+    expect(about.container.querySelector('a[href="#/sources"]')).toBeTruthy();
+  });
+});
+
 describe('Rules', () => {
   it('describes a highlighted cell and every Banker row from TABLEAU', () => {
     const { getByTestId } = mount('#/rules?highlight=b5/p4');

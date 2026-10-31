@@ -14,6 +14,7 @@ import { Play } from './screens/Play';
 import { Roads } from './screens/Roads';
 import { Rules } from './screens/Rules';
 import { Settings } from './screens/Settings';
+import { Sources } from './screens/Sources';
 
 type Render = (p: Record<string, string>, r: ParsedHash) => VNode;
 
@@ -30,6 +31,7 @@ export const ROUTES: { pattern: string; render: Render }[] = [
   { pattern: '/roads', render: () => <Roads /> },
   { pattern: '/glossary', render: (_p, r) => <Glossary query={r.query} /> },
   { pattern: '/settings', render: () => <Settings /> },
+  { pattern: '/sources', render: () => <Sources /> },
   { pattern: '/about', render: () => <About /> },
   { pattern: '/more', render: () => <More /> },
 ];

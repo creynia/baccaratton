@@ -50,6 +50,7 @@ describe('app shell', () => {
     ['#/roads', '/more'],
     ['#/glossary', '/more'],
     ['#/settings', '/more'],
+    ['#/sources', '/more'],
     ['#/about', '/more'],
   ])('%s renders one h1 in main and marks the right tab', (hash, tab) => {
     const { container } = mount(hash);
