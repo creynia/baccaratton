@@ -30,6 +30,12 @@ No. baccaratton is for **education only**, with play money only. In Baccarat the
 
 If gambling is causing harm to you or someone you know, help is free and confidential: call or text **1-800-GAMBLER** (US), or contact your national problem-gambling helpline (for example GamCare **0808 8020 133** in the UK, or Gambling Help Online **1800 858 858** in Australia).
 
+## Privacy
+
+Your progress stays in your browser. The site counts anonymous, cookieless page views with
+GoatCounter (no identifiers, no tracking across sites, off with Do Not Track or Global Privacy
+Control, never in the offline file); see [`docs/analytics.md`](docs/analytics.md).
+
 ## Status
 
 Under construction: the app shell, tooling and contracts are in place; lessons and the table are being built.

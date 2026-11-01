@@ -1,4 +1,6 @@
 // "Install app": keeps the browser's deferred install prompt (Chrome on Android) for Home.
+import { trackEvent } from './analytics';
+
 interface InstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
@@ -14,6 +16,7 @@ export function listenForInstallPrompt(): void {
       listeners.forEach((l) => l());
     });
     window.addEventListener('appinstalled', () => {
+      trackEvent('install');
       deferred = null;
       listeners.forEach((l) => l());
     });

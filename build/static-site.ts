@@ -32,6 +32,8 @@ export const GAME_LONG = 'Baccarat (Punto Banco)';
 export const THEME = '#5c1a2b';
 export const APP_URL = `${ORIGIN}/${APP}/`;
 export const OG_IMAGE = `${ORIGIN}/assets/og/${APP}.jpg`;
+/** GoatCounter page-view pixel (docs/analytics.md); same endpoint as src/app/analytics.ts. */
+export const COUNT_URL = 'https://creynia.goatcounter.com/count';
 const PERSON_ID = `${ORIGIN}/#creynia`;
 const WEBSITE_ID = `${ORIGIN}/#website`;
 const COURSE_ID = `${APP_URL}learn/#course`;
@@ -416,6 +418,12 @@ function footerHtml(): string {
   return `<footer class="site"><div class="wrap"><p><strong>For education only, with play money only.</strong> The house always has an edge, and no betting system changes that. These apps show how big the edge is, not how to beat it.</p><p>If gambling is hurting you or someone you know, call or text <strong>1-800-GAMBLER</strong> (US), or contact your national problem-gambling helpline.</p><p>More from Know the Odds: ${others} · <a href="${ORIGIN}/">creynia.com</a></p></div></footer>`;
 }
 
+/** A JS-free, cookieless page-view count for a static page (path like 'learn/welcome/'). */
+export function countPixel(path: string): string {
+  const p = encodeURIComponent(`/${APP}/${path}`);
+  return `<img src="${COUNT_URL}?p=${p}" alt="" width="1" height="1" style="position:absolute;left:-9999px">`;
+}
+
 function page(opts: {
   path: string;
   title: string;
@@ -475,6 +483,7 @@ ${opts.body}
 </main>
 </div>
 ${footerHtml()}
+${countPixel(path)}
 </body>
 </html>
 `;

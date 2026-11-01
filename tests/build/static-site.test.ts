@@ -33,6 +33,9 @@ describe('static SEO pages (generator)', () => {
       expect(html).toContain('1-800-GAMBLER');
       expect(html).not.toContain('creynia.github.io');
       expect(html).not.toMatch(/<script(?! type="application\/ld\+json")/);
+      // One cookieless GoatCounter pixel for the page's own path.
+      expect(one(html, /creynia\.goatcounter\.com\/count/g)).toBe(1);
+      expect(html).toContain(`count?p=${encodeURIComponent(`/baccaratton/${path}`)}"`);
       // Unrendered lesson syntax or app-only links must never ship.
       const main = html.slice(html.indexOf('<main>'), html.indexOf('</main>'));
       expect(main).not.toMatch(/\{\{|\[\[|^:::|```|href="#\/glossary/m);
