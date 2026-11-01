@@ -36,12 +36,14 @@ describe.skipIf(!existsSync('dist/sw.js'))('dist/sw.js', () => {
     const urls = list();
     expect(urls.length).toBeGreaterThan(0);
     for (const u of urls)
-      expect(u).not.toMatch(/^\.\/(learn|bets|glossary|systems)\/|sitemap\.xml|llms(-full)?\.txt/);
+      expect(u).not.toMatch(
+        /^\.\/(learn|bets|glossary|systems|odds|third-card-rule)\/|sitemap\.xml|llms(-full)?\.txt/,
+      );
   });
   it('leaves static page requests to the network (no app-shell fallback)', () => {
     expect(sw).not.toContain('__BYPASS__');
     expect(sw).toContain(
-      '["learn","bets","glossary","systems","sitemap.xml","llms.txt","llms-full.txt"]',
+      '["learn","bets","glossary","systems","odds","third-card-rule","sitemap.xml","llms.txt","llms-full.txt"]',
     );
     expect(sw).toMatch(/if \(bypassed\(url\)\)\s*return;/);
   });

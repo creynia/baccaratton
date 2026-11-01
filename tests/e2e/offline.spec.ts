@@ -36,17 +36,28 @@ test('with the service worker in control, static pages come from the network, no
   await page.goto('/');
   await page.waitForFunction('!!navigator.serviceWorker.controller');
   await page.goto('/learn/welcome/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Welcome to baccarat');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Welcome to baccarat: how to play',
+  );
   await expect(page.locator('#app')).toHaveCount(0);
   await expect(
     page.getByRole('link', { name: /Open this lesson in baccaratton/ }).first(),
   ).toHaveAttribute('href', '../../#/learn/welcome');
+  await page.goto('/odds/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Baccarat odds: Banker vs Player vs Tie',
+  );
+  await expect(page.locator('#app')).toHaveCount(0);
   const cached = await page.evaluate(async () => {
     const names = (await caches.keys()).filter((k) => k.startsWith('baccaratton-'));
     const c = await caches.open(names[0]!);
     return (await c.keys()).map((r) => new URL(r.url).pathname);
   });
-  expect(cached.some((u) => /\/(learn|bets|glossary|systems)\/|sitemap|llms/.test(u))).toBe(false);
+  expect(
+    cached.some((u) =>
+      /\/(learn|bets|glossary|systems|odds|third-card-rule)\/|sitemap|llms/.test(u),
+    ),
+  ).toBe(false);
 });
 
 test('manifest and icons are served', async ({ request }) => {
