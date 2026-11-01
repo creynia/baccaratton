@@ -11,6 +11,8 @@ with a link into the app's hash route.
 | `bets/`, `bets/<betId>/` (one per bet) | `content/bets.json` + payouts and exact house edges from the engine and math |
 | `systems/` (one anchor per system) | `content/systems.json` |
 | `glossary/` (one anchor per term, `#<slug>`) | `content/glossary.json` |
+| `odds/` (Banker vs Player vs Tie odds, commission, by deck count) | exact full-shoe EVs from `src/sim/math` (1–8 decks) |
+| `third-card-rule/` (Player and Banker drawing chart, how often each case happens) | the engine's `TABLEAU`, `playerDraws`, `bankerDraws` and the 8-deck outcome distribution |
 | `sitemap.xml`, `llms.txt`, `llms-full.txt` | all of the above |
 
 - Code: `build/static-site.ts` (pure generator) and `build/vite-plugin-static.ts` (writes the files, and adds
@@ -27,5 +29,12 @@ with a link into the app's hash route.
   (`scripts/indexnow.mjs`, best effort).
 - Tests: `tests/build/static-site.test.ts` (every lesson has a page; one h1, title, description and
   canonical per page; sitemap == pages) and `tests/build/sw.test.ts`.
+
+- Query-shaped pages (wave 2): `odds/`, `third-card-rule/`, plus `systems/` ("does Martingale work?", exact
+  per-hour costs from `systemCost` in `src/sim/strategy`), `bets/` (every bet and side bet, lowest edge first),
+  `bets/tie/` ("is the Tie bet worth it?") and `learn/welcome/` ("how to play baccarat") answer their question
+  in the first paragraph. Every number is computed at build time; `tests/build/static-topics.test.ts` pins them.
+- Every page ends with a "Related" block of 3–5 links, picked deterministically from the data (a lesson's topic
+  pages and bets, its chapter neighbours; a bet's lesson and sibling bets).
 
 Adding a lesson, bet, term or system needs nothing extra: its page, sitemap entry and llms lines follow.

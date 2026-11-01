@@ -14,7 +14,8 @@ describe('static SEO pages (generator)', () => {
     const paths = new Set(site.pages.map((p) => p.path));
     for (const l of content.lessons) expect(paths).toContain(`learn/${l.id}/`);
     for (const id of Object.keys(content.bets)) expect(paths).toContain(`bets/${id}/`);
-    for (const p of ['learn/', 'bets/', 'glossary/', 'systems/']) expect(paths).toContain(p);
+    for (const p of ['learn/', 'bets/', 'glossary/', 'systems/', 'odds/', 'third-card-rule/'])
+      expect(paths).toContain(p);
     expect([...paths].some((p) => p.includes('sample'))).toBe(false);
   });
 
@@ -47,6 +48,53 @@ describe('static SEO pages (generator)', () => {
     expect(p.html).toContain('href="../../#/learn/welcome"');
     expect(p.html).toContain('"LearningResource"');
     expect(p.html).toMatch(/"timeRequired":"PT\d+M"/);
+  });
+
+  it('every page has a Related block of 3–5 links to other emitted pages', () => {
+    const paths = new Set(site.pages.map((p) => p.path));
+    for (const p of site.pages) {
+      const nav = /<nav class="related"[^>]*>(.*?)<\/nav>/s.exec(p.html)?.[1];
+      expect(nav, p.path).toBeDefined();
+      const hrefs = [...nav!.matchAll(/href="([^"]+)"/g)].map((m) => m[1]!);
+      expect(hrefs.length, p.path).toBeGreaterThanOrEqual(3);
+      expect(hrefs.length, p.path).toBeLessThanOrEqual(5);
+      const resolved = hrefs.map((h) => new URL(h, APP_URL + p.path).href.slice(APP_URL.length));
+      for (const r of resolved) expect(paths, `${p.path} -> ${r}`).toContain(r);
+      expect(resolved).not.toContain(p.path);
+      expect(new Set(resolved).size).toBe(resolved.length);
+    }
+  });
+
+  it('lesson Related blocks link their topic pages and bets (deterministic)', () => {
+    const get = (path: string) => site.pages.find((x) => x.path === path)!.html;
+    expect(get('learn/banker-vs-player/')).toMatch(
+      /class="related"[\s\S]*href="\.\.\/\.\.\/odds\/"/,
+    );
+    expect(get('learn/banker-third-card-table/')).toMatch(
+      /class="related"[\s\S]*href="\.\.\/\.\.\/third-card-rule\/"/,
+    );
+    expect(get('learn/betting-systems/')).toMatch(
+      /class="related"[\s\S]*href="\.\.\/\.\.\/systems\/"/,
+    );
+    expect(get('bets/tie/')).toMatch(
+      /class="related"[\s\S]*href="\.\.\/\.\.\/learn\/settling-bets\/"/,
+    );
+    expect(buildStaticSite(process.cwd()).pages.map((p) => p.html)).toEqual(
+      site.pages.map((p) => p.html),
+    );
+  });
+
+  it('data tables have a caption and scoped headers', () => {
+    for (const path of ['odds/', 'third-card-rule/', 'systems/', 'bets/', 'bets/tie/']) {
+      const html = site.pages.find((x) => x.path === path)!.html;
+      const tables = html.match(/<table[\s\S]*?<\/table>/g) ?? [];
+      expect(tables.length, path).toBeGreaterThan(0);
+      for (const t of tables) {
+        expect(t, path).toMatch(/^<table[^>]*><caption>[^<]/);
+        expect(t).toContain('<th scope="col">');
+        expect(t).toContain('<th scope="row">');
+      }
+    }
   });
 
   it('glossary has one anchor per term', () => {
